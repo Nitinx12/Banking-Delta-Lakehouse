@@ -1,0 +1,51 @@
+# ==========================
+# Line endings — normalize to LF on commit, native on checkout
+# Windows host (pipeline/run_pipeline.ps1) + Linux CI/devcontainer must agree
+# ==========================
+* text=auto eol=lf
+
+# Windows-specific: keep CRLF only where OS demands it
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+# Always LF
+*.sh text eol=lf
+*.py text eol=lf
+*.sql text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+
+# ==========================
+# Binary — never diff, never normalize
+# ==========================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.parquet binary
+*.jar binary
+*.pptx binary
+
+# ==========================
+# Git LFS — Spark connector jars (multi-MB binaries, out-of-band storage)
+# ==========================
+jars/*.jar filter=lfs diff=lfs merge=lfs -text
+
+# ==========================
+# Linguist — keep repo language stats honest
+# ==========================
+jars/** linguist-vendored
+dbt/dbt_packages/** linguist-vendored
+dbt/target/** linguist-vendored
+uv.lock linguist-generated
+dbt/package-lock.yml linguist-generated
+*.min.js linguist-generated
+
+# ==========================
+# Diff drivers
+# ==========================
+*.py diff=python

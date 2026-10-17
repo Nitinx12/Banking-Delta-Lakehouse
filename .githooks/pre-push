@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# .githooks/pre-push — offline sanity before push (fast, no DB needed)
+# Enable with: git config core.hooksPath .githooks
+set -euo pipefail
+
+if ! command -v python >/dev/null 2>&1; then
+  echo "  (python not found — skipping pre-push checks)" >&2
+  exit 0
+fi
+
+# 1. Everything under src/ and scripts/ must compile
+python -m compileall -q src scripts
+
+# 2. All data contracts must parse as JSON
+python -c "import json, glob; [json.load(open(p, encoding='utf-8')) for p in glob.glob('contracts/*/*.json')]; print('  contracts JSON OK')"
+
+echo "✔ pre-push checks passed"

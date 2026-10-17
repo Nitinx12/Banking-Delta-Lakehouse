@@ -1,0 +1,46 @@
+repos:
+  # ── standard hygiene ──
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]  # jars/*.jar are vendored — use `git add -f` if intentional
+      - id: mixed-line-ending
+        args: [--fix=lf]
+        # .ps1/.bat are CRLF by policy (.gitattributes + .editorconfig) — don't touch
+        exclude: \.(ps1|bat|cmd)$
+      - id: detect-private-key
+
+  # ── Ruff — matches ci.yml lint job (uv run ruff check + format) ──
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  # ── SQLFluff — matches ci.yml SQLFluff step ──
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.4.2
+    hooks:
+      - id: sqlfluff-lint
+        args: [--dialect, postgres]
+        files: ^(dbt/models|sql|tests)/.*\.sql$
+      - id: sqlfluff-fix
+        args: [--dialect, postgres]
+        files: ^(dbt/models|sql|tests)/.*\.sql$
+
+  # ── Conventional Commits — local fast-feedback, same regex as commitlint.yml ──
+  - repo: local
+    hooks:
+      - id: conventional-commits
+        name: conventional-commits
+        entry: bash .githooks/commit-msg
+        stages: [commit-msg]
+        language: system

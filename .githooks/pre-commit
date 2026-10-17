@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# .githooks/pre-commit — secrets guard + fast lint (mirrors pre-commit CI)
+# Enable with: git config core.hooksPath .githooks
+set -euo pipefail
+
+# 1. Never commit real secrets
+if git diff --cached --name-only | grep -Eq '(^\.env$|\.pem$|\.key$|id_rsa)'; then
+  echo "✖ refusing to commit secrets (.env, *.pem, *.key)" >&2
+  exit 1
+fi
+
+# 2. Ruff check on staged python files (skip if ruff is not installed)
+staged_py=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
+if [ -n "$staged_py" ]; then
+  if command -v ruff >/dev/null 2>&1; then
+    echo "$staged_py" | xargs ruff check
+    echo "$staged_py" | xargs ruff format --check
+  else
+    echo "  (ruff not found — skipping python lint)" >&2
+  fi
+fi
+
+# 3. Staged data contracts must stay valid JSON (skip if python is missing)
+staged_json=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^contracts/.*\.json$' || true)
+if [ -n "$staged_json" ]; then
+  if command -v python >/dev/null 2>&1; then
+    echo "$staged_json" | xargs python -c \
+      "import json,sys; [json.load(open(p, encoding='utf-8')) for p in sys.argv[1:]]; print('  contracts JSON OK')"
+  else
+    echo "  (python not found — skipping contracts JSON check)" >&2
+  fi
+fi

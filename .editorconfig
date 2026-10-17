@@ -1,0 +1,46 @@
+root = true
+
+# Default: LF + spaces, matching .gitattributes (* eol=lf)
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Python (PEP 8 / Ruff-compatible)
+[*.py]
+indent_size = 4
+max_line_length = 88
+
+# Standard SQL (matches sqlfluff default tab_space_size=4)
+[*.sql]
+indent_size = 4
+
+# Shell scripts
+[*.{sh,bash}]
+end_of_line = lf
+indent_size = 2
+
+# PowerShell (Windows requires CRLF, matches .gitattributes)
+[*.ps1]
+end_of_line = crlf
+indent_size = 4
+
+# Batch files (Windows requires CRLF, matches .gitattributes)
+[*.{bat,cmd}]
+end_of_line = crlf
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{json,toml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false
