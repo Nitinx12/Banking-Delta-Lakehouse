@@ -47,7 +47,9 @@ _SUPPORTED_JAVA = {8, 11, 17, 21}
 def _java_executable() -> str | None:
     java_home = os.environ.get("JAVA_HOME")
     if java_home:
-        candidate = Path(java_home) / "bin" / ("java.exe" if os.name == "nt" else "java")
+        candidate = (
+            Path(java_home) / "bin" / ("java.exe" if os.name == "nt" else "java")
+        )
         if candidate.exists():
             return str(candidate)
     return shutil.which("java")
@@ -55,7 +57,9 @@ def _java_executable() -> str | None:
 
 def _java_major(java: str) -> int | None:
     try:
-        out = subprocess.run([java, "-version"], capture_output=True, text=True, timeout=20).stderr
+        out = subprocess.run(
+            [java, "-version"], capture_output=True, text=True, timeout=20
+        ).stderr
     except Exception:  # noqa: BLE001
         return None
     match = re.search(r'version "(\d+)(?:\.(\d+))?', out)
@@ -78,11 +82,13 @@ def check_runtime() -> None:
     if java is None:
         raise RuntimeError(
             "Java not found. Install JDK 17 (e.g. Temurin) and set JAVA_HOME "
-            "(Windows: setx JAVA_HOME \"C:\\Program Files\\Eclipse Adoptium\\jdk-17...\")."
+            '(Windows: setx JAVA_HOME "C:\\Program Files\\Eclipse Adoptium\\jdk-17...").'
         )
     major = _java_major(java)
     if major is not None and major not in _SUPPORTED_JAVA:
-        raise RuntimeError(f"Java {major} is not supported by Spark 3.5. Use JDK 17 (found: {java}).")
+        raise RuntimeError(
+            f"Java {major} is not supported by Spark 3.5. Use JDK 17 (found: {java})."
+        )
 
     py_major, py_minor = _pyspark_version()
     if (py_major, py_minor) != (3, 5):
@@ -108,18 +114,76 @@ def _prepare_environment() -> None:
 
 
 def _packages(sources: Iterable[str]) -> str:
-    override = os.environ.get("SPARK_JARS_PACKAGES")
-    if override is not None:  # explicit override (use "" to disable downloads)
+    # explicit override wins; empty/unset -> resolve the jars this run needs
+    override = (os.environ.get("SPARK_JARS_PACKAGES") or "").strip()
+    if override:
         return override
     scala = "2.13" if _pyspark_version()[0] >= 4 else "2.12"
     unknown = set(sources) - set(_SOURCE_PACKAGES)
     if unknown:
-        raise ValueError(f"Unknown source(s) {sorted(unknown)}; choose from {sorted(_SOURCE_PACKAGES)}")
+        raise ValueError(
+            f"Unknown source(s) {sorted(unknown)}; choose from {sorted(_SOURCE_PACKAGES)}"
+        )
     return ",".join(_SOURCE_PACKAGES[s].format(scala=scala) for s in sources)
 
 
+# Filename fragment that proves a source's connector is already in the local jar cache.
+_SOURCE_JAR_MARKERS = {
+    "postgres": "postgresql-",
+    "mongodb": "mongo-spark-connector",
+    "mysql": "mysql-connector-j",
+}
+
+
+def _flatten_jars() -> str | None:
+    """Return all cached connector jars as a spark.jars list, or None if not downloaded yet.
+
+    Loading via spark.jars (from the local Ivy jar cache) instead of spark.jars.packages
+    skips Maven resolution, so the noisy Ivy output never reaches the console.
+    """
+    jars_dir = PROJECT_ROOT / ".spark" / "ivy" / "jars"
+    jars = sorted(jars_dir.glob("*.jar")) if jars_dir.is_dir() else []
+    return ",".join(str(jar) for jar in jars) or None
+
+
+def _have_source_jars(sources: Iterable[str]) -> bool:
+    """True if every requested source's connector jar is present in the local cache."""
+    names = [
+        jar.name for jar in (PROJECT_ROOT / ".spark" / "ivy" / "jars").glob("*.jar")
+    ]
+    return all(
+        any(marker in name for name in names)
+        for source in sources
+        if (marker := _SOURCE_JAR_MARKERS.get(source))
+    )
+
+
 # --------------------------------------------------------------------- session
-def get_spark(app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)):
+def _silence_windows_kill() -> None:
+    """Stop PySpark's shutdown taskkill from printing "SUCCESS: ... terminated" (Windows)."""
+    if os.name != "nt":
+        return
+    try:
+        import pyspark.java_gateway as gateway
+    except Exception:  # noqa: BLE001 - never let a shutdown detail break startup
+        return
+    original = gateway.Popen
+    if getattr(original, "_banking_quiet", False):
+        return
+
+    def _quiet_popen(args, *rest, **kwargs):  # noqa: N802 - mirrors the name it replaces
+        if isinstance(args, (list, tuple)) and "taskkill" in args:
+            kwargs.setdefault("stdout", subprocess.DEVNULL)
+            kwargs.setdefault("stderr", subprocess.DEVNULL)
+        return original(args, *rest, **kwargs)
+
+    _quiet_popen._banking_quiet = True
+    gateway.Popen = _quiet_popen
+
+
+def get_spark(
+    app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)
+):
     """Return the SparkSession for this process (one per process; reused if it exists).
 
     sources: which jars to load, any of "postgres", "mysql", "mongodb".
@@ -128,6 +192,7 @@ def get_spark(app_name: str = "banking-pipeline", sources: Iterable[str] = ("pos
     sources = tuple(sources)
     check_runtime()
     _prepare_environment()
+    _silence_windows_kill()
 
     from pyspark.sql import SparkSession
 
@@ -136,14 +201,23 @@ def get_spark(app_name: str = "banking-pipeline", sources: Iterable[str] = ("pos
     for sub in ("ivy", "tmp", "warehouse"):
         (spark_dir / sub).mkdir(parents=True, exist_ok=True)
 
-    jvm_opts = "-Duser.timezone=UTC -XX:+UseG1GC"
+    log4j_conf = PROJECT_ROOT / "conf" / "log4j2.properties"
+    quiet = (
+        f" -Dlog4j2.configurationFile={log4j_conf.as_uri()}"
+        if log4j_conf.is_file()
+        else ""
+    )
+    jvm_opts = f"-Duser.timezone=UTC -XX:+UseG1GC{quiet}"
     builder = (
         SparkSession.builder.appName(app_name)
         .master(os.environ.get("SPARK_MASTER", "local[*]"))
         # --- memory / parallelism -------------------------------------------------
         .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "4g"))
         .config("spark.driver.maxResultSize", "1g")
-        .config("spark.sql.shuffle.partitions", os.environ.get("SPARK_SHUFFLE_PARTITIONS", str(cores)))
+        .config(
+            "spark.sql.shuffle.partitions",
+            os.environ.get("SPARK_SHUFFLE_PARTITIONS", str(cores)),
+        )
         .config("spark.default.parallelism", str(cores))
         .config("spark.sql.adaptive.enabled", "true")
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
@@ -165,11 +239,23 @@ def get_spark(app_name: str = "banking-pipeline", sources: Iterable[str] = ("pos
         .config("spark.ui.showConsoleProgress", "false")
     )
 
-    packages = _packages(sources)
-    if packages:
-        builder = builder.config("spark.jars.packages", packages)
+    override = (os.environ.get("SPARK_JARS_PACKAGES") or "").strip()
+    if override or not _have_source_jars(sources):
+        packages = _packages(sources)
+        if packages:
+            builder = builder.config("spark.jars.packages", packages)
+        jars_desc = packages or "none"
+    else:
+        jars = _flatten_jars() or ""
+        builder = builder.config("spark.jars", jars)
+        jars_desc = f"{len(jars.split(','))} cached jars"
 
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
-    logger.info("Spark %s ready | master=%s | jars=%s", spark.version, spark.sparkContext.master, packages or "none")
+    logger.info(
+        "Spark %s ready | master=%s | jars=%s",
+        spark.version,
+        spark.sparkContext.master,
+        jars_desc,
+    )
     return spark
