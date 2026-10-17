@@ -13,6 +13,8 @@ wheels/
 .sqlfluff
 .mypy_cache
 
+# Spark local cache (downloaded jars, temp, warehouse)
+.spark/
 
 # Environment / secrets
 .env
