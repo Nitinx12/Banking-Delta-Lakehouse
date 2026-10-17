@@ -21,28 +21,170 @@ VALUES
 ON CONFLICT (source_name) DO NOTHING;
 
 -- ------------------------------------------------------------
--- TEMPLATE: register the tables/collections you want extracted.
--- Uncomment, edit, run. Re-running is safe (ON CONFLICT DO NOTHING).
+-- Register the tables/collections to extract. Re-running is safe
+-- (ON CONFLICT DO NOTHING). Adjust target_table if a name collides.
 -- ------------------------------------------------------------
--- INSERT INTO audit.source_tables
---     (source_id, source_schema, source_table, target_schema, target_table,
---      business_key, load_strategy, incremental_column, watermark_strategy,
---      partition_column, num_partitions)
--- SELECT source_id, 'bank_core', 'transactions', 'raw', 'mysql_transactions',
---        'txn_id', 'incremental', 'updated_at', 'timestamp',
---        'txn_id', 8
--- FROM audit.source_registry WHERE source_name = 'mysql_source'
--- ON CONFLICT DO NOTHING;
---
--- INSERT INTO audit.source_tables
---     (source_id, source_schema, source_table, target_table,
---      business_key, load_strategy, incremental_column, watermark_strategy)
--- SELECT source_id, 'bank_docs', 'customers', 'mongo_customers',
---        '_id', 'incremental', 'updated_at', 'timestamp'
--- FROM audit.source_registry WHERE source_name = 'mongodb_source'
--- ON CONFLICT DO NOTHING;
+
+-- MongoDB (banking_support_db): full load, business key = _id
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_support_db', 'support_tickets', 'raw', 'support_tickets',
+       '_id', 'full', 2
+FROM audit.source_registry WHERE source_name = 'mongodb_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_support_db', 'card_transactions', 'raw', 'card_transactions',
+       '_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'mongodb_source'
+ON CONFLICT DO NOTHING;
+
+-- Databricks (schema 'public'): full load, landed name = table name
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'public', 'loans', 'raw', 'loans',
+       'loan_id', 'full', 2
+FROM audit.source_registry WHERE source_name = 'databricks_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'public', 'loan_payments', 'raw', 'loan_payments',
+       'payment_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'databricks_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'public', 'transactions', 'raw', 'transactions',
+       'transaction_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'databricks_source'
+ON CONFLICT DO NOTHING;
+
+-- MySQL (banking_core_db): full load, business key = primary key
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_core_db', 'accounts', 'raw', 'accounts',
+       'account_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'mysql_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_core_db', 'branches', 'raw', 'branches',
+       'branch_id', 'full', 1
+FROM audit.source_registry WHERE source_name = 'mysql_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_core_db', 'cards', 'raw', 'cards',
+       'card_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'mysql_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_core_db', 'customers', 'raw', 'customers',
+       'customer_id', 'full', 4
+FROM audit.source_registry WHERE source_name = 'mysql_source'
+ON CONFLICT DO NOTHING;
+
+INSERT INTO audit.source_tables
+    (source_id,
+    source_schema,
+    source_table,
+    target_schema,
+    target_table,
+    business_key,
+    load_strategy,
+    num_partitions)
+SELECT source_id, 'banking_core_db', 'employees', 'raw', 'employees',
+       'employee_id', 'full', 2
+FROM audit.source_registry WHERE source_name = 'mysql_source'
+ON CONFLICT DO NOTHING;
 
 -- Verify source registration.
-SELECT source_id, source_name, source_type, is_enabled
+SELECT
+    source_id,
+    source_name,
+    source_type,
+    is_enabled
 FROM audit.source_registry
 ORDER BY source_id;
+
+-- Verify table registration.
+SELECT
+    r.source_name,
+    t.source_schema,
+    t.source_table,
+    t.target_schema,
+    t.target_table,
+    t.load_strategy
+FROM audit.source_tables t
+JOIN audit.source_registry r USING (source_id)
+ORDER BY r.source_name, t.source_table;
