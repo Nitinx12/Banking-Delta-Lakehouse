@@ -1,38 +1,48 @@
-"""Project logger — one logger used by every module."""
+"""Project logger — configured once, every module logs through a child logger."""
+
+from __future__ import annotations
 
 import logging
+import os
 import sys
-from pathlib import Path
+
+from . import config  # noqa: F401  (ensures .env is loaded before LOG_LEVEL is read)
+
+_ROOT = "banking"
+_configured = False
 
 
-def get_logger(name: str = "banking") -> logging.Logger:
-    """Return the project logger, configured once."""
-    logger = logging.getLogger(name)
-    if logger.handlers:
-        return logger
+def _configure() -> None:
+    global _configured
+    if _configured:
+        return
 
-    level_name = _level_from_env()
-    logger.setLevel(level_name)
+    level_name = os.environ.get("LOG_LEVEL", "INFO").strip().strip('"').upper()
+    level = getattr(logging, level_name, None)
+    if not isinstance(level, int):
+        level = logging.INFO
 
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setLevel(level_name)
-    handler.setFormatter(
-        logging.Formatter(
-            fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-            datefmt="%Y-%m-%d %H:%M:%S",
+    root = logging.getLogger(_ROOT)
+    root.setLevel(level)
+    root.propagate = False
+    if not root.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(
+            logging.Formatter(
+                fmt="%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
         )
-    )
-    logger.addHandler(handler)
-    logger.propagate = False
-    return logger
+        root.addHandler(handler)
+
+    # py4j is very chatty at DEBUG and drowns real messages.
+    logging.getLogger("py4j").setLevel(logging.WARNING)
+    _configured = True
 
 
-def _level_from_env() -> str:
-    env_level = Path(".env")
-    level = "INFO"
-    if env_level.exists():
-        for line in env_level.read_text().splitlines():
-            if line.strip().startswith("LOG_LEVEL="):
-                level = line.split("=", 1)[1].strip().strip('"').upper()
-                break
-    return level
+def get_logger(name: str | None = None) -> logging.Logger:
+    """Return a logger under the 'banking' namespace (shared handler/format)."""
+    _configure()
+    if not name or name == _ROOT:
+        return logging.getLogger(_ROOT)
+    return logging.getLogger(f"{_ROOT}.{name}")

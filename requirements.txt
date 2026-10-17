@@ -1,0 +1,9 @@
+# Spark 3.5.x = Scala 2.12 -> matches the connector jars pinned in utils/engine.py. Needs Java 17.
+pyspark>=3.5.3,<3.6
+psycopg2-binary>=2.9
+pymysql>=1.1
+pymongo>=4.7
+python-dotenv>=1.0
+# Databricks source (pure Python, no JVM). Only needed for the Databricks extractor:
+databricks-sql-connector>=3.0
+pyarrow>=15
