@@ -10,6 +10,9 @@ What lands in Postgres
 ----------------------
 * table name  = audit.source_tables.target_table  (register it equal to the collection name)
 * column name = Mongo field name (case preserved), column type = type Spark infers from Mongo
+* ISO date/timestamp text fields (names like *_date, *_at, dob) are cast to real
+  date/timestamp; values that do not parse become NULL and are logged as a DQ WARNING
+* numeric foreign keys listed in FOREIGN_KEYS are cast to bigint
 * nested documents / arrays of documents -> jsonb column with the SAME name
 * two extra metadata columns:  _batch_id (table_run_id)  and  _loaded_at
 
@@ -42,18 +45,27 @@ from utils.logger import get_logger
 from utils.session import get_spark_session, pg_transaction, stop_spark
 from utils.spark_io import (
     add_audit_columns,
+    cast_integers,
+    cast_temporal,
     drop_staging,
     mongo_count,
     mongo_max_watermark,
     prepare_for_jdbc,
     promote_staging,
     read_mongo,
+    temporal_parse_failures,
     write_staging,
 )
 
 logger = get_logger("extract_mongo")
 
 SOURCE_NAME = "mongodb_source"
+
+# Mongo stores numeric keys as strings; these reference numeric parent keys in raw.
+FOREIGN_KEYS: dict[str, tuple[str, ...]] = {
+    "support_tickets": ("customer_id",),
+    "card_transactions": ("card_id",),
+}
 
 
 def extract_table(
@@ -91,7 +103,15 @@ def extract_table(
             logger.info("[%s] full load", label)
 
         # ---- 2. read from Mongo, make it JDBC-writable, add lineage columns -----------
-        df = read_mongo(spark, cfg, start, end)
+        raw = read_mongo(spark, cfg, start, end)
+        df, temporal_cols = cast_temporal(raw)
+        df = cast_integers(df, FOREIGN_KEYS.get(cfg["source_table"], ()))
+        if temporal_cols:
+            logger.info(
+                "[%s] text date fields cast: %s",
+                label,
+                ", ".join(f"{c}->{k}" for c, k in temporal_cols.items()),
+            )
         df, json_cols = prepare_for_jdbc(df)
         df = add_audit_columns(df, run.table_run_id)
         if json_cols:
@@ -140,6 +160,32 @@ def extract_table(
                 expected,
                 run.rows_landed,
             )
+
+        # ---- 5b. data-quality: date text that failed to parse -> NULL (never blocks) ---
+        if temporal_cols:
+            failures = {
+                col: n
+                for col, n in temporal_parse_failures(raw, temporal_cols).items()
+                if n
+            }
+            if failures:
+                total = sum(failures.values())
+                logger.warning(
+                    "[%s] %s date value(s) did not parse and were set to NULL: %s",
+                    label,
+                    total,
+                    failures,
+                )
+                log_dq_result(
+                    check_name="temporal_values_parsed",
+                    status="WARNING",
+                    records_checked=expected * len(temporal_cols),
+                    records_failed=total,
+                    details={"columns": failures},
+                    pipeline_run_id=pipeline_run_id,
+                    table_run_id=run.table_run_id,
+                    config_id=cfg["config_id"],
+                )
         return "SUCCESS"
 
 

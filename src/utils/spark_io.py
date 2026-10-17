@@ -20,9 +20,12 @@ import re
 import shutil
 import uuid
 from contextlib import closing
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from psycopg2 import sql
+
+if TYPE_CHECKING:
+    from pyspark.sql import DataFrame
 
 from .config import PROJECT_ROOT
 from .connection import (
@@ -376,6 +379,78 @@ def read_mongo(
     return reader.load()
 
 
+_MONGO_DATE_NAME = re.compile(r"_date$|^(?:dob|date_of_birth)$", re.IGNORECASE)
+_MONGO_TS_NAME = re.compile(r"_(?:at|ts|timestamp|dt)$", re.IGNORECASE)
+
+
+def _temporal_expr(name: str, kind: str):
+    from pyspark.sql import functions as F
+
+    column = F.col(f"`{name}`")
+    return F.to_date(column) if kind == "date" else F.to_timestamp(column)
+
+
+def cast_temporal(df: DataFrame) -> tuple[DataFrame, dict[str, str]]:
+    """Cast ISO date/timestamp TEXT fields to real temporal types (Mongo is schemaless).
+
+    Mongo holds these as strings, so Spark infers text; the raw contract wants
+    date/timestamp. Only StringType fields whose NAME looks like a date are cast, so
+    genuine free-text columns are untouched. Returns (df, {column: "date"|"timestamp"}).
+    """
+    from pyspark.sql import functions as F
+    from pyspark.sql import types as T
+
+    cols, casts = [], {}
+    for f in df.schema.fields:
+        kind = None
+        if isinstance(f.dataType, T.StringType):
+            if _MONGO_DATE_NAME.search(f.name):
+                kind = "date"
+            elif _MONGO_TS_NAME.search(f.name):
+                kind = "timestamp"
+        if kind:
+            cols.append(_temporal_expr(f.name, kind).alias(f.name))
+            casts[f.name] = kind
+        else:
+            cols.append(F.col(f"`{f.name}`").alias(f.name))
+    return df.select(*cols), casts
+
+
+def temporal_parse_failures(df: DataFrame, casts: dict[str, str]) -> dict[str, int]:
+    """Count values that are present but unparseable (they become NULL after the cast)."""
+    from pyspark.sql import functions as F
+
+    if not casts:
+        return {}
+    exprs = [
+        F.sum(
+            F.when(
+                F.col(f"`{name}`").isNotNull() & _temporal_expr(name, kind).isNull(), 1
+            ).otherwise(0)
+        ).alias(name)
+        for name, kind in casts.items()
+    ]
+    row = df.agg(*exprs).first()
+    return {name: int(row[name] or 0) for name in casts}
+
+
+def cast_integers(df: DataFrame, columns: tuple[str, ...]) -> DataFrame:
+    """Cast named TEXT columns to bigint (Mongo holds numeric keys as strings)."""
+    from pyspark.sql import functions as F
+
+    wanted = set(columns)
+    if not wanted:
+        return df
+    return df.select(
+        *(
+            F.col(f"`{f.name}`").cast("bigint").alias(f.name)
+            if f.name in wanted
+            else F.col(f"`{f.name}`").alias(f.name)
+            for f in df.schema.fields
+        )
+    )
+
+
 # ----------------------------------------------------------------- Databricks
 def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
     if cfg["load_strategy"] != "incremental" or end is None:
@@ -609,6 +684,7 @@ def promote_staging(
     * incremental -> append (raw is history; dedupe by business_key in the staging layer)
     * jsonb_columns: text columns to create as jsonb (existing jsonb target columns are cast automatically)
     * column_types: exact Postgres types to use when creating the target (e.g. MySQL varchar(n))
+    * metadata contract on create: _batch_id/_loaded_at NOT NULL, _loaded_at is timestamptz
     """
     t_schema, t_name = _pg_ident(cfg["target_schema"]), _pg_ident(cfg["target_table"])
     s_schema, s_name = staging_name(cfg)
@@ -641,6 +717,25 @@ def promote_staging(
                         "ALTER TABLE {} ALTER COLUMN {} TYPE jsonb USING {}::jsonb"
                     ).format(T, sql.Identifier(col), sql.Identifier(col))
                 )
+            # raw contract: metadata columns are NOT NULL; _loaded_at is timezone-aware
+            # (Spark has no zoned type, so the column is fixed here, not inferred)
+            stg_names = {c for c, _ in stg_cols}
+            if "_loaded_at" in stg_names:
+                cur.execute(
+                    sql.SQL(
+                        "ALTER TABLE {} ALTER COLUMN {} TYPE timestamptz "
+                        "USING {}::timestamptz"
+                    ).format(
+                        T, sql.Identifier("_loaded_at"), sql.Identifier("_loaded_at")
+                    )
+                )
+            for meta_col in ("_batch_id", "_loaded_at"):
+                if meta_col in stg_names:
+                    cur.execute(
+                        sql.SQL("ALTER TABLE {} ALTER COLUMN {} SET NOT NULL").format(
+                            T, sql.Identifier(meta_col)
+                        )
+                    )
         else:
             existing = {c for c, _ in _columns(cur, t_schema, t_name)}
             for col, coltype in stg_cols:
