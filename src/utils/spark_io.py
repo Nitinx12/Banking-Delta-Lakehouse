@@ -1,4 +1,4 @@
-"""Spark readers/writers: MySQL & MongoDB  ->  PostgreSQL raw layer.
+"""Spark readers/writers: MySQL, MongoDB & Databricks  ->  PostgreSQL raw layer.
 
 Load pattern (safe + fast)
 --------------------------
@@ -17,20 +17,31 @@ from __future__ import annotations
 import json
 import os
 import re
+import shutil
 import uuid
 from contextlib import closing
 from typing import Optional
 
 from psycopg2 import sql
 
-from .connection import get_mongo_client, get_mysql_connection, mongo_settings, mysql_jdbc, pg_jdbc
+from .config import PROJECT_ROOT
+from .connection import (
+    get_databricks_connection,
+    get_mongo_client,
+    get_mysql_connection,
+    mongo_settings,
+    mysql_jdbc,
+    pg_jdbc,
+)
 from .logger import get_logger
 
 logger = get_logger(__name__)
 
 _MYSQL_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_$]*$")
+_DBX_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _PG_IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
 _TS = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z?$")
+_DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _NUM = re.compile(r"^-?\d+(\.\d+)?$")
 _OID = re.compile(r"^[0-9a-fA-F]{24}$")
 
@@ -80,10 +91,41 @@ def _mongo_value(strategy: str, value: str):
     raise ValueError(f"Unknown watermark_strategy={strategy!r}")
 
 
+def _dbx_ident(name: str) -> str:
+    if not name or not _DBX_IDENT.match(name):
+        raise ValueError(f"Unsafe or empty Databricks identifier: {name!r}")
+    return name
+
+
+def _dbx_qualified(cfg: dict) -> str:
+    """`catalog`.`schema`.`table` — catalog from the config or DATABRICKS_CATALOG."""
+    parts = [p for p in cfg["source_schema"].split(".") if p]
+    parts.append(cfg["source_table"])
+    if len(parts) == 2 and os.environ.get("DATABRICKS_CATALOG"):
+        parts.insert(0, os.environ["DATABRICKS_CATALOG"])
+    return ".".join(f"`{_dbx_ident(p)}`" for p in parts)
+
+
+def _dbx_literal(strategy: str, value: str) -> str:
+    if strategy == "numeric":
+        if not _NUM.match(value):
+            raise ValueError(f"Bad numeric watermark: {value!r}")
+        return value
+    if strategy == "timestamp":
+        if _DATE.match(value):  # date-only watermark value
+            return f"TIMESTAMP'{value}'"
+        return f"TIMESTAMP'{_norm_ts(value)}'"
+    raise ValueError(f"Databricks does not support watermark_strategy={strategy!r}")
+
+
 # ------------------------------------------------------- batch window (source)
 def mysql_max_watermark(cfg: dict) -> Optional[str]:
     """MAX(incremental_column) straight from MySQL, in MySQL's own format (index it!)."""
-    col, schema, table = _ident(cfg["incremental_column"]), _ident(cfg["source_schema"]), _ident(cfg["source_table"])
+    col, schema, table = (
+        _ident(cfg["incremental_column"]),
+        _ident(cfg["source_schema"]),
+        _ident(cfg["source_table"]),
+    )
     with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
         cur.execute(f"SELECT MAX(`{col}`) FROM `{schema}`.`{table}`")
         (value,) = cur.fetchone()
@@ -105,6 +147,23 @@ def mongo_max_watermark(cfg: dict) -> Optional[str]:
     return str(value)
 
 
+def databricks_max_watermark(cfg: dict) -> Optional[str]:
+    """MAX(incremental_column) straight from Databricks, in a normalised text form."""
+    col = _dbx_ident(cfg["incremental_column"])
+    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT MAX(`{col}`) FROM {_dbx_qualified(cfg)}")
+        (value,) = cur.fetchone()
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):  # date / datetime
+        return (
+            value.isoformat(sep=" ", timespec="microseconds")
+            if hasattr(value, "hour")
+            else value.isoformat()
+        )
+    return str(value)
+
+
 # ----------------------------------------------------------------------- MySQL
 def _mysql_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
     if cfg["load_strategy"] != "incremental" or end is None:
@@ -112,20 +171,119 @@ def _mysql_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
     col, strat = _ident(cfg["incremental_column"]), cfg["watermark_strategy"]
     clauses = [f"`{col}` <= {_mysql_literal(strat, end)}"]
     if start is not None:
-        clauses.append(f"`{col}` >= {_mysql_literal(strat, start)}")  # >= : boundary rows re-read; dedupe in staging layer
+        clauses.append(
+            f"`{col}` >= {_mysql_literal(strat, start)}"
+        )  # >= : boundary rows re-read; dedupe in staging layer
     return " WHERE " + " AND ".join(clauses)
 
 
-def _mysql_bounds(schema: str, table: str, col: str, where: str) -> Optional[tuple[str, str]]:
+def _mysql_bounds(
+    schema: str, table: str, col: str, where: str
+) -> Optional[tuple[str, str]]:
     with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
-        cur.execute(f"SELECT MIN(`{col}`), MAX(`{col}`) FROM `{schema}`.`{table}`{where}")
+        cur.execute(
+            f"SELECT MIN(`{col}`), MAX(`{col}`) FROM `{schema}`.`{table}`{where}"
+        )
         lo, hi = cur.fetchone()
     if lo is None or hi is None or lo == hi:
         return None
     return str(lo), str(hi)
 
 
-def read_mysql(spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None):
+def mysql_count(
+    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+) -> int:
+    """Exact number of source rows in the batch window (for the row-count DQ check)."""
+    schema, table = _ident(cfg["source_schema"]), _ident(cfg["source_table"])
+    where = _mysql_where(cfg, start, end)
+    with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) FROM `{schema}`.`{table}`{where}")
+        (count,) = cur.fetchone()
+    return int(count)
+
+
+_MYSQL_TYPE_MAP = {
+    "tinyint": "smallint",
+    "smallint": "smallint",
+    "mediumint": "integer",
+    "int": "integer",
+    "integer": "integer",
+    "bigint": "bigint",
+    "float": "real",
+    "double": "double precision",
+    "date": "date",
+    "time": "time",
+    "year": "smallint",
+    "json": "jsonb",
+    "tinytext": "text",
+    "text": "text",
+    "mediumtext": "text",
+    "longtext": "text",
+    "enum": "text",
+    "set": "text",
+    "tinyblob": "bytea",
+    "blob": "bytea",
+    "mediumblob": "bytea",
+    "longblob": "bytea",
+    "binary": "bytea",
+    "varbinary": "bytea",
+}
+_MYSQL_UNSIGNED = {
+    "tinyint": "smallint",
+    "smallint": "integer",
+    "mediumint": "integer",
+    "int": "bigint",
+    "integer": "bigint",
+    "bigint": "numeric(20,0)",
+}
+
+
+def _mysql_pg_type(
+    data_type, column_type, char_len, num_precision, num_scale, dt_precision
+) -> str:
+    """Map one MySQL column to its exact PostgreSQL type equivalent."""
+    dt = (data_type or "").lower()
+    unsigned = "unsigned" in (column_type or "").lower()
+    if dt in ("decimal", "numeric"):
+        return f"numeric({num_precision or 10},{num_scale or 0})"
+    if dt in ("datetime", "timestamp"):
+        base = "timestamp" if dt == "datetime" else "timestamptz"
+        return f"{base}({dt_precision})" if dt_precision is not None else base
+    if dt == "char":
+        return f"char({char_len or 1})"
+    if dt == "varchar":
+        return f"varchar({char_len})" if char_len else "text"
+    if dt == "bit":
+        return f"bit({num_precision})" if num_precision else "bit"
+    if unsigned and dt in _MYSQL_UNSIGNED:
+        return _MYSQL_UNSIGNED[dt]
+    return _MYSQL_TYPE_MAP.get(dt, "text")
+
+
+def mysql_column_types(cfg: dict) -> dict[str, str]:
+    """Exact PostgreSQL type per column, read from MySQL's own information_schema."""
+    schema, table = _ident(cfg["source_schema"]), _ident(cfg["source_table"])
+    with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, CHARACTER_MAXIMUM_LENGTH,
+                   NUMERIC_PRECISION, NUMERIC_SCALE, DATETIME_PRECISION
+            FROM information_schema.columns
+            WHERE TABLE_SCHEMA = %s AND TABLE_NAME = %s
+            ORDER BY ORDINAL_POSITION
+            """,
+            (schema, table),
+        )
+        rows = cur.fetchall()
+    return {
+        name: _mysql_pg_type(dtype, ctype, char_len, prec, scale, dtp)
+        for name, dtype, ctype, char_len, prec, scale, dtp in rows
+    }
+
+
+def read_mysql(
+    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+):
     """Read one MySQL table (or incremental window) with parallel, streamed JDBC partitions."""
     schema, table = _ident(cfg["source_schema"]), _ident(cfg["source_table"])
     where = _mysql_where(cfg, start, end)
@@ -142,7 +300,11 @@ def read_mysql(spark, cfg: dict, start: Optional[str] = None, end: Optional[str]
     )
 
     pcol, nparts = cfg.get("partition_column"), int(cfg.get("num_partitions") or 1)
-    bounds = _mysql_bounds(schema, table, _ident(pcol), where) if pcol and nparts > 1 else None
+    bounds = (
+        _mysql_bounds(schema, table, _ident(pcol), where)
+        if pcol and nparts > 1
+        else None
+    )
     if bounds:
         reader = (
             reader.option("partitionColumn", pcol)
@@ -150,45 +312,231 @@ def read_mysql(spark, cfg: dict, start: Optional[str] = None, end: Optional[str]
             .option("upperBound", bounds[1])
             .option("numPartitions", str(nparts))
         )
-        logger.info("[%s.%s] MySQL read: %d partitions on %s (%s .. %s)", schema, table, nparts, pcol, *bounds)
+        logger.info(
+            "[%s.%s] MySQL read: %d partitions on %s (%s .. %s)",
+            schema,
+            table,
+            nparts,
+            pcol,
+            *bounds,
+        )
     else:
         logger.info("[%s.%s] MySQL read: single partition", schema, table)
     return reader.load()
 
 
 # --------------------------------------------------------------------- MongoDB
-def read_mongo(spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None):
-    """Read a collection as (_id, doc-as-JSON). Schema drift can't break the raw layer."""
-    from pyspark.sql import functions as F
+def _mongo_window(cfg: dict, start: Optional[str], end: Optional[str]) -> dict:
+    """Extended-JSON $match filter for the batch window ({} = whole collection)."""
+    if cfg["load_strategy"] != "incremental" or end is None:
+        return {}
+    col, strat = cfg["incremental_column"], cfg["watermark_strategy"]
+    cond = {"$lte": _mongo_value(strat, end)}
+    if start is not None:
+        cond["$gte"] = _mongo_value(
+            strat, start
+        )  # >= : boundary rows re-read; dedupe in staging layer
+    return {col: cond}
 
+
+def mongo_count(
+    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+) -> int:
+    """Exact number of source documents in the batch window (for the row-count DQ check)."""
+    from bson import json_util
+
+    flt = json_util.loads(json.dumps(_mongo_window(cfg, start, end)))
+    with closing(get_mongo_client()) as client:
+        return client[cfg["source_schema"]][cfg["source_table"]].count_documents(flt)
+
+
+def read_mongo(
+    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+):
+    """Read a collection with its fields as columns (same names, inferred types).
+
+    Schema is inferred from a sample of MONGO_SAMPLE_SIZE documents (default 10000).
+    A field that never appears in the sample would be missing -> raise the sample size
+    for very irregular collections.
+    """
     m = mongo_settings()
     reader = (
         spark.read.format("mongodb")
         .option("connection.uri", m["uri"])
         .option("database", cfg["source_schema"])
         .option("collection", cfg["source_table"])
-        .option("outputExtendedJson", "true")  # BSON types Spark can't represent -> extended JSON, not an error
+        .option("sampleSize", os.environ.get("MONGO_SAMPLE_SIZE", "10000"))
+        .option(
+            "outputExtendedJson", "true"
+        )  # BSON types Spark can't represent -> extended JSON, not an error
     )
-    if cfg["load_strategy"] == "incremental" and end is not None:
-        col, strat = cfg["incremental_column"], cfg["watermark_strategy"]
-        cond = {"$lte": _mongo_value(strat, end)}
-        if start is not None:
-            cond["$gte"] = _mongo_value(strat, start)
-        reader = reader.option("aggregation.pipeline", json.dumps([{"$match": {col: cond}}]))
+    window = _mongo_window(cfg, start, end)
+    if window:
+        reader = reader.option("aggregation.pipeline", json.dumps([{"$match": window}]))
+    return reader.load()
 
-    df = reader.load()
-    others = [c for c in df.columns if c != "_id"]
-    return df.select(
-        F.col("_id").cast("string").alias("_id"),
-        F.to_json(F.struct(*[F.col(f"`{c}`") for c in others])).alias("doc"),
+
+# ----------------------------------------------------------------- Databricks
+def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
+    if cfg["load_strategy"] != "incremental" or end is None:
+        return ""
+    col, strat = _dbx_ident(cfg["incremental_column"]), cfg["watermark_strategy"]
+    clauses = [f"`{col}` <= {_dbx_literal(strat, end)}"]
+    if start is not None:
+        clauses.append(f"`{col}` >= {_dbx_literal(strat, start)}")
+    return " WHERE " + " AND ".join(clauses)
+
+
+def _dbx_columns(cfg: dict) -> list[tuple[str, str]]:
+    """(column_name, data_type) from DESCRIBE, stopping before the partition section."""
+    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+        cur.execute(f"DESCRIBE TABLE {_dbx_qualified(cfg)}")
+        columns = []
+        for name, dtype, *_ in cur.fetchall():
+            if not name or name.startswith("#") or name == "col_name":
+                break
+            columns.append((_dbx_ident(name), dtype))
+    return columns
+
+
+def databricks_count(
+    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+) -> int:
+    """Exact number of source rows in the batch window (for the row-count DQ check)."""
+    where = _dbx_where(cfg, start, end)
+    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT COUNT(*) FROM {_dbx_qualified(cfg)}{where}")
+        return cur.fetchone()[0]
+
+
+def read_databricks(
+    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+):
+    """Read a Databricks table (or incremental window) into a Spark DataFrame.
+
+    The SQL warehouse is queried with the pure-Python connector; results arrive as
+    Arrow and are streamed to a local Parquet file, which Spark then reads. That
+    keeps memory flat for large tables and needs no JDBC driver on the classpath.
+    """
+    import pyarrow as pa
+    import pyarrow.parquet as pq
+
+    columns = _dbx_columns(cfg)
+    if not columns:
+        raise RuntimeError(f"Cannot introspect Databricks table {_dbx_qualified(cfg)}")
+    col_list = ", ".join(f"`{name}`" for name, _ in columns)
+    query = f"SELECT {col_list} FROM {_dbx_qualified(cfg)}{_dbx_where(cfg, start, end)}"
+
+    batch_rows = int(os.environ.get("DATABRICKS_FETCH_ROWS", "200000"))
+    out_dir = PROJECT_ROOT / ".spark" / "tmp" / f"databricks_{cfg['target_table']}"
+    shutil.rmtree(out_dir, ignore_errors=True)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_file = out_dir / "part-0.parquet"
+
+    schema = pa.schema(
+        [pa.field(name, _dbx_arrow_type(dtype)) for name, dtype in columns]
     )
+    writer: Optional[pq.ParquetWriter] = None
+    total = 0
+    try:
+        with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+            cur.execute(query)
+            while True:
+                batch = cur.fetchmany_arrow(batch_rows)
+                if batch.num_rows == 0:
+                    break
+                if writer is None:
+                    writer = pq.ParquetWriter(out_file, batch.schema)
+                writer.write_table(batch)
+                total += batch.num_rows
+    finally:
+        if writer is not None:
+            writer.close()
+
+    if (
+        writer is None
+    ):  # empty result: still write an empty file so Spark sees the schema
+        pq.write_table(pa.Table.from_batches([], schema=schema), out_file)
+
+    logger.info("[%s] Databricks read: %d rows", cfg["source_table"], total)
+    return spark.read.parquet(
+        str(out_file)
+    )  # single file: avoids Hadoop dir-listing on Windows
+
+
+def _dbx_arrow_type(sql_type: str):
+    """Map a Databricks SQL type to a pyarrow type (used for empty results)."""
+    import pyarrow as pa
+
+    base = sql_type.lower().split("(")[0].strip()
+    mapping = {
+        "bigint": pa.int64(),
+        "int": pa.int32(),
+        "integer": pa.int32(),
+        "smallint": pa.int16(),
+        "tinyint": pa.int8(),
+        "double": pa.float64(),
+        "float": pa.float32(),
+        "real": pa.float32(),
+        "boolean": pa.bool_(),
+        "date": pa.date32(),
+        "timestamp": pa.timestamp("us", tz="UTC"),
+        "timestamp_ntz": pa.timestamp("us"),
+        "string": pa.string(),
+        "varchar": pa.string(),
+        "char": pa.string(),
+        "binary": pa.binary(),
+    }
+    if base == "decimal":
+        precision, scale = (sql_type.split("(")[1].rstrip(")").split(",") + ["0"])[:2]
+        return pa.decimal128(int(precision), int(scale))
+    return mapping.get(base, pa.string())
+
+
+def prepare_for_jdbc(df):
+    """Make a Mongo DataFrame writable through JDBC WITHOUT renaming or retyping columns.
+
+    Spark JDBC cannot write struct / map / array-of-struct / all-null columns, so those become:
+      * struct, map, array-of-struct/array  -> JSON text (landed as jsonb in Postgres)
+      * all-null (NullType)                 -> string
+    Everything else (string, int, bigint, double, decimal, bool, timestamp, binary,
+    arrays of primitives) is written as-is. Returns (df, names_of_json_columns).
+    """
+    from pyspark.sql import functions as F
+    from pyspark.sql import types as T
+
+    def atomic(dt) -> bool:
+        return not isinstance(dt, (T.StructType, T.MapType, T.ArrayType, T.NullType))
+
+    cols, json_cols = [], []
+    for f in df.schema.fields:
+        c, dt = F.col(f"`{f.name}`"), f.dataType
+        if f.name == "_id":
+            if isinstance(dt, T.StructType) and "oid" in dt.names:
+                c = F.col("`_id`.oid").cast(
+                    "string"
+                )  # legacy connector shape {oid: ...}
+            elif isinstance(dt, T.StringType):
+                # outputExtendedJson leaves ObjectId as {"$oid": "hex"}; plain string _ids pass through
+                c = F.coalesce(F.get_json_object(c, "$['$oid']"), c)
+        elif isinstance(dt, T.NullType):
+            c = c.cast("string")
+        elif isinstance(dt, (T.StructType, T.MapType)) or (
+            isinstance(dt, T.ArrayType) and not atomic(dt.elementType)
+        ):
+            c = F.to_json(c)
+            json_cols.append(f.name)
+        cols.append(c.alias(f.name))
+    return df.select(*cols), tuple(json_cols)
 
 
 # -------------------------------------------------------------- audit columns
 def add_audit_columns(df, table_run_id: uuid.UUID):
     from pyspark.sql import functions as F
 
-    return df.withColumn("_batch_id", F.lit(str(table_run_id))).withColumn("_loaded_at", F.current_timestamp())
+    return df.withColumn("_batch_id", F.lit(str(table_run_id))).withColumn(
+        "_loaded_at", F.current_timestamp()
+    )
 
 
 # ---------------------------------------------------------- write to Postgres
@@ -206,7 +554,9 @@ def write_staging(df, cfg: dict) -> int:
     schema, name = staging_name(cfg)
     nparts = max(1, int(cfg.get("num_partitions") or 4))
     if df.rdd.getNumPartitions() > nparts:
-        df = df.coalesce(nparts)  # = number of parallel PG connections; do not overload the warehouse
+        df = df.coalesce(
+            nparts
+        )  # = number of parallel PG connections; do not overload the warehouse
     j = pg_jdbc()
     (
         df.write.format("jdbc")
@@ -216,13 +566,19 @@ def write_staging(df, cfg: dict) -> int:
         .option("driver", j["driver"])
         .option("dbtable", f"{schema}.{name}")
         .option("batchsize", str(cfg.get("batch_size") or 20000))
-        .mode("overwrite")  # drops+recreates staging (types always match the current source)
+        .mode(
+            "overwrite"
+        )  # drops+recreates staging (types always match the current source)
         .save()
     )
     from .session import pg_cursor
 
     with pg_cursor() as cur:
-        cur.execute(sql.SQL("SELECT count(*) FROM {}.{}").format(sql.Identifier(schema), sql.Identifier(name)))
+        cur.execute(
+            sql.SQL("SELECT count(*) FROM {}.{}").format(
+                sql.Identifier(schema), sql.Identifier(name)
+            )
+        )
         return cur.fetchone()[0]
 
 
@@ -239,13 +595,20 @@ def _columns(cur, schema: str, table: str) -> list[tuple[str, str]]:
     return cur.fetchall()
 
 
-def promote_staging(conn, cfg: dict, *, jsonb_columns: tuple[str, ...] = ()) -> int:
+def promote_staging(
+    conn,
+    cfg: dict,
+    *,
+    jsonb_columns: tuple[str, ...] = (),
+    column_types: Optional[dict[str, str]] = None,
+) -> int:
     """staging -> raw target, inside the CALLER's transaction. Returns rows inserted.
 
     * creates the target on first run, adds new source columns automatically (schema drift)
     * full load  -> TRUNCATE + INSERT (atomic: readers never see an empty table)
     * incremental -> append (raw is history; dedupe by business_key in the staging layer)
-    * jsonb_columns: text columns to store as jsonb (e.g. ("doc",) for MongoDB)
+    * jsonb_columns: text columns to create as jsonb (existing jsonb target columns are cast automatically)
+    * column_types: exact Postgres types to use when creating the target (e.g. MySQL varchar(n))
     """
     t_schema, t_name = _pg_ident(cfg["target_schema"]), _pg_ident(cfg["target_table"])
     s_schema, s_name = staging_name(cfg)
@@ -254,30 +617,71 @@ def promote_staging(conn, cfg: dict, *, jsonb_columns: tuple[str, ...] = ()) -> 
     with conn.cursor() as cur:
         stg_cols = _columns(cur, s_schema, s_name)
         if not stg_cols:
-            raise RuntimeError(f"Staging table {s_schema}.{s_name} not found or has no columns")
+            raise RuntimeError(
+                f"Staging table {s_schema}.{s_name} not found or has no columns"
+            )
 
         if not _columns(cur, t_schema, t_name):
             cur.execute(sql.SQL("CREATE TABLE {} (LIKE {})").format(T, S))
+            for col, coltype in (column_types or {}).items():
+                cur.execute(
+                    sql.SQL(
+                        "ALTER TABLE {} ALTER COLUMN {} TYPE {} USING {}::{}"
+                    ).format(
+                        T,
+                        sql.Identifier(col),
+                        sql.SQL(coltype),
+                        sql.Identifier(col),
+                        sql.SQL(coltype),
+                    )
+                )
             for col in jsonb_columns:
-                cur.execute(sql.SQL("ALTER TABLE {} ALTER COLUMN {} TYPE jsonb USING {}::jsonb")
-                            .format(T, sql.Identifier(col), sql.Identifier(col)))
+                cur.execute(
+                    sql.SQL(
+                        "ALTER TABLE {} ALTER COLUMN {} TYPE jsonb USING {}::jsonb"
+                    ).format(T, sql.Identifier(col), sql.Identifier(col))
+                )
         else:
             existing = {c for c, _ in _columns(cur, t_schema, t_name)}
             for col, coltype in stg_cols:
                 if col not in existing:
-                    logger.warning("Schema drift: adding column %s.%s.%s (%s)", t_schema, t_name, col, coltype)
-                    ddl_type = "jsonb" if col in jsonb_columns else coltype
-                    cur.execute(sql.SQL("ALTER TABLE {} ADD COLUMN {} " + ddl_type).format(T, sql.Identifier(col)))
+                    wanted = (
+                        "jsonb"
+                        if col in jsonb_columns
+                        else ((column_types or {}).get(col) or coltype)
+                    )
+                    logger.warning(
+                        "Schema drift: adding column %s.%s.%s (%s)",
+                        t_schema,
+                        t_name,
+                        col,
+                        wanted,
+                    )
+                    cur.execute(
+                        sql.SQL("ALTER TABLE {} ADD COLUMN {} {}").format(
+                            T, sql.Identifier(col), sql.SQL(wanted)
+                        )
+                    )
 
         if cfg["load_strategy"] == "full":
             cur.execute(sql.SQL("TRUNCATE TABLE {}").format(T))
 
+        target_types = dict(_columns(cur, t_schema, t_name))
+        as_jsonb = {
+            c
+            for c, _ in stg_cols
+            if c in jsonb_columns or target_types.get(c) == "jsonb"
+        }
         cols = sql.SQL(", ").join(sql.Identifier(c) for c, _ in stg_cols)
         select = sql.SQL(", ").join(
-            sql.SQL("{}::jsonb").format(sql.Identifier(c)) if c in jsonb_columns else sql.Identifier(c)
+            sql.SQL("{}::jsonb").format(sql.Identifier(c))
+            if c in as_jsonb
+            else sql.Identifier(c)
             for c, _ in stg_cols
         )
-        cur.execute(sql.SQL("INSERT INTO {} ({}) SELECT {} FROM {}").format(T, cols, select, S))
+        cur.execute(
+            sql.SQL("INSERT INTO {} ({}) SELECT {} FROM {}").format(T, cols, select, S)
+        )
         return cur.rowcount
 
 
@@ -286,4 +690,8 @@ def drop_staging(cfg: dict) -> None:
 
     schema, name = staging_name(cfg)
     with pg_cursor() as cur:
-        cur.execute(sql.SQL("DROP TABLE IF EXISTS {}.{}").format(sql.Identifier(schema), sql.Identifier(name)))
+        cur.execute(
+            sql.SQL("DROP TABLE IF EXISTS {}.{}").format(
+                sql.Identifier(schema), sql.Identifier(name)
+            )
+        )
