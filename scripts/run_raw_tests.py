@@ -8,6 +8,7 @@ only if every test passed.
 
     python scripts/run_raw_tests.py                 # run every raw test
     python scripts/run_raw_tests.py --only 09       # run tests whose name matches "09"
+    python scripts/run_raw_tests.py --master        # run 00_master_raw_tests.sql only
     python scripts/run_raw_tests.py -v              # also print each test's NOTICE lines
     python scripts/run_raw_tests.py --list          # list discovered tests and exit
 """
@@ -55,9 +56,11 @@ class TestResult:
     notices: list[str] = field(default_factory=list)
 
 
-def discover_tests(only: str | None) -> list[Path]:
-    """Return the raw test files in numeric order, optionally filtered by a substring."""
-    tests = sorted(TEST_DIR.glob("*.sql"))
+def discover_tests(only: str | None, master: bool = False) -> list[Path]:
+    """Return test files in numeric order; master files are excluded unless requested."""
+    tests = sorted(
+        t for t in TEST_DIR.glob("*.sql") if t.name.startswith("00_master_") == master
+    )
     if only:
         tests = [t for t in tests if only in t.name]
     return tests
@@ -84,11 +87,17 @@ def run_test(conn, path: Path) -> TestResult:
         error = str(exc).strip()
     elapsed = time.perf_counter() - start
     notices = [line for line in (n.strip() for n in conn.notices) if line]
-    return TestResult(name=name, passed=passed, seconds=elapsed, error=error, notices=notices)
+    return TestResult(
+        name=name, passed=passed, seconds=elapsed, error=error, notices=notices
+    )
 
 
 def _status_text(result: TestResult) -> Text:
-    return Text("PASS", style="bold green") if result.passed else Text("FAIL", style="bold red")
+    return (
+        Text("PASS", style="bold green")
+        if result.passed
+        else Text("FAIL", style="bold red")
+    )
 
 
 def _build_summary(results: list[TestResult]) -> Table:
@@ -101,7 +110,13 @@ def _build_summary(results: list[TestResult]) -> Table:
 
     for idx, result in enumerate(results, start=1):
         outcome = "clean" if result.passed else f"{len(result.notices)} notice(s)"
-        table.add_row(str(idx), result.name, _status_text(result), f"{result.seconds:.1f}s", outcome)
+        table.add_row(
+            str(idx),
+            result.name,
+            _status_text(result),
+            f"{result.seconds:.1f}s",
+            outcome,
+        )
     return table
 
 
@@ -111,7 +126,9 @@ def _print_failures(results: list[TestResult]) -> None:
             continue
         body = Text()
         body.append(result.error or "unknown failure", style="red")
-        console.print(Panel(body, title=f"[red]{result.name}[/red]", border_style="red"))
+        console.print(
+            Panel(body, title=f"[red]{result.name}[/red]", border_style="red")
+        )
 
 
 def _print_audit(conn) -> None:
@@ -151,13 +168,24 @@ def _print_audit(conn) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Run the raw-schema data-quality SQL tests.")
+    parser = argparse.ArgumentParser(
+        description="Run the raw-schema data-quality SQL tests."
+    )
     parser.add_argument("--only", help="substring to filter test filenames (e.g. 09)")
-    parser.add_argument("-v", "--verbose", action="store_true", help="print each test's NOTICE lines")
-    parser.add_argument("--list", action="store_true", help="list discovered tests and exit")
+    parser.add_argument(
+        "--master",
+        action="store_true",
+        help="run only the master procedure (executes all tests in order)",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="print each test's NOTICE lines"
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="list discovered tests and exit"
+    )
     args = parser.parse_args(argv)
 
-    tests = discover_tests(args.only)
+    tests = discover_tests(args.only, master=args.master)
     if not tests:
         console.print(f"[red]No tests found in {TEST_DIR}[/red]")
         return 1
@@ -166,10 +194,11 @@ def main(argv: list[str] | None = None) -> int:
             console.print(f"  {path.name}")
         return 0
 
+    scope = "master procedure" if args.master else f"{len(tests)} tests"
     console.print(
         Panel.fit(
             f"[bold]Raw Schema Data-Quality Gate[/bold]\n"
-            f"[dim]{TEST_DIR}[/dim]  ·  [cyan]schema raw[/cyan]  ·  [cyan]{len(tests)} tests[/cyan]",
+            f"[dim]{TEST_DIR}[/dim]  ·  [cyan]schema raw[/cyan]  ·  [cyan]{scope}[/cyan]",
             border_style="cyan",
         )
     )
@@ -177,7 +206,9 @@ def main(argv: list[str] | None = None) -> int:
     try:
         conn = get_pg_connection(application_name="run_raw_tests")
     except Exception as exc:  # noqa: BLE001
-        console.print(Panel(str(exc), title="[red]Connection failed[/red]", border_style="red"))
+        console.print(
+            Panel(str(exc), title="[red]Connection failed[/red]", border_style="red")
+        )
         return 2
     conn.autocommit = True
 
