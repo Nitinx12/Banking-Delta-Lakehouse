@@ -255,11 +255,16 @@ BEGIN
                      THEN TRIM(customer_id::TEXT)::INT END AS customer_id,
 
                 CASE
-                    WHEN INITCAP(NULLIF(regexp_replace(TRIM(issue_type::TEXT), '\s+', ' ', 'g'), ''))
-                         IN ('App Login Issue', 'Account Statement', 'Card Blocked', 'Cheque Bounce',
-                             'Fraud Report', 'Interest Query', 'KYC Update', 'Loan Query',
-                             'Net Banking Issue', 'Wrong Debit')
-                    THEN INITCAP(NULLIF(regexp_replace(TRIM(issue_type::TEXT), '\s+', ' ', 'g'), ''))
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'APP LOGIN ISSUE'      THEN 'App Login Issue'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'ACCOUNT STATEMENT'    THEN 'Account Statement'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'CARD BLOCKED'         THEN 'Card Blocked'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'CHEQUE BOUNCE'        THEN 'Cheque Bounce'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'FRAUD REPORT'         THEN 'Fraud Report'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'INTEREST QUERY'       THEN 'Interest Query'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'KYC UPDATE'           THEN 'KYC Update'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'LOAN QUERY'           THEN 'Loan Query'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'NET BANKING ISSUE'    THEN 'Net Banking Issue'
+                    WHEN UPPER(TRIM(issue_type::TEXT)) = 'WRONG DEBIT'          THEN 'Wrong Debit'
                     ELSE NULL
                 END AS issue_type,
 
@@ -487,3 +492,4 @@ EXCEPTION WHEN OTHERS THEN
     RAISE;
 END;
 $$;
+

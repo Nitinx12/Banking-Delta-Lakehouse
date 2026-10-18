@@ -121,7 +121,7 @@ CREATE TABLE IF NOT EXISTS staging.branches (
     row_updated_at   TIMESTAMPTZ   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT pk_branches PRIMARY KEY (branch_id),
     CONSTRAINT chk_branches_ifsc
-        CHECK (ifsc_code IS NULL OR ifsc_code ~ '^[A-Z]{4}0[A-Z0-9]{6}$')
+        CHECK (ifsc_code IS NULL OR ifsc_code ~ '^[A-Z]{3}[0-9]{7}$')
 );
 
 COMMENT ON TABLE staging.branches IS
@@ -261,7 +261,7 @@ BEGIN
 
                 -- IFSC: 4 letters + '0' + 6 letters/digits, else NULL
                 CASE
-                    WHEN UPPER(TRIM(ifsc_code::TEXT)) ~ '^[A-Z]{4}0[A-Z0-9]{6}$'
+                    WHEN UPPER(TRIM(ifsc_code::TEXT)) ~ '^[A-Z]{3}[0-9]{7}$'
                     THEN UPPER(TRIM(ifsc_code::TEXT))
                     ELSE NULL
                 END AS ifsc_code,
@@ -460,3 +460,4 @@ EXCEPTION WHEN OTHERS THEN
     RAISE;
 END;
 $$;
+
