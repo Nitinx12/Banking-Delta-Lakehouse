@@ -166,9 +166,16 @@ CREATE TRIGGER trg_loans_updated_at
 -- Seed watermark row for raw.loans (safe to re-run)
 -- ------------------------------------------------------------
 INSERT INTO audit.etl_watermarks (
-    source_id, config_id, watermark_column, watermark_strategy
+    source_id,
+    config_id,
+    watermark_column,
+    watermark_strategy
 )
-SELECT t.source_id, t.config_id, '_loaded_at', 'timestamp'
+SELECT
+    t.source_id,
+    t.config_id,
+    '_loaded_at',
+    'timestamp'
 FROM audit.source_tables t
 WHERE t.target_schema = 'raw'
   AND t.target_table  = 'loans'
@@ -223,13 +230,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -240,7 +258,9 @@ BEGIN
     END IF;
 
     -- Resolve source registration
-    SELECT r.source_id, t.config_id
+    SELECT
+        r.source_id,
+        t.config_id
     INTO v_source_id, v_config_id
     FROM audit.source_tables t
     JOIN audit.source_registry r USING (source_id)
@@ -252,7 +272,10 @@ BEGIN
     END IF;
 
     -- Read stored watermark config, then apply defaults / caller override
-    SELECT w.watermark_column, w.watermark_strategy, w.last_watermark_value
+    SELECT
+        w.watermark_column,
+        w.watermark_strategy,
+        w.last_watermark_value
     INTO v_wm_column, v_wm_strategy, v_last_wm
     FROM audit.etl_watermarks w
     WHERE w.config_id = v_config_id;
@@ -329,14 +352,11 @@ BEGIN
         )
         SELECT
             d.loan_key AS loan_id,
-
             -- IDs: digits only (max 9) so the INT cast cannot fail
             CASE WHEN TRIM(d.customer_id::TEXT) ~ '^[0-9]{1,9}$'
                  THEN TRIM(d.customer_id::TEXT)::INT END AS customer_id,
-
             CASE WHEN TRIM(d.branch_id::TEXT) ~ '^[0-9]{1,9}$'
                  THEN TRIM(d.branch_id::TEXT)::INT END AS branch_id,
-
             -- Trim, collapse spaces/underscores/hyphens, Title Case, allowed list only
             CASE
                 WHEN INITCAP(NULLIF(regexp_replace(TRIM(d.loan_type::TEXT), '[\s_\-]+', ' ', 'g'), ''))
@@ -345,21 +365,18 @@ BEGIN
                 THEN INITCAP(NULLIF(regexp_replace(TRIM(d.loan_type::TEXT), '[\s_\-]+', ' ', 'g'), ''))
                 ELSE NULL
             END AS loan_type,
-
             -- Numeric, max 12 integer digits, > 0 (zero -> NULL; no negatives by regex)
             CASE
                 WHEN TRIM(d.loan_amount::TEXT) ~ '^[0-9]{1,12}(\.[0-9]{1,2})?$'
                 THEN NULLIF(TRIM(d.loan_amount::TEXT)::NUMERIC(14,2), 0)
                 ELSE NULL
             END AS loan_amount,
-
             -- Rate parsed once (see lateral below), then range checked: 0 < rate <= 100
             CASE
                 WHEN r.rate > 0 AND r.rate <= 100
                 THEN r.rate
                 ELSE NULL
             END AS interest_rate,
-
             -- Whole months, 1 to 600
             CASE
                 WHEN TRIM(d.term_months::TEXT) ~ '^[0-9]{1,4}$'
@@ -369,14 +386,12 @@ BEGIN
                      END
                 ELSE NULL
             END AS term_months,
-
             -- Valid date (time part ignored), not in the future, not before 2000
             CASE
                 WHEN p.td BETWEEN DATE '2000-01-01' AND CURRENT_DATE
                 THEN p.td
                 ELSE NULL
             END AS start_date,
-
             -- Trim, collapse spaces/underscores/hyphens, Title Case, allowed list only
             CASE
                 WHEN INITCAP(NULLIF(regexp_replace(TRIM(d.status::TEXT), '[\s_\-]+', ' ', 'g'), ''))
@@ -384,7 +399,6 @@ BEGIN
                 THEN INITCAP(NULLIF(regexp_replace(TRIM(d.status::TEXT), '[\s_\-]+', ' ', 'g'), ''))
                 ELSE NULL
             END AS status,
-
             d.created_at,
             d.loaded_at,
             d._batch_id  AS source_batch_id,
@@ -416,8 +430,13 @@ BEGIN
     -- Runs before the INSERT so new rows are never compared against themselves.
     -- History: one row per changed column, per loan (must run before UPDATE)
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'staging.loans',
@@ -582,9 +601,17 @@ EXCEPTION WHEN OTHERS THEN
     -- Log failure, then re-raise (load + watermark roll back).
     -- NOTE: these audit writes survive only if the caller catches the error.
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

@@ -89,7 +89,11 @@ CREATE TRIGGER trg_dim_branch_updated_at
 -- Unknown member (facts with no matching branch point here)
 -- ------------------------------------------------------------
 INSERT INTO analytics.dim_branch (
-    branch_key, branch_id, branch_name, region, branch_age_band
+    branch_key,
+    branch_id,
+    branch_name,
+    region,
+    branch_age_band
 )
 OVERRIDING SYSTEM VALUE
 VALUES (-1, -1, 'Unknown', 'Unknown', 'Unknown')
@@ -136,13 +140,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -210,9 +225,17 @@ BEGIN
 
     -- ===================== INSERT new branches =====================
     INSERT INTO analytics.dim_branch (
-        branch_id, branch_name, city, state, region, ifsc_code,
-        opened_date, opened_year, branch_age_band,
-        source_batch_id, source_row_updated_at
+        branch_id,
+        branch_name,
+        city,
+        state,
+        region,
+        ifsc_code,
+        opened_date,
+        opened_year,
+        branch_age_band,
+        source_batch_id,
+        source_row_updated_at
     )
     SELECT
         s.branch_id, s.branch_name, s.city, s.state, s.region, s.ifsc_code,
@@ -229,8 +252,13 @@ BEGIN
     -- ============ UPDATE existing: history first, then overwrite ============
     -- History: one row per changed column, per branch (must run before UPDATE)
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'analytics.dim_branch',
@@ -338,9 +366,17 @@ EXCEPTION WHEN OTHERS THEN
     -- Log failure, then re-raise (load + watermark roll back).
     -- NOTE: these audit writes survive only if the caller catches the error.
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

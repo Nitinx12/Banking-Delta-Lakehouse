@@ -116,8 +116,15 @@ CREATE TRIGGER trg_dim_loan_updated_at
 -- Unknown member (facts with no matching loan point here)
 -- ------------------------------------------------------------
 INSERT INTO analytics.dim_loan (
-    loan_key, loan_id, customer_key, branch_key, loan_type,
-    loan_amount_band, term_band, status, is_active
+    loan_key,
+    loan_id,
+    customer_key,
+    branch_key,
+    loan_type,
+    loan_amount_band,
+    term_band,
+    status,
+    is_active
 )
 OVERRIDING SYSTEM VALUE
 VALUES (-1, -1, -1, -1, 'Unknown', 'Unknown', 'Unknown', 'Unknown', FALSE)
@@ -164,13 +171,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -246,10 +264,24 @@ BEGIN
 
     -- ===================== INSERT new loans =====================
     INSERT INTO analytics.dim_loan (
-        loan_id, customer_key, branch_key, customer_id, branch_id, loan_type,
-        loan_amount, loan_amount_band, interest_rate, term_months, term_band,
-        start_date, start_year, maturity_date, status, is_active,
-        source_batch_id, source_row_updated_at
+        loan_id,
+        customer_key,
+        branch_key,
+        customer_id,
+        branch_id,
+        loan_type,
+        loan_amount,
+        loan_amount_band,
+        interest_rate,
+        term_months,
+        term_band,
+        start_date,
+        start_year,
+        maturity_date,
+        status,
+        is_active,
+        source_batch_id,
+        source_row_updated_at
     )
     SELECT
         s.loan_id, s.customer_key, s.branch_key, s.customer_id, s.branch_id, s.loan_type,
@@ -267,8 +299,13 @@ BEGIN
     -- ============ UPDATE existing: history first, then overwrite ============
     -- History: one row per changed column, per loan (must run before UPDATE)
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'analytics.dim_loan',
@@ -392,9 +429,17 @@ EXCEPTION WHEN OTHERS THEN
     -- Log failure, then re-raise (load + watermark roll back).
     -- NOTE: these audit writes survive only if the caller catches the error.
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

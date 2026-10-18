@@ -101,8 +101,13 @@ CREATE TRIGGER trg_dim_customer_updated_at
 -- Unknown member (facts with no matching customer point here)
 -- ------------------------------------------------------------
 INSERT INTO analytics.dim_customer (
-    customer_key, customer_id, customer_name, gender,
-    age_band, income_band, credit_band
+    customer_key,
+    customer_id,
+    customer_name,
+    gender,
+    age_band,
+    income_band,
+    credit_band
 )
 OVERRIDING SYSTEM VALUE
 VALUES (-1, -1, 'Unknown', 'N/A', 'Unknown', 'Unknown', 'Unknown')
@@ -149,13 +154,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,

@@ -1,5 +1,10 @@
-
--- Purpose: List constraints across all schemas
+-- ============================================================
+-- Script:   05_list_all_constraints.sql
+-- Purpose:  List constraints for user tables across schemas.
+-- Database: banking_delta
+-- Output:   Schema, table, constraint name, and type.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\05_list_all_constraints.sql
+-- ============================================================
 
 SELECT
     tc.constraint_schema AS schema_name,

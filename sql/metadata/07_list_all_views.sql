@@ -1,5 +1,10 @@
-
--- Purpose: List views and materialized views
+-- ============================================================
+-- Script:   07_list_all_views.sql
+-- Purpose:  List user views and materialized views.
+-- Database: banking_delta
+-- Output:   Schema, view name, type, and owner.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\07_list_all_views.sql
+-- ============================================================
 
 SELECT
     n.nspname AS schema_name,

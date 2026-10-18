@@ -1,5 +1,10 @@
-
--- Purpose: List all non-system schemas
+-- ============================================================
+-- Script:   03_list_all_schemas.sql
+-- Purpose:  List all non-system schemas.
+-- Database: banking_delta
+-- Output:   Schema name and owner.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\03_list_all_schemas.sql
+-- ============================================================
 
 SELECT
     schema_name,

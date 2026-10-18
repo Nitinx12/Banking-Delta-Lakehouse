@@ -1,5 +1,10 @@
-
--- Purpose: Inspect indexes across all schemas
+-- ============================================================
+-- Script:   06_list_all_indexes.sql
+-- Purpose:  List indexes for user tables across schemas.
+-- Database: banking_delta
+-- Output:   Schema, table, index name, and definition.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\06_list_all_indexes.sql
+-- ============================================================
 
 SELECT
     schemaname AS schema_name,

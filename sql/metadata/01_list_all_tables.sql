@@ -1,8 +1,9 @@
 -- ============================================================
--- Script Name : 01_list_all_tables.sql
--- Purpose     : List all tables across all schemas
--- Database    : PostgreSQL
--- Output      : Schema name, table name, and table type
+-- Script:   01_list_all_tables.sql
+-- Purpose:  List all user tables across schemas.
+-- Database: banking_delta
+-- Output:   Schema name, table name, and table type.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\01_list_all_tables.sql
 -- ============================================================
 
 SELECT

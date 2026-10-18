@@ -162,9 +162,16 @@ CREATE TRIGGER trg_cards_updated_at
 -- Seed watermark row for raw.cards (safe to re-run)
 -- ------------------------------------------------------------
 INSERT INTO audit.etl_watermarks (
-    source_id, config_id, watermark_column, watermark_strategy
+    source_id,
+    config_id,
+    watermark_column,
+    watermark_strategy
 )
-SELECT t.source_id, t.config_id, '_loaded_at', 'timestamp'
+SELECT
+    t.source_id,
+    t.config_id,
+    '_loaded_at',
+    'timestamp'
 FROM audit.source_tables t
 WHERE t.target_schema = 'raw'
   AND t.target_table  = 'cards'
@@ -217,13 +224,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -234,7 +252,9 @@ BEGIN
     END IF;
 
     -- Resolve source registration
-    SELECT r.source_id, t.config_id
+    SELECT
+        r.source_id,
+        t.config_id
     INTO v_source_id, v_config_id
     FROM audit.source_tables t
     JOIN audit.source_registry r USING (source_id)
@@ -246,7 +266,10 @@ BEGIN
     END IF;
 
     -- Read stored watermark config, then apply defaults / caller override
-    SELECT w.watermark_column, w.watermark_strategy, w.last_watermark_value
+    SELECT
+        w.watermark_column,
+        w.watermark_strategy,
+        w.last_watermark_value
     INTO v_wm_column, v_wm_strategy, v_last_wm
     FROM audit.etl_watermarks w
     WHERE w.config_id = v_config_id;
@@ -308,21 +331,18 @@ BEGIN
                      THEN TRIM(customer_id::TEXT)::INT END AS customer_id,
                 CASE WHEN TRIM(account_id::TEXT) ~ '^[0-9]{1,9}$'
                      THEN TRIM(account_id::TEXT)::INT END AS account_id,
-
                 -- Must match the allowed list after normalising
                 CASE
                     WHEN p.ct IN ('Debit', 'Credit - Classic', 'Credit - Gold', 'Credit - Platinum')
                     THEN p.ct
                     ELSE NULL
                 END AS card_type,
-
                 -- Valid date, not in the future, not before 1990
                 CASE
                     WHEN p.idt BETWEEN DATE '1990-01-01' AND CURRENT_DATE
                     THEN p.idt
                     ELSE NULL
                 END AS issue_date,
-
                 -- Valid date, on/after issue date, not after 2100
                 CASE
                     WHEN p.edt BETWEEN GREATEST(COALESCE(p.idt, DATE '1990-01-01'), DATE '1990-01-01')
@@ -330,7 +350,6 @@ BEGIN
                     THEN p.edt
                     ELSE NULL
                 END AS expiry_date,
-
                 -- Debit cards have no credit limit; else numeric > 0 (max 10 integer digits)
                 CASE
                     WHEN p.ct = 'Debit' THEN NULL
@@ -338,14 +357,12 @@ BEGIN
                     THEN NULLIF(TRIM(credit_limit::TEXT)::NUMERIC(12,2), 0)
                     ELSE NULL
                 END AS credit_limit,
-
                 -- INITCAP so 'active' / 'ACTIVE' still match
                 CASE
                     WHEN INITCAP(TRIM(status::TEXT)) IN ('Active', 'Blocked', 'Expired')
                     THEN INITCAP(TRIM(status::TEXT))
                     ELSE NULL
                 END AS status,
-
                 created_at,
                 loaded_at,
                 _batch_id,
@@ -422,8 +439,13 @@ BEGIN
     -- ============ UPDATE existing: history first, then overwrite ============
     -- History: one row per changed column, per card (must run before UPDATE)
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'staging.cards',
@@ -541,9 +563,17 @@ EXCEPTION WHEN OTHERS THEN
     -- Log failure, then re-raise (load + watermark roll back).
     -- NOTE: these audit writes survive only if the caller catches the error.
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

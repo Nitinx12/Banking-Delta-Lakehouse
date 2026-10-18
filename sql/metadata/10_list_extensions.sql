@@ -1,5 +1,10 @@
-
--- Purpose: List installed database extensions
+-- ============================================================
+-- Script:   10_list_extensions.sql
+-- Purpose:  List installed database extensions.
+-- Database: banking_delta
+-- Output:   Extension name, version, and schema.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\10_list_extensions.sql
+-- ============================================================
 
 SELECT
     e.extname AS extension_name,

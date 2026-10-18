@@ -181,9 +181,16 @@ CREATE TRIGGER trg_loan_payments_updated_at
 -- Seed watermark row for raw.loan_payments (safe to re-run)
 -- ------------------------------------------------------------
 INSERT INTO audit.etl_watermarks (
-    source_id, config_id, watermark_column, watermark_strategy
+    source_id,
+    config_id,
+    watermark_column,
+    watermark_strategy
 )
-SELECT t.source_id, t.config_id, '_loaded_at', 'timestamp'
+SELECT
+    t.source_id,
+    t.config_id,
+    '_loaded_at',
+    'timestamp'
 FROM audit.source_tables t
 WHERE t.target_schema = 'raw'
   AND t.target_table  = 'loan_payments'
@@ -243,13 +250,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -260,7 +278,9 @@ BEGIN
     END IF;
 
     -- Resolve source registration
-    SELECT r.source_id, t.config_id
+    SELECT
+        r.source_id,
+        t.config_id
     INTO v_source_id, v_config_id
     FROM audit.source_tables t
     JOIN audit.source_registry r USING (source_id)
@@ -272,7 +292,10 @@ BEGIN
     END IF;
 
     -- Read stored watermark config, then apply defaults / caller override
-    SELECT w.watermark_column, w.watermark_strategy, w.last_watermark_value
+    SELECT
+        w.watermark_column,
+        w.watermark_strategy,
+        w.last_watermark_value
     INTO v_wm_column, v_wm_strategy, v_last_wm
     FROM audit.etl_watermarks w
     WHERE w.config_id = v_config_id;
@@ -349,28 +372,23 @@ BEGIN
             -- Step 1: clean every column on its own, values parsed ONCE per row
             SELECT
                 d.pay_key,
-
                 CASE WHEN TRIM(d.loan_id::TEXT) ~ '^[0-9]{1,18}$'
                      THEN TRIM(d.loan_id::TEXT)::BIGINT END AS loan_id,
-
                 -- Valid date (time part ignored), not in the future, not before 2000
                 CASE
                     WHEN dt.td BETWEEN DATE '2000-01-01' AND CURRENT_DATE
                     THEN dt.td
                     ELSE NULL
                 END AS payment_date,
-
                 n.amt_raw,
                 n.prin_raw,
                 n.int_raw,
-
                 -- Text/number flags -> boolean; anything else -> NULL
                 CASE
                     WHEN LOWER(TRIM(d.late_payment_flag::TEXT)) IN ('1', 'true',  't', 'yes', 'y') THEN TRUE
                     WHEN LOWER(TRIM(d.late_payment_flag::TEXT)) IN ('0', 'false', 'f', 'no',  'n') THEN FALSE
                     ELSE NULL
                 END AS is_late,
-
                 d.created_at,
                 d.loaded_at,
                 d._batch_id,
@@ -428,7 +446,6 @@ BEGIN
             c.prin_final     AS principal_component,
             c.int_final      AS interest_component,
             c.is_late,
-
             -- Step 3: outcome of the maths
             CASE
                 WHEN c.amt_final IS NULL OR c.prin_final IS NULL OR c.int_final IS NULL
@@ -439,7 +456,6 @@ BEGIN
                     THEN 'OK'
                 ELSE 'MISMATCH'
             END AS amount_check,
-
             c.created_at,
             c.loaded_at,
             c._batch_id  AS source_batch_id,
@@ -463,8 +479,13 @@ BEGIN
     -- Runs before the INSERT so new rows are never compared against themselves.
     -- History: one row per changed column, per payment (must run before UPDATE)
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'staging.loan_payments',
@@ -630,9 +651,17 @@ EXCEPTION WHEN OTHERS THEN
     -- Log failure, then re-raise (load + watermark roll back).
     -- NOTE: these audit writes survive only if the caller catches the error.
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

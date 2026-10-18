@@ -1,5 +1,10 @@
-
--- Purpose: Inspect table storage usage
+-- ============================================================
+-- Script:   09_list_table_sizes.sql
+-- Purpose:  Report table and index storage usage.
+-- Database: banking_delta
+-- Output:   Table, data size, index size, and total size.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\09_list_table_sizes.sql
+-- ============================================================
 
 SELECT
     schemaname AS schema_name,

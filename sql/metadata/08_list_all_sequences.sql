@@ -1,5 +1,10 @@
-
--- Purpose: List sequences across all schemas
+-- ============================================================
+-- Script:   08_list_all_sequences.sql
+-- Purpose:  List user sequences across schemas.
+-- Database: banking_delta
+-- Output:   Sequence name, type, bounds, and increment.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\08_list_all_sequences.sql
+-- ============================================================
 
 SELECT
     sequence_schema AS schema_name,

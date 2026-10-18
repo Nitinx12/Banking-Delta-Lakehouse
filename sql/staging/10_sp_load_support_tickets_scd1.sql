@@ -149,9 +149,16 @@ CREATE TRIGGER trg_support_tickets_updated_at
 -- Seed watermark row for raw.support_tickets (safe to re-run)
 -- ------------------------------------------------------------
 INSERT INTO audit.etl_watermarks (
-    source_id, config_id, watermark_column, watermark_strategy
+    source_id,
+    config_id,
+    watermark_column,
+    watermark_strategy
 )
-SELECT t.source_id, t.config_id, '_loaded_at', 'timestamp'
+SELECT
+    t.source_id,
+    t.config_id,
+    '_loaded_at',
+    'timestamp'
 FROM audit.source_tables t
 WHERE t.target_schema = 'raw'
   AND t.target_table  = 'support_tickets'
@@ -199,13 +206,24 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
         v_audit_seeded := TRUE;
 
-        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        INSERT INTO audit.pipeline_runs (
+            pipeline_run_id,
+            dag_id,
+            run_type,
+            trigger_type,
+            status
+        )
         VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
         ON CONFLICT (pipeline_run_id) DO NOTHING;
 
         INSERT INTO audit.table_runs (
-            table_run_id, pipeline_run_id, source_table, target_table,
-            processing_layer, operation_type, status
+            table_run_id,
+            pipeline_run_id,
+            source_table,
+            target_table,
+            processing_layer,
+            operation_type,
+            status
         )
         VALUES (
             p_table_run_id, v_pipeline_run_id,
@@ -215,7 +233,9 @@ BEGIN
         ON CONFLICT (table_run_id) DO NOTHING;
     END IF;
 
-    SELECT r.source_id, t.config_id
+    SELECT
+        r.source_id,
+        t.config_id
     INTO v_source_id, v_config_id
     FROM audit.source_tables t
     JOIN audit.source_registry r USING (source_id)
@@ -226,7 +246,10 @@ BEGIN
         RAISE EXCEPTION 'raw.support_tickets is not registered in audit.source_tables - run 03_register_sources.sql.';
     END IF;
 
-    SELECT w.watermark_column, w.watermark_strategy, w.last_watermark_value
+    SELECT
+        w.watermark_column,
+        w.watermark_strategy,
+        w.last_watermark_value
     INTO v_wm_column, v_wm_strategy, v_last_wm
     FROM audit.etl_watermarks w
     WHERE w.config_id = v_config_id;
@@ -276,10 +299,8 @@ BEGIN
             SELECT
                 CASE WHEN TRIM(ticket_id::TEXT) ~ '^[0-9]+$'
                      THEN TRIM(ticket_id::TEXT)::BIGINT END AS ticket_id,
-
                 CASE WHEN TRIM(customer_id::TEXT) ~ '^[0-9]{1,9}$'
                      THEN TRIM(customer_id::TEXT)::INT END AS customer_id,
-
                 CASE
                     WHEN UPPER(TRIM(issue_type::TEXT)) = 'APP LOGIN ISSUE'      THEN 'App Login Issue'
                     WHEN UPPER(TRIM(issue_type::TEXT)) = 'ACCOUNT STATEMENT'    THEN 'Account Statement'
@@ -293,33 +314,28 @@ BEGIN
                     WHEN UPPER(TRIM(issue_type::TEXT)) = 'WRONG DEBIT'          THEN 'Wrong Debit'
                     ELSE NULL
                 END AS issue_type,
-
                 CASE
                     WHEN p.o BETWEEN DATE '2000-01-01' AND CURRENT_DATE
                     THEN p.o
                     ELSE NULL
                 END AS date_opened,
-
                 CASE
                     WHEN p.r BETWEEN DATE '2000-01-01' AND CURRENT_DATE
                     THEN p.r
                     ELSE NULL
                 END AS date_resolved,
-
                 CASE
                     WHEN UPPER(TRIM(status::TEXT)) = 'OPEN'      THEN 'Open'
                     WHEN UPPER(TRIM(status::TEXT)) = 'RESOLVED'  THEN 'Resolved'
                     WHEN UPPER(TRIM(status::TEXT)) = 'ESCALATED' THEN 'Escalated'
                     ELSE NULL
                 END AS status,
-
                 CASE
                     WHEN TRIM(satisfaction_score::TEXT) ~ '^[0-9]+$'
                      AND TRIM(satisfaction_score::TEXT)::INT BETWEEN 1 AND 5
                     THEN TRIM(satisfaction_score::TEXT)::INT
                     ELSE NULL
                 END AS satisfaction_score,
-
                 created_at,
                 loaded_at,
                 _batch_id,
@@ -388,8 +404,13 @@ BEGIN
 
     -- ============ UPDATE existing: history first, then overwrite ============
     INSERT INTO staging.scd1_history (
-        table_name, record_key, changed_column, old_value, new_value,
-        source_batch_id, table_run_id
+        table_name,
+        record_key,
+        changed_column,
+        old_value,
+        new_value,
+        source_batch_id,
+        table_run_id
     )
     SELECT
         'staging.support_tickets',
@@ -498,9 +519,17 @@ BEGIN
 
 EXCEPTION WHEN OTHERS THEN
     INSERT INTO audit.pipeline_errors (
-        pipeline_run_id, table_run_id, source_table, target_table,
-        processing_layer, error_category, severity, error_message,
-        error_details, is_recoverable, resolution_status
+        pipeline_run_id,
+        table_run_id,
+        source_table,
+        target_table,
+        processing_layer,
+        error_category,
+        severity,
+        error_message,
+        error_details,
+        is_recoverable,
+        resolution_status
     )
     VALUES (
         COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),

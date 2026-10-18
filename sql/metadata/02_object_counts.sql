@@ -1,8 +1,9 @@
 -- ============================================================
--- Script Name : 02_object_counts.sql
--- Purpose     : Count procedures, functions, and triggers
--- Database    : PostgreSQL
--- Output      : Object type and total count across all schemas
+-- Script:   02_object_counts.sql
+-- Purpose:  Count user procedures, functions, and triggers.
+-- Database: banking_delta
+-- Output:   Object type and total count across schemas.
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\metadata\02_object_counts.sql
 -- ============================================================
 
 SELECT
