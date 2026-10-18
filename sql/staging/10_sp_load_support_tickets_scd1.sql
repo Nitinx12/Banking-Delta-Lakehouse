@@ -143,7 +143,7 @@ CREATE INDEX IF NOT EXISTS idx_support_tickets_customer
 DROP TRIGGER IF EXISTS trg_support_tickets_updated_at ON staging.support_tickets;
 CREATE TRIGGER trg_support_tickets_updated_at
     BEFORE UPDATE ON staging.support_tickets
-    FOR EACH ROW EXECUTE FUNCTION audit.set_updated_at();
+    FOR EACH ROW EXECUTE FUNCTION audit.set_updated_at('row_updated_at');
 
 -- ------------------------------------------------------------
 -- Seed watermark row for raw.support_tickets (safe to re-run)
@@ -160,11 +160,14 @@ ON CONFLICT (config_id) DO NOTHING;
 -- ------------------------------------------------------------
 -- Load procedure (incremental SCD Type 1)
 -- ------------------------------------------------------------
+DROP PROCEDURE IF EXISTS staging.sp_load_support_tickets_scd1(UUID, TEXT, TEXT, BOOLEAN);
+
 CREATE OR REPLACE PROCEDURE staging.sp_load_support_tickets_scd1(
     IN p_table_run_id     UUID    DEFAULT NULL,
     IN p_source_batch_id  TEXT    DEFAULT NULL,
     IN p_watermark_column TEXT    DEFAULT NULL,
-    IN p_force_full       BOOLEAN DEFAULT FALSE
+    IN p_force_full       BOOLEAN DEFAULT FALSE,
+    IN p_pipeline_run_id  UUID    DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
@@ -183,11 +186,34 @@ DECLARE
     v_unchanged          BIGINT := 0;
     v_history_rows       BIGINT := 0;
     v_watermark_advanced TEXT;
+    -- Audit seeding (manual runs without an orchestrator)
+    v_pipeline_run_id    UUID    := COALESCE(p_pipeline_run_id, gen_random_uuid());
+    v_audit_seeded       BOOLEAN := FALSE;
 BEGIN
     p_table_run_id    := COALESCE(p_table_run_id, gen_random_uuid());
     p_source_batch_id := COALESCE(p_source_batch_id,
                                   'manual_' || to_char(clock_timestamp(), 'YYYYMMDD_HH24MISS'));
     p_force_full      := COALESCE(p_force_full, FALSE);
+
+    -- Seed audit rows so SUCCESS / FAILED land even on manual CALLs (no orchestrator)
+    IF NOT EXISTS (SELECT 1 FROM audit.table_runs WHERE table_run_id = p_table_run_id) THEN
+        v_audit_seeded := TRUE;
+
+        INSERT INTO audit.pipeline_runs (pipeline_run_id, dag_id, run_type, trigger_type, status)
+        VALUES (v_pipeline_run_id, 'manual_sql', 'MANUAL', 'manual', 'RUNNING')
+        ON CONFLICT (pipeline_run_id) DO NOTHING;
+
+        INSERT INTO audit.table_runs (
+            table_run_id, pipeline_run_id, source_table, target_table,
+            processing_layer, operation_type, status
+        )
+        VALUES (
+            p_table_run_id, v_pipeline_run_id,
+            'raw.support_tickets', 'staging.support_tickets',
+            'staging', 'MERGE', 'RUNNING'
+        )
+        ON CONFLICT (table_run_id) DO NOTHING;
+    END IF;
 
     SELECT r.source_id, t.config_id
     INTO v_source_id, v_config_id
@@ -454,6 +480,18 @@ BEGIN
         )
     WHERE table_run_id = p_table_run_id;
 
+    -- Close the manual pipeline run if this procedure created it
+    IF v_audit_seeded THEN
+        UPDATE audit.pipeline_runs
+        SET status            = 'SUCCESS',
+            ended_at          = clock_timestamp(),
+            duration_seconds  = ROUND(EXTRACT(EPOCH FROM (clock_timestamp() - v_started_at))::NUMERIC, 3),
+            total_tables      = 1,
+            successful_tables = 1
+        WHERE pipeline_run_id = v_pipeline_run_id
+          AND status = 'RUNNING';
+    END IF;
+
     RAISE NOTICE 'support_tickets load OK | batch=% | source=% inserted=% updated=% unchanged=% history=% | watermark: %',
         p_source_batch_id, v_source_rows, v_inserted, v_updated, v_unchanged,
         v_history_rows, COALESCE(v_watermark_advanced, 'unchanged');
@@ -464,8 +502,8 @@ EXCEPTION WHEN OTHERS THEN
         processing_layer, error_category, severity, error_message,
         error_details, is_recoverable, resolution_status
     )
-    SELECT
-        tr.pipeline_run_id,
+    VALUES (
+        COALESCE((SELECT pipeline_run_id FROM audit.table_runs WHERE table_run_id = p_table_run_id), v_pipeline_run_id),
         p_table_run_id,
         'raw.support_tickets',
         'staging.support_tickets',
@@ -480,14 +518,24 @@ EXCEPTION WHEN OTHERS THEN
         ),
         FALSE,
         'OPEN'
-    FROM audit.table_runs tr
-    WHERE tr.table_run_id = p_table_run_id;
+    );
 
     UPDATE audit.table_runs
     SET status           = 'FAILED',
         ended_at         = clock_timestamp(),
         duration_seconds = ROUND(EXTRACT(EPOCH FROM (clock_timestamp() - v_started_at))::NUMERIC, 3)
     WHERE table_run_id = p_table_run_id;
+
+    IF v_audit_seeded THEN
+        UPDATE audit.pipeline_runs
+        SET status           = 'FAILED',
+            ended_at         = clock_timestamp(),
+            duration_seconds = ROUND(EXTRACT(EPOCH FROM (clock_timestamp() - v_started_at))::NUMERIC, 3),
+            total_tables     = 1,
+            failed_tables    = 1
+        WHERE pipeline_run_id = v_pipeline_run_id
+          AND status = 'RUNNING';
+    END IF;
 
     RAISE;
 END;
