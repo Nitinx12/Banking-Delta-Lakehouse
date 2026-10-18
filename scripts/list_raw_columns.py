@@ -19,7 +19,7 @@ with conn, conn.cursor() as cur:
     cur.execute("""
         SELECT table_name, column_name
         FROM information_schema.columns
-        WHERE table_schema = 'raw'
+        WHERE table_schema = 'staging'
         ORDER BY table_name, ordinal_position
     """)
     rows = cur.fetchall()

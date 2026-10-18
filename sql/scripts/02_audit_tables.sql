@@ -31,12 +31,15 @@ END $$;
 
 CREATE SCHEMA IF NOT EXISTS audit;
 
--- Shared trigger: keep updated_at honest ------------------------
+-- Shared trigger: keep updated_at honest. Column comes from the trigger
+-- argument so staging/analytics tables can pass 'row_updated_at'; audit
+-- tables call it without an argument and keep 'updated_at'.
 CREATE OR REPLACE FUNCTION audit.set_updated_at()
 RETURNS trigger
 LANGUAGE plpgsql AS $$
 BEGIN
-    NEW.updated_at := clock_timestamp();
+    NEW := jsonb_populate_record(NEW, jsonb_build_object(
+        COALESCE(TG_ARGV[0], 'updated_at'), clock_timestamp()));
     RETURN NEW;
 END $$;
 
