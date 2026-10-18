@@ -1,9 +1,9 @@
 -- ============================================================
--- Script:   99_master_load.sql
+-- Script:   00_master_load.sql
 -- Purpose:  Master procedure - runs all staging loads in order
 -- Database: banking_delta
 -- Idempotent: Yes
--- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\staging\99_master_load.sql
+-- Run: psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 -f .\sql\staging\00_master_load.sql
 --
 -- Usage:
 --   CALL staging.sp_load_all();                       -- normal incremental run
