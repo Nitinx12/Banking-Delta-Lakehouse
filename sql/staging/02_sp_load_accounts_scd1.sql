@@ -40,15 +40,40 @@ CREATE SCHEMA IF NOT EXISTS staging;
 CREATE OR REPLACE FUNCTION staging.try_date(p TEXT)
 RETURNS DATE
 LANGUAGE plpgsql
-STABLE
+IMMUTABLE
+PARALLEL SAFE
 AS $$
+DECLARE
+    s   TEXT := TRIM(p);
+    y   INT;
+    m   INT;
+    d   INT;
+    dim INT;
 BEGIN
-    IF TRIM(p) !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN
+    IF s IS NULL OR s !~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' THEN
         RETURN NULL;
     END IF;
-    RETURN TO_DATE(TRIM(p), 'FXYYYY-MM-DD');
-EXCEPTION WHEN OTHERS THEN
-    RETURN NULL;
+
+    y := SUBSTR(s, 1, 4)::INT;
+    m := SUBSTR(s, 6, 2)::INT;
+    d := SUBSTR(s, 9, 2)::INT;
+
+    IF y < 1 OR m NOT BETWEEN 1 AND 12 OR d < 1 THEN
+        RETURN NULL;
+    END IF;
+
+    dim := CASE
+               WHEN m = 2 AND y % 4 = 0 AND (y % 100 <> 0 OR y % 400 = 0) THEN 29
+               WHEN m = 2 THEN 28
+               WHEN m IN (4, 6, 9, 11) THEN 30
+               ELSE 31
+           END;
+
+    IF d > dim THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN make_date(y, m, d);
 END;
 $$;
 
