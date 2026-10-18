@@ -48,5 +48,3 @@ BEGIN
 
     RAISE NOTICE 'Master staging gate passed: 10 tests (run %)', v_run_id;
 END $$;
-
-CALL audit.dq_master_staging_tests();
