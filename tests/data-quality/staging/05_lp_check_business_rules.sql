@@ -1,6 +1,6 @@
 -- ============================================================
 -- Script Name : 05_lp_check_business_rules.sql
--- Purpose     : Validate logical/temporal consistency on the raw
+-- Purpose     : Validate logical/temporal consistency on the staging
 --               schema. Fails with a single error that lists all
 --               violations.
 -- Checks      : 1. Intra-table date order (later >= earlier)
@@ -8,9 +8,12 @@
 -- Note        : text date columns are compared after a guarded
 --               cast; run 03_lp_check_bad_dates.sql first so the
 --               text values are known to be valid ISO dates
+-- Note        : the sum rule only applies where amount_check is OK
+--               or DERIVED; MISMATCH rows are a sanctioned staging
+--               state (sp_load_loan_payments reports them)
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_business_rules()
@@ -27,9 +30,10 @@ DECLARE
         ["support_tickets", "date_opened",   "date_resolved"]
     ]';
 
-    -- [table, [component columns], total column, tolerance]
+    -- [table, [component columns], total column, tolerance, scope condition]
     v_sum_rules CONSTANT JSONB := '[
-        ["loan_payments", ["principal_component", "interest_component"], "amount_paid", 0.01]
+        ["loan_payments", ["principal_component", "interest_component"], "amount_paid", 0.01,
+         "amount_check IN (''OK'', ''DERIVED'')"]
     ]';
 
     -- ---------- working variables ----------
@@ -43,6 +47,7 @@ DECLARE
     v_examples   TEXT;
     v_parts      TEXT;
     v_tol        NUMERIC;
+    v_cond       TEXT;
     v_checked    INT := 0;
     v_run_id     BIGINT;
 BEGIN
@@ -132,10 +137,12 @@ BEGIN
 
     -- ---- 2. arithmetic identity: components sum to total ----
     FOR v_rule IN
-        SELECT e ->> 0 AS tbl, e -> 1 AS parts, e ->> 2 AS total, (e ->> 3)::numeric AS tol
+        SELECT e ->> 0 AS tbl, e -> 1 AS parts, e ->> 2 AS total,
+               (e ->> 3)::numeric AS tol, e ->> 4 AS cond
         FROM jsonb_array_elements(v_sum_rules) AS e
     LOOP
-        v_tol := coalesce(v_rule.tol, 0.01);
+        v_tol  := coalesce(v_rule.tol, 0.01);
+        v_cond := coalesce(nullif(v_rule.cond, ''), 'TRUE');
 
         SELECT string_agg(format('coalesce(%I, 0)', x), ' + ')
         INTO v_parts
@@ -145,7 +152,8 @@ BEGIN
             SELECT count(*)
             FROM %1$I.%2$I
             WHERE %3$I IS NOT NULL AND abs(%3$I - (%4$s)) > %5$L
-        $q$, v_schema, v_rule.tbl, v_rule.total, v_parts, v_tol)
+              AND %6$s
+        $q$, v_schema, v_rule.tbl, v_rule.total, v_parts, v_tol, v_cond)
         INTO v_bad;
 
         v_checked := v_checked + 1;
@@ -176,11 +184,10 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw business rule violations (%):\n%',
+        RAISE EXCEPTION E'Staging business rule violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All business rule checks passed: % rules in schema %',
         v_checked, v_schema;
 END $$;
-

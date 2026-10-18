@@ -1,6 +1,6 @@
 -- ============================================================
 -- Script Name : 04_lp_check_orphan_rows.sql
--- Purpose     : Validate raw-schema referential integrity.
+-- Purpose     : Validate staging-schema referential integrity.
 -- Checks      :
 --   1. Child and parent tables exist.
 --   2. Child and parent columns exist.
@@ -13,7 +13,7 @@
 --   - Missing tables or columns are reported and skipped.
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_orphan_rows_check()
@@ -318,7 +318,7 @@ BEGIN
     COMMIT;
 
     IF CARDINALITY(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw referential integrity violations (%):\n%',
+        RAISE EXCEPTION E'Staging referential integrity violations (%):\n%',
             CARDINALITY(v_violations),
             ARRAY_TO_STRING(v_violations, E'\n');
     END IF;
@@ -330,4 +330,3 @@ BEGIN
 
 END;
 $$;
-

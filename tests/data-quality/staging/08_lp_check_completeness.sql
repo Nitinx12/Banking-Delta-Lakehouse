@@ -1,6 +1,6 @@
 -- ============================================================
 -- Script Name : 08_lp_check_completeness.sql
--- Purpose     : Fail if raw tables are empty, below their minimum
+-- Purpose     : Fail if staging tables are empty, below their minimum
 --               row count, or have NULL/blank values in columns
 --               that must always be populated. One error lists
 --               all violations.
@@ -8,13 +8,15 @@
 --               2. Table meets its configured minimum row count
 --               3. No NULL in any data column
 --               4. No blank strings in any text column
--- Note        : metadata columns (_batch_id, _loaded_at) are
---               covered by 01_lp_check_metadata_col.sql and are
---               skipped here; add columns that are legitimately
---               optional to v_null_ok
+-- Note        : metadata columns (source_batch_id, source_loaded_at,
+--               row_added_at, row_updated_at) are covered by
+--               01_lp_check_metadata_col.sql and are skipped here;
+--               add columns that are legitimately optional to
+--               v_null_ok, or conditional exceptions (NULL allowed
+--               only under a condition) to v_null_ok_cond
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_completeness()
@@ -29,13 +31,24 @@ DECLARE
         "transactions": 1000, "card_transactions": 1000, "support_tickets": 100
     }'::JSONB;
     v_exempt_tables CONSTANT TEXT[] := ARRAY['scd1_history']::TEXT[];
-    v_null_ok  CONSTANT TEXT[] := ARRAY['cards.credit_limit']::TEXT[];  -- table.column allowed to be NULL
+    v_null_ok  CONSTANT TEXT[] := ARRAY[
+        'cards.credit_limit',           -- NULL by design for non-Credit cards
+        'support_tickets.date_resolved' -- NULL while the ticket is open
+    ]::TEXT[];
+    -- NULL allowed only while the condition holds (sp_load_loan_payments
+    -- leaves a component NULL when amount_check is INCOMPLETE)
+    v_null_ok_cond CONSTANT JSONB := '{
+        "loan_payments.amount_paid":         "amount_check = ''INCOMPLETE''",
+        "loan_payments.principal_component": "amount_check = ''INCOMPLETE''",
+        "loan_payments.interest_component":  "amount_check = ''INCOMPLETE''"
+    }'::JSONB;
     v_meta_cols CONSTANT TEXT[] := ARRAY['source_batch_id', 'source_loaded_at', 'row_added_at', 'row_updated_at'];
 
     -- ---------- working variables ----------
     v_violations TEXT[] := ARRAY[]::TEXT[];
     v_tbl        RECORD;
     v_col        RECORD;
+    v_key        TEXT;
     v_rows       BIGINT;
     v_bad        BIGINT;
     v_min        BIGINT;
@@ -89,17 +102,20 @@ BEGIN
               AND a.attname <> ALL (v_meta_cols)
             ORDER BY a.attnum
         LOOP
-            IF format('%s.%s', v_tbl.relname, v_col.attname) = ANY (v_null_ok) THEN
+            v_key := format('%s.%s', v_tbl.relname, v_col.attname);
+            IF v_key = ANY (v_null_ok) THEN
                 CONTINUE;
             END IF;
 
             EXECUTE format(
                 'SELECT count(*) FROM %I.%I
-                 WHERE %I IS NULL %s',
+                 WHERE (%I IS NULL %s)
+                   AND NOT COALESCE((%s), FALSE)',
                 v_schema, v_tbl.relname, v_col.attname,
                 CASE WHEN v_col.is_text
                      THEN format('OR btrim(%I::text) = ''''', v_col.attname)
-                     ELSE '' END)
+                     ELSE '' END,
+                COALESCE(v_null_ok_cond ->> v_key, 'FALSE'))
             INTO v_bad;
 
             v_checked := v_checked + 1;
@@ -125,7 +141,7 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw completeness violations (%):\n%',
+        RAISE EXCEPTION E'Staging completeness violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 

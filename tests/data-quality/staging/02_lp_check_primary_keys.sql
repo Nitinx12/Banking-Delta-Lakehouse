@@ -1,6 +1,6 @@
 -- ============================================================
 -- Script Name : 02_lp_check_primary_keys.sql
--- Purpose     : Validate primary keys on every table in the raw
+-- Purpose     : Validate primary keys on every table in the staging
 --               schema. Fails with a single error that lists all
 --               violations.
 -- Key lookup  : 1. Declared primary key constraint
@@ -14,7 +14,7 @@
 --               6. No duplicate key values
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_primary_key_check()
@@ -189,10 +189,9 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw primary key violations (%):\n%',
+        RAISE EXCEPTION E'Staging primary key violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All primary key checks passed for schema %', v_schema;
 END $$;
-

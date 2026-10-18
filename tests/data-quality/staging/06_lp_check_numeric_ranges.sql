@@ -14,7 +14,7 @@
 --               7. Values strictly greater than zero when gt0
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_numeric_ranges()
@@ -23,7 +23,7 @@ AS $$
 DECLARE
     -- ---------- configuration ----------
     v_schema             CONSTANT TEXT    := 'staging';
-    v_forbid_float_money CONSTANT BOOLEAN := FALSE;  -- TRUE = flag real/double money columns
+    v_forbid_float_money CONSTANT BOOLEAN := TRUE;  -- TRUE = flag real/double money columns
 
     v_ranges CONSTANT JSONB := '{
         "customers.credit_score":             {"min": 300, "max": 900},
@@ -43,6 +43,13 @@ DECLARE
     }'::JSONB;
 
     v_null_ok  CONSTANT TEXT[]  := ARRAY['cards.credit_limit']::TEXT[];  -- table.column allowed to be NULL
+    -- NULL allowed only while the condition holds (sp_load_loan_payments
+    -- leaves a component NULL when amount_check is INCOMPLETE)
+    v_null_ok_cond CONSTANT JSONB := '{
+        "loan_payments.amount_paid":         "amount_check = ''INCOMPLETE''",
+        "loan_payments.principal_component": "amount_check = ''INCOMPLETE''",
+        "loan_payments.interest_component":  "amount_check = ''INCOMPLETE''"
+    }'::JSONB;
 
     -- ---------- working variables ----------
     v_violations TEXT[] := ARRAY[]::TEXT[];
@@ -72,7 +79,7 @@ BEGIN
 
     -- parse a text value to numeric, return NULL when it is not a number
     EXECUTE $fn$
-        CREATE OR REPLACE FUNCTION pg_temp.raw_try_num(p text)
+        CREATE OR REPLACE FUNCTION pg_temp.stg_try_num(p text)
         RETURNS numeric LANGUAGE sql IMMUTABLE AS $f$
             SELECT CASE WHEN btrim(p) ~ '^-?\d+(\.\d+)?$'
                         THEN btrim(p)::numeric END;
@@ -128,7 +135,7 @@ BEGIN
         END IF;
 
         v_expr := CASE v_kind
-            WHEN 'txt' THEN format('pg_temp.raw_try_num(%I::text)', v_col)
+            WHEN 'txt' THEN format('pg_temp.stg_try_num(%I::text)', v_col)
             ELSE            format('%I', v_col)
         END;
 
@@ -139,17 +146,19 @@ BEGIN
         -- ---- 4-7. one scan per column ----
         EXECUTE format($q$
             WITH s AS MATERIALIZED (
-                SELECT %1$s AS v, (%2$I IS NOT NULL) AS has_val
+                SELECT %1$s AS v, (%2$I IS NOT NULL) AS has_val,
+                       COALESCE((%8$s), FALSE) AS exempt
                 FROM %3$I.%4$I
             )
-            SELECT count(*) FILTER (WHERE NOT has_val),
+            SELECT count(*) FILTER (WHERE NOT has_val AND NOT exempt),
                    count(*) FILTER (WHERE has_val AND v IS NULL),
                    count(*) FILTER (WHERE v < %5$L::numeric),
                    count(*) FILTER (WHERE v > %6$L::numeric),
                    count(*) FILTER (WHERE %7$s AND v <= 0),
                    min(v), max(v)
             FROM s
-        $q$, v_expr, v_col, v_schema, v_tbl, v_min, v_max, v_gt0::text)
+        $q$, v_expr, v_col, v_schema, v_tbl, v_min, v_max, v_gt0::text,
+             coalesce(nullif(v_null_ok_cond ->> v_rule.key, ''), 'FALSE'))
         INTO v_nulls, v_bad, v_low, v_high, v_nonpos, v_min_val, v_max_val;
 
         v_checked := v_checked + 1;
@@ -179,7 +188,7 @@ BEGIN
         END IF;
     END LOOP;
 
-    DROP FUNCTION pg_temp.raw_try_num(text);
+    DROP FUNCTION pg_temp.stg_try_num(text);
 
     INSERT INTO audit.dq_violation (run_id, message)
     SELECT v_run_id, unnest(v_violations);
@@ -194,12 +203,10 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw numeric range violations (%):\n%',
+        RAISE EXCEPTION E'Staging numeric range violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All numeric range checks passed: % columns in schema %',
         v_checked, v_schema;
 END $$;
-
-

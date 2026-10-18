@@ -9,7 +9,7 @@
 --               4. No empty or placeholder strings in any text column
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_value_domains()
@@ -33,12 +33,16 @@ DECLARE
         "transactions.txn_type":            ["Deposit", "Fee Debit", "Interest Credit", "Transfer In", "Transfer Out", "Withdrawal"],
         "transactions.channel":             ["ATM", "Branch", "Mobile App", "Online Banking", "POS", "UPI"],
         "support_tickets.issue_type":       ["Account Statement", "App Login Issue", "Card Blocked", "Cheque Bounce", "Fraud Report", "Interest Query", "KYC Update", "Loan Query", "Net Banking Issue", "Wrong Debit"],
-        "support_tickets.status":           ["Escalated", "Open", "Resolved"]
+        "support_tickets.status":           ["Escalated", "Open", "Resolved"],
+        "loan_payments.amount_check":       ["DERIVED", "INCOMPLETE", "MISMATCH", "OK"],
+        "scd1_history.table_name":          ["staging.accounts", "staging.branches", "staging.card_transactions", "staging.cards", "staging.customers", "staging.employees", "staging.loan_payments", "staging.loans", "staging.support_tickets", "staging.transactions"]
     }'::JSONB;
 
+    -- staging cleaning guarantees: phone digits starting 6-9,
+    -- email lowercased by sp_load_customers, IFSC uppercased
     v_formats CONSTANT JSONB := '{
-        "customers.phone":  "^[0-9]{10}$",
-        "customers.email":  "^[^@[:space:]]+@[^@[:space:]]+\\.[^@[:space:]]+$",
+        "customers.phone":  "^[6-9][0-9]{9}$",
+        "customers.email":  "^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$",
         "branches.ifsc_code": "^[A-Z]{3}[0-9]{7}$"
     }'::JSONB;
 
@@ -166,13 +170,10 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw value domain violations (%):\n%',
+        RAISE EXCEPTION E'Staging value domain violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All value domain checks passed: % rules in schema %',
         v_checked, v_schema;
 END $$;
-
-
-

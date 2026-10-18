@@ -19,7 +19,7 @@
 --               parser has no EXCEPTION block (no subtransactions)
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_date_check()
@@ -72,7 +72,7 @@ BEGIN
     -- real ISO date/timestamp. No EXCEPTION block: validation is done with a
     -- strict regex plus a days-in-month check, so it is fast and never throws.
     EXECUTE $fn$
-        CREATE OR REPLACE FUNCTION pg_temp.raw_try_ts(p text, tz text)
+        CREATE OR REPLACE FUNCTION pg_temp.stg_try_ts(p text, tz text)
         RETURNS timestamp LANGUAGE plpgsql STABLE AS $f$
         DECLARE
             y int; m int; d int; dim int;
@@ -152,7 +152,7 @@ BEGIN
             WHEN 'date' THEN format('%I::timestamp', v_col.attname)
             WHEN 'ts'   THEN format('%I', v_col.attname)
             WHEN 'tstz' THEN format('(%I AT TIME ZONE %L)', v_col.attname, v_tz)
-            ELSE             format('pg_temp.raw_try_ts(%I::text, %L)', v_col.attname, v_tz)
+            ELSE             format('pg_temp.stg_try_ts(%I::text, %L)', v_col.attname, v_tz)
         END;
 
         v_blank := CASE v_kind
@@ -229,7 +229,7 @@ BEGIN
             format('no date columns found in schema %s - check v_name_pattern', v_schema);
     END IF;
 
-    DROP FUNCTION pg_temp.raw_try_ts(text, text);
+    DROP FUNCTION pg_temp.stg_try_ts(text, text);
 
     INSERT INTO audit.dq_violation (run_id, message)
     SELECT v_run_id, unnest(v_violations);
@@ -244,10 +244,9 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw date violations (%):\n%',
+        RAISE EXCEPTION E'Staging date violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All date checks passed: % columns checked in schema %', v_checked, v_schema;
 END $$;
-

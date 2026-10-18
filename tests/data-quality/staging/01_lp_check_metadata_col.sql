@@ -12,7 +12,7 @@
 --               7. Optional: table has a PK or unique index
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_metadata_col()
@@ -168,12 +168,9 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'staging schema contract violations (%):\n%',
+        RAISE EXCEPTION E'Staging metadata column violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
-    RAISE NOTICE 'All metadata columns are pass %', v_schema;
+    RAISE NOTICE 'All metadata columns passed in schema %', v_schema;
 END $$;
-
-
-

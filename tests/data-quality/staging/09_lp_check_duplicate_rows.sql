@@ -12,7 +12,7 @@
 --               source row are caught even in different batches
 -- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
 --               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_raw_tests.py).
+--               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_duplicate_rows()
@@ -26,7 +26,7 @@ DECLARE
         ["customers", "email"],
         ["branches",  "ifsc_code"]
     ]';
-    v_meta_cols CONSTANT TEXT[] := ARRAY['_batch_id', '_loaded_at'];
+    v_meta_cols CONSTANT TEXT[] := ARRAY['source_batch_id', 'source_loaded_at', 'row_added_at', 'row_updated_at'];
 
     -- ---------- working variables ----------
     v_violations TEXT[] := ARRAY[]::TEXT[];
@@ -143,11 +143,10 @@ BEGIN
     COMMIT;
 
     IF cardinality(v_violations) > 0 THEN
-        RAISE EXCEPTION E'Raw duplicate-row violations (%):\n%',
+        RAISE EXCEPTION E'Staging duplicate-row violations (%):\n%',
             cardinality(v_violations), array_to_string(v_violations, E'\n');
     END IF;
 
     RAISE NOTICE 'All duplicate-row checks passed: % checks in schema %',
         v_checked, v_schema;
 END $$;
-
