@@ -11,9 +11,7 @@
 --   - Type mismatches use trimmed text comparison for diagnostics.
 --   - All violations are collected before raising an exception.
 --   - Missing tables or columns are reported and skipped.
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_orphan_rows_check()

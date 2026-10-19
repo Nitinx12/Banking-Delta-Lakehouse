@@ -12,9 +12,7 @@
 --   4. No fact row is resolved to the Unknown member (*_key = -1).
 --   5. No natural key is left unresolved on the Unknown member.
 --   6. Every dimension holds exactly one Unknown member (*_key = -1).
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_orphan_rows_check()

@@ -10,9 +10,7 @@
 -- Note        : full-row duplicates are detected across every
 --               non-metadata column, so two loads of the same
 --               source row are caught even in different batches
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_staging_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_staging_duplicate_rows()

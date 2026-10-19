@@ -12,9 +12,7 @@
 --               for derived bands and are therefore not placeholders;
 --               their correctness is enforced by
 --               12_lp_check_derived_attributes.sql
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_value_domains()

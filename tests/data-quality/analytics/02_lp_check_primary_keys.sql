@@ -12,9 +12,7 @@
 --               4. No blank strings in text PK columns
 --               5. No duplicate PK values
 --               6. No NULL / duplicate natural keys
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_primary_key_check()

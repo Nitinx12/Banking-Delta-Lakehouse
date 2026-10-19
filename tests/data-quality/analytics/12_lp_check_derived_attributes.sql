@@ -15,9 +15,7 @@
 --               CURRENT_DATE, exactly like the load procedures, so a
 --               table loaded earlier and never refreshed fails here
 --               (that is the drift we want to see)
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_derived_attributes()

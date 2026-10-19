@@ -13,9 +13,7 @@
 --               7. Values strictly greater than zero when gt0
 -- Unknown rows : dimension rows with *_key = -1 are the Unknown
 --                 member and are excluded from the checks
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_numeric_ranges()

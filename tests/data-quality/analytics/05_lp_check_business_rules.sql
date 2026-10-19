@@ -10,9 +10,7 @@
 --               4. Derived flags agree with their status column
 --                  (is_active / is_resolved)
 -- Unknown rows : dimension rows with *_key = -1 are excluded
--- Note        : This is a PROCEDURE (not a DO block) so it can COMMIT,
---               letting the audit rows survive the final RAISE EXCEPTION.
---               Run with autocommit (psql, pg_cron, or run_analytics_tests.py).
+-- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
 CREATE OR REPLACE PROCEDURE audit.dq_analytics_business_rules()
