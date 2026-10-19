@@ -16,4 +16,7 @@ dependencies = [
     "seaborn>=0.13.2",
     "rich>=15.0.0",
     "databricks-sdk>=0.154.0",
+    "streamlit==1.62.0",
+    "pandas>=3.0,<4",
+    "plotly>=7.0,<8",
 ]

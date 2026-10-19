@@ -1,0 +1,28 @@
+[theme]
+primaryColor = "#0071CE"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F8FAFC"
+textColor = "#0F172A"
+font = "sans serif"
+
+[server]
+runOnSave = true
+headless = true
+enableXsrfProtection = true
+port = 8501
+maxUploadSize = 50
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = true
+toolbarMode = "minimal"
+
+[runner]
+magicEnabled = false
+fastReruns = true
+
+[logger]
+level = "warning"
+messageFormat = "%(asctime)s %(levelname)s %(message)s"
