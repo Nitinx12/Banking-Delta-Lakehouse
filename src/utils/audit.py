@@ -62,11 +62,15 @@ def _q(conn, sql: str, params: tuple | None = None, fetch: str | None = None):
         return cur.rowcount
 
 
-_SECRET_RE = re.compile(r"(?i)(password|pwd|token|secret)=([^&;\s]+)|(://[^:/\s]+:)([^@\s]+)@")
+_SECRET_RE = re.compile(
+    r"(?i)(password|pwd|token|secret)=([^&;\s]+)|(://[^:/\s]+:)([^@\s]+)@"
+)
 
 
 def _redact(text: str) -> str:
-    return _SECRET_RE.sub(lambda m: f"{m.group(1)}=***" if m.group(1) else f"{m.group(3)}***@", text)
+    return _SECRET_RE.sub(
+        lambda m: f"{m.group(1)}=***" if m.group(1) else f"{m.group(3)}***@", text
+    )
 
 
 def _classify(exc: BaseException) -> tuple[str, bool]:
@@ -74,7 +78,13 @@ def _classify(exc: BaseException) -> tuple[str, bool]:
     names = {c.__name__ for c in type(exc).__mro__}
     if isinstance(exc, WatermarkConflict):
         return "CONCURRENCY", False
-    if names & {"OperationalError", "InterfaceError", "ConnectionError", "ServerSelectionTimeoutError", "TimeoutError"}:
+    if names & {
+        "OperationalError",
+        "InterfaceError",
+        "ConnectionError",
+        "ServerSelectionTimeoutError",
+        "TimeoutError",
+    }:
         return "CONNECTION", True
     if names & {"Py4JJavaError", "Py4JError", "AnalysisException", "PythonException"}:
         return "SPARK", False
@@ -198,12 +208,18 @@ def start_table_run(
                 %s, %s, '{}'::jsonb)
         """,
         (
-            table_run_id, pipeline_run_id, cfg["config_id"], cfg["source_id"],
-            f'{cfg["source_schema"]}.{cfg["source_table"]}',
-            f'{cfg["target_schema"]}.{cfg["target_table"]}',
-            processing_layer, operation_type or cfg["load_strategy"],
-            pipeline_run_id, cfg["config_id"],
-            airflow_task_id, airflow_try_number,
+            table_run_id,
+            pipeline_run_id,
+            cfg["config_id"],
+            cfg["source_id"],
+            f"{cfg['source_schema']}.{cfg['source_table']}",
+            f"{cfg['target_schema']}.{cfg['target_table']}",
+            processing_layer,
+            operation_type or cfg["load_strategy"],
+            pipeline_run_id,
+            cfg["config_id"],
+            airflow_task_id,
+            airflow_try_number,
         ),
     )
     return table_run_id
@@ -238,8 +254,16 @@ def finish_table_run(
             execution_metadata = COALESCE(execution_metadata, '{}'::jsonb) || %s::jsonb
         WHERE table_run_id = %s
         """,
-        (status, rows_extracted, rows_landed, watermark_start, watermark_end,
-         error_id, Json(metadata or {}), table_run_id),
+        (
+            status,
+            rows_extracted,
+            rows_landed,
+            watermark_start,
+            watermark_end,
+            error_id,
+            Json(metadata or {}),
+            table_run_id,
+        ),
     )
 
 
@@ -257,8 +281,12 @@ def log_error(
     category, recoverable = _classify(exc)
     attempt = None
     if table_run_id is not None:
-        r = _q(conn, "SELECT attempt_number FROM audit.table_runs WHERE table_run_id = %s",
-               (table_run_id,), fetch="one")
+        r = _q(
+            conn,
+            "SELECT attempt_number FROM audit.table_runs WHERE table_run_id = %s",
+            (table_run_id,),
+            fetch="one",
+        )
         attempt = r["attempt_number"] if r else None
 
     row = _q(
@@ -272,20 +300,34 @@ def log_error(
         RETURNING error_id
         """,
         (
-            pipeline_run_id, table_run_id,
-            f'{cfg["source_schema"]}.{cfg["source_table"]}' if cfg else None,
-            f'{cfg["target_schema"]}.{cfg["target_table"]}' if cfg else None,
-            processing_layer, category, severity,
+            pipeline_run_id,
+            table_run_id,
+            f"{cfg['source_schema']}.{cfg['source_table']}" if cfg else None,
+            f"{cfg['target_schema']}.{cfg['target_table']}" if cfg else None,
+            processing_layer,
+            category,
+            severity,
             _redact(str(exc))[:10000],
-            Json({"exception_type": type(exc).__name__,
-                  "traceback": _redact("".join(traceback.format_exception(exc)))[-20000:]}),
-            attempt, recoverable,
+            Json(
+                {
+                    "exception_type": type(exc).__name__,
+                    "traceback": _redact("".join(traceback.format_exception(exc)))[
+                        -20000:
+                    ],
+                }
+            ),
+            attempt,
+            recoverable,
         ),
         fetch="one",
     )
     error_id = row["error_id"]
     if table_run_id is not None:
-        _q(conn, "UPDATE audit.table_runs SET error_id = %s WHERE table_run_id = %s", (error_id, table_run_id))
+        _q(
+            conn,
+            "UPDATE audit.table_runs SET error_id = %s WHERE table_run_id = %s",
+            (error_id, table_run_id),
+        )
     return error_id
 
 
@@ -322,40 +364,77 @@ def table_run(
     """Start a table run; on exit mark SUCCESS/SKIPPED, or log the error + FAILED and re-raise."""
     run = TableRun(
         table_run_id=start_table_run(
-            pipeline_run_id, cfg, processing_layer=processing_layer, operation_type=operation_type,
-            airflow_task_id=airflow_task_id, airflow_try_number=airflow_try_number,
+            pipeline_run_id,
+            cfg,
+            processing_layer=processing_layer,
+            operation_type=operation_type,
+            airflow_task_id=airflow_task_id,
+            airflow_try_number=airflow_try_number,
         ),
         pipeline_run_id=pipeline_run_id,
         cfg=cfg,
     )
-    label = f'{cfg["source_schema"]}.{cfg["source_table"]}'
+    label = f"{cfg['source_schema']}.{cfg['source_table']}"
     logger.info("[%s] table run %s started", label, run.table_run_id)
     try:
         yield run
     except BaseException as exc:
         try:  # never let audit problems hide the real error
-            error_id = log_error(exc, pipeline_run_id=pipeline_run_id, table_run_id=run.table_run_id,
-                                 cfg=cfg, processing_layer=processing_layer)
-            finish_table_run(run.table_run_id, "FAILED", rows_extracted=run.rows_extracted,
-                             watermark_start=run.watermark_start, watermark_end=run.watermark_end,
-                             error_id=error_id, metadata=run.metadata)
+            error_id = log_error(
+                exc,
+                pipeline_run_id=pipeline_run_id,
+                table_run_id=run.table_run_id,
+                cfg=cfg,
+                processing_layer=processing_layer,
+            )
+            finish_table_run(
+                run.table_run_id,
+                "FAILED",
+                rows_extracted=run.rows_extracted,
+                watermark_start=run.watermark_start,
+                watermark_end=run.watermark_end,
+                error_id=error_id,
+                metadata=run.metadata,
+            )
         except Exception:  # noqa: BLE001
             logger.exception("[%s] could not write failure to audit tables", label)
         logger.error("[%s] FAILED: %s", label, _redact(str(exc))[:500])
         raise
     else:
-        finish_table_run(run.table_run_id, run.status, rows_extracted=run.rows_extracted,
-                         rows_landed=run.rows_landed, watermark_start=run.watermark_start,
-                         watermark_end=run.watermark_end, metadata=run.metadata)
-        logger.info("[%s] %s | extracted=%s landed=%s", label, run.status, run.rows_extracted, run.rows_landed)
+        finish_table_run(
+            run.table_run_id,
+            run.status,
+            rows_extracted=run.rows_extracted,
+            rows_landed=run.rows_landed,
+            watermark_start=run.watermark_start,
+            watermark_end=run.watermark_end,
+            metadata=run.metadata,
+        )
+        logger.info(
+            "[%s] %s | extracted=%s landed=%s",
+            label,
+            run.status,
+            run.rows_extracted,
+            run.rows_landed,
+        )
 
 
 # ---------------------------------------------------------------- watermarks
+# Source->raw progress lives in audit.extract_watermarks; audit.etl_watermarks
+# is the staging layer's raw->staging progress on the same config_id, so the
+# two layers must never share a value.
 def get_watermark(config_id: int, conn=None) -> Optional[dict]:
-    return _q(conn, "SELECT * FROM audit.etl_watermarks WHERE config_id = %s", (config_id,), fetch="one")
+    return _q(
+        conn,
+        "SELECT * FROM audit.extract_watermarks WHERE config_id = %s",
+        (config_id,),
+        fetch="one",
+    )
 
 
-def begin_batch(cfg: dict, batch_start: Optional[str], batch_end: Optional[str], conn=None) -> dict:
+def begin_batch(
+    cfg: dict, batch_start: Optional[str], batch_end: Optional[str], conn=None
+) -> dict:
     """Record the batch window about to be loaded; returns {lock_version, last_watermark_value}.
 
     Does NOT move the watermark and does not bump lock_version.
@@ -363,7 +442,7 @@ def begin_batch(cfg: dict, batch_start: Optional[str], batch_end: Optional[str],
     return _q(
         conn,
         """
-        INSERT INTO audit.etl_watermarks
+        INSERT INTO audit.extract_watermarks
             (source_id, config_id, watermark_column, watermark_strategy,
              current_batch_start, current_batch_end)
         VALUES (%s, %s, %s, %s, %s, %s)
@@ -375,8 +454,14 @@ def begin_batch(cfg: dict, batch_start: Optional[str], batch_end: Optional[str],
             updated_at          = clock_timestamp()
         RETURNING lock_version, last_watermark_value
         """,
-        (cfg["source_id"], cfg["config_id"], cfg.get("incremental_column"),
-         cfg.get("watermark_strategy"), batch_start, batch_end),
+        (
+            cfg["source_id"],
+            cfg["config_id"],
+            cfg.get("incremental_column"),
+            cfg.get("watermark_strategy"),
+            batch_start,
+            batch_end,
+        ),
         fetch="one",
     )
 
@@ -398,7 +483,7 @@ def advance_watermark(
     changed = _q(
         conn,
         """
-        UPDATE audit.etl_watermarks
+        UPDATE audit.extract_watermarks
         SET previous_watermark_value  = last_watermark_value,
             last_watermark_value      = %s,
             last_success_pipeline_run = %s,
@@ -414,6 +499,40 @@ def advance_watermark(
         raise WatermarkConflict(
             f"config_id={config_id}: watermark was changed by another run (expected lock_version={expected_lock_version})"
         )
+
+
+def seed_watermark(cfg: dict, value: str, *, force: bool = False, conn=None) -> bool:
+    """Bootstrap last_watermark_value for a newly-incremental config.
+
+    Only fills an empty watermark unless force=True, so re-running can never
+    rewind a watermark that later runs already advanced. Returns True if seeded.
+    """
+    seeded = _q(
+        conn,
+        """
+        INSERT INTO audit.extract_watermarks
+            (source_id, config_id, watermark_column, watermark_strategy,
+             last_watermark_value)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (config_id) DO UPDATE
+        SET watermark_column    = EXCLUDED.watermark_column,
+            watermark_strategy  = EXCLUDED.watermark_strategy,
+            last_watermark_value = EXCLUDED.last_watermark_value,
+            updated_at          = clock_timestamp()
+        WHERE audit.extract_watermarks.last_watermark_value IS NULL OR %s
+        RETURNING config_id
+        """,
+        (
+            cfg["source_id"],
+            cfg["config_id"],
+            cfg["incremental_column"],
+            cfg["watermark_strategy"],
+            value,
+            force,
+        ),
+        fetch="one",
+    )
+    return seeded is not None
 
 
 # -------------------------------------------------------------- data quality
@@ -440,8 +559,16 @@ def log_dq_result(
              records_checked, records_failed, details)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,
-        (pipeline_run_id, table_run_id, config_id, check_name, status,
-         records_checked, records_failed, Json(details or {})),
+        (
+            pipeline_run_id,
+            table_run_id,
+            config_id,
+            check_name,
+            status,
+            records_checked,
+            records_failed,
+            Json(details or {}),
+        ),
     )
 
 

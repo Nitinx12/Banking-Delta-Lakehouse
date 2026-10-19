@@ -25,7 +25,9 @@ ON CONFLICT (source_name) DO NOTHING;
 -- (ON CONFLICT DO NOTHING). Adjust target_table if a name collides.
 -- ------------------------------------------------------------
 
--- MongoDB (banking_support_db): full load, business key = _id
+-- MongoDB (banking_support_db): incremental on _id (ObjectId, always present, indexed).
+-- created_at/loaded_at are plain strings in these collections, so they cannot be
+-- timestamp watermarks; business key = _id.
 INSERT INTO audit.source_tables
     (source_id,
     source_schema,
@@ -34,9 +36,11 @@ INSERT INTO audit.source_tables
     target_table,
     business_key,
     load_strategy,
+    incremental_column,
+    watermark_strategy,
     num_partitions)
 SELECT source_id, 'banking_support_db', 'support_tickets', 'raw', 'support_tickets',
-       '_id', 'full', 2
+       '_id', 'incremental', '_id', 'objectid', 2
 FROM audit.source_registry WHERE source_name = 'mongodb_source'
 ON CONFLICT DO NOTHING;
 
@@ -48,13 +52,16 @@ INSERT INTO audit.source_tables
     target_table,
     business_key,
     load_strategy,
+    incremental_column,
+    watermark_strategy,
     num_partitions)
 SELECT source_id, 'banking_support_db', 'card_transactions', 'raw', 'card_transactions',
-       '_id', 'full', 4
+       '_id', 'incremental', '_id', 'objectid', 4
 FROM audit.source_registry WHERE source_name = 'mongodb_source'
 ON CONFLICT DO NOTHING;
 
--- Databricks (schema 'public'): full load, landed name = table name
+-- Databricks (schema 'public'): incremental on created_at (a real timestamp column
+-- on all three tables); landed name = table name
 INSERT INTO audit.source_tables
     (source_id,
     source_schema,
@@ -63,9 +70,11 @@ INSERT INTO audit.source_tables
     target_table,
     business_key,
     load_strategy,
+    incremental_column,
+    watermark_strategy,
     num_partitions)
 SELECT source_id, 'public', 'loans', 'raw', 'loans',
-       'loan_id', 'full', 2
+       'loan_id', 'incremental', 'created_at', 'timestamp', 2
 FROM audit.source_registry WHERE source_name = 'databricks_source'
 ON CONFLICT DO NOTHING;
 
@@ -77,9 +86,11 @@ INSERT INTO audit.source_tables
     target_table,
     business_key,
     load_strategy,
+    incremental_column,
+    watermark_strategy,
     num_partitions)
 SELECT source_id, 'public', 'loan_payments', 'raw', 'loan_payments',
-       'payment_id', 'full', 4
+       'payment_id', 'incremental', 'created_at', 'timestamp', 4
 FROM audit.source_registry WHERE source_name = 'databricks_source'
 ON CONFLICT DO NOTHING;
 
@@ -91,9 +102,11 @@ INSERT INTO audit.source_tables
     target_table,
     business_key,
     load_strategy,
+    incremental_column,
+    watermark_strategy,
     num_partitions)
 SELECT source_id, 'public', 'transactions', 'raw', 'transactions',
-       'transaction_id', 'full', 4
+       'transaction_id', 'incremental', 'created_at', 'timestamp', 4
 FROM audit.source_registry WHERE source_name = 'databricks_source'
 ON CONFLICT DO NOTHING;
 
@@ -184,7 +197,9 @@ SELECT
     t.source_table,
     t.target_schema,
     t.target_table,
-    t.load_strategy
+    t.load_strategy,
+    t.incremental_column,
+    t.watermark_strategy
 FROM audit.source_tables t
 JOIN audit.source_registry r USING (source_id)
 ORDER BY r.source_name, t.source_table;

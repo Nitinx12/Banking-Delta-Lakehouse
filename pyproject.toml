@@ -15,4 +15,5 @@ dependencies = [
     "matplotlib>=3.11.2",
     "seaborn>=0.13.2",
     "rich>=15.0.0",
+    "databricks-sdk>=0.154.0",
 ]

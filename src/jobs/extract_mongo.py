@@ -1,261 +1,93 @@
-"""extract_mongo.py — MongoDB  ->  PostgreSQL `raw` schema (PySpark).
-
-Run from the project root (the folder that contains utils/):
-
-    python extract_mongo.py                          # every enabled mongodb_source table
-    python extract_mongo.py --tables customers cards # only these collections
-    python extract_mongo.py --finalize               # also close the pipeline run (last task of a DAG)
-
-What lands in Postgres
-----------------------
-* table name  = audit.source_tables.target_table  (register it equal to the collection name)
-* column name = Mongo field name (case preserved), column type = type Spark infers from Mongo
-* ISO date/timestamp text fields (names like *_date, *_at, dob) are cast to real
-  date/timestamp; values that do not parse become NULL and are logged as a DQ WARNING
-* numeric foreign keys listed in FOREIGN_KEYS are cast to bigint
-* nested documents / arrays of documents -> jsonb column with the SAME name
-* two extra metadata columns:  _batch_id (table_run_id)  and  _loaded_at
-
-Per table:  window snapshot -> Spark read -> staging table -> ONE transaction
-            (staging -> raw table + watermark advance) -> row-count data-quality check.
-Everything is recorded in the audit.* tables.
-"""
+"""MongoDB to PostgreSQL raw schema. Usage: python src/jobs/extract_mongo.py [--tables a b] [--parallel N] [--finalize]"""
 
 from __future__ import annotations
 
-import argparse
-import os
 import sys
 from pathlib import Path
 
+from pyspark import StorageLevel
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from utils.audit import (
-    advance_watermark,
-    begin_batch,
-    fail_stale_runs,
-    finish_pipeline_run,
-    get_enabled_tables,
-    get_watermark,
-    log_dq_result,
-    start_pipeline_run,
-    table_run,
-)
-from utils.logger import get_logger
-from utils.session import get_spark_session, pg_transaction, stop_spark
+from utils.audit import log_dq_result
+from utils.extract_runner import Prepared, Source, TableContext, run_source
 from utils.spark_io import (
     add_audit_columns,
     cast_integers,
     cast_temporal,
-    drop_staging,
     mongo_count,
     mongo_max_watermark,
     prepare_for_jdbc,
-    promote_staging,
     read_mongo,
     temporal_parse_failures,
-    write_staging,
 )
 
-logger = get_logger("extract_mongo")
-
-SOURCE_NAME = "mongodb_source"
-
-# Mongo stores numeric keys as strings; these reference numeric parent keys in raw.
 FOREIGN_KEYS: dict[str, tuple[str, ...]] = {
     "support_tickets": ("customer_id",),
     "card_transactions": ("card_id",),
 }
 
 
-def extract_table(
-    spark, pipeline_run_id, cfg: dict, task_id: str | None, try_number: int | None
-) -> str:
-    """Extract ONE collection. Returns the final status (SUCCESS / SKIPPED). Raises on failure."""
-    incremental = cfg["load_strategy"] == "incremental"
-    label = f"{cfg['source_schema']}.{cfg['source_table']}"
+def prepare(ctx: TableContext) -> Prepared:
+    cfg = ctx.cfg
+    raw = read_mongo(ctx.spark, cfg, ctx.start, ctx.end)
+    df, temporal_cols = cast_temporal(raw)
+    if temporal_cols:
+        raw.persist(StorageLevel.MEMORY_AND_DISK)
+    df = cast_integers(df, FOREIGN_KEYS.get(cfg["source_table"], ()))
+    if temporal_cols:
+        ctx.logger.info(
+            "[%s] text date fields cast: %s",
+            ctx.label,
+            ", ".join(f"{c}->{k}" for c, k in temporal_cols.items()),
+        )
+    df, json_cols = prepare_for_jdbc(df)
+    df = add_audit_columns(df, ctx.run.table_run_id)
+    if json_cols:
+        ctx.logger.info("[%s] nested fields stored as jsonb: %s", ctx.label, ", ".join(json_cols))
 
-    with table_run(
-        pipeline_run_id, cfg, airflow_task_id=task_id, airflow_try_number=try_number
-    ) as run:
-        start = end = None
-        lock_version = None
-
-        # ---- 1. decide the batch window (incremental only) -----------------------------
-        if incremental:
-            wm = get_watermark(cfg["config_id"])
-            start = wm["last_watermark_value"] if wm else None
-            end = mongo_max_watermark(
-                cfg
-            )  # snapshot upper bound, read straight from Mongo
-            if end is None:
-                run.skip(f"no documents with a value in '{cfg['incremental_column']}'")
-                return "SKIPPED"
-            if start is not None and end == start:
-                run.skip("no new data past the watermark")
-                return "SKIPPED"
-            lock_version = begin_batch(cfg, start, end)["lock_version"]
-            run.watermark_start, run.watermark_end = start, end
-            logger.info(
-                "[%s] incremental window: %s -> %s", label, start or "(beginning)", end
-            )
-        else:
-            logger.info("[%s] full load", label)
-
-        # ---- 2. read from Mongo, make it JDBC-writable, add lineage columns -----------
-        raw = read_mongo(spark, cfg, start, end)
-        df, temporal_cols = cast_temporal(raw)
-        df = cast_integers(df, FOREIGN_KEYS.get(cfg["source_table"], ()))
-        if temporal_cols:
-            logger.info(
-                "[%s] text date fields cast: %s",
-                label,
-                ", ".join(f"{c}->{k}" for c, k in temporal_cols.items()),
-            )
-        df, json_cols = prepare_for_jdbc(df)
-        df = add_audit_columns(df, run.table_run_id)
-        if json_cols:
-            logger.info(
-                "[%s] nested fields stored as jsonb: %s", label, ", ".join(json_cols)
-            )
-
-        # ---- 3. Spark -> staging table (parallel JDBC) --------------------------------
-        run.rows_extracted = write_staging(df, cfg)
-
-        # ---- 4. ONE transaction: staging -> raw table AND watermark --------------------
-        with pg_transaction() as conn:
-            run.rows_landed = promote_staging(conn, cfg, jsonb_columns=json_cols)
-            if incremental:
-                advance_watermark(
-                    cfg["config_id"],
-                    end,
-                    expected_lock_version=lock_version,
-                    table_run_id=run.table_run_id,
-                    pipeline_run_id=pipeline_run_id,
-                    conn=conn,
-                )
-        drop_staging(cfg)
-
-        # ---- 5. data-quality: source count vs landed (logged, never blocks) ------------
-        expected = mongo_count(cfg, start, end)
-        matches = expected == run.rows_landed
+    def check_temporal(expected: int) -> None:
+        try:
+            counts = temporal_parse_failures(raw, temporal_cols)
+        finally:
+            raw.unpersist()
+        failures = {col: n for col, n in counts.items() if n}
+        if not failures:
+            return
+        total = sum(failures.values())
+        ctx.logger.warning(
+            "[%s] %s date value(s) did not parse and were set to NULL: %s",
+            ctx.label,
+            total,
+            failures,
+        )
         log_dq_result(
-            check_name="row_count_source_vs_landed",
-            status="PASSED" if matches else "WARNING",
-            records_checked=expected,
-            records_failed=abs(expected - run.rows_landed),
-            details={
-                "source_count": expected,
-                "landed": run.rows_landed,
-                "window": [start, end],
-            },
-            pipeline_run_id=pipeline_run_id,
-            table_run_id=run.table_run_id,
+            check_name="temporal_values_parsed",
+            status="WARNING",
+            records_checked=expected * len(temporal_cols),
+            records_failed=total,
+            details={"columns": failures},
+            pipeline_run_id=ctx.pipeline_run_id,
+            table_run_id=ctx.run.table_run_id,
             config_id=cfg["config_id"],
         )
-        if not matches:
-            logger.warning(
-                "[%s] row count differs: source=%s landed=%s (live collection changed during the run?)",
-                label,
-                expected,
-                run.rows_landed,
-            )
 
-        # ---- 5b. data-quality: date text that failed to parse -> NULL (never blocks) ---
-        if temporal_cols:
-            failures = {
-                col: n
-                for col, n in temporal_parse_failures(raw, temporal_cols).items()
-                if n
-            }
-            if failures:
-                total = sum(failures.values())
-                logger.warning(
-                    "[%s] %s date value(s) did not parse and were set to NULL: %s",
-                    label,
-                    total,
-                    failures,
-                )
-                log_dq_result(
-                    check_name="temporal_values_parsed",
-                    status="WARNING",
-                    records_checked=expected * len(temporal_cols),
-                    records_failed=total,
-                    details={"columns": failures},
-                    pipeline_run_id=pipeline_run_id,
-                    table_run_id=run.table_run_id,
-                    config_id=cfg["config_id"],
-                )
-        return "SUCCESS"
+    return Prepared(df, {"jsonb_columns": json_cols}, check_temporal if temporal_cols else None)
+
+
+SOURCE = Source(
+    name="mongodb_source",
+    app="extract_mongo",
+    spark_sources=("mongodb", "postgres"),
+    max_watermark=mongo_max_watermark,
+    count=mongo_count,
+    prepare=prepare,
+    empty_message="no documents with a value in '{column}'",
+)
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Extract MongoDB collections into the Postgres raw schema."
-    )
-    parser.add_argument(
-        "--tables", nargs="*", help="only these source_table (collection) names"
-    )
-    parser.add_argument(
-        "--finalize",
-        action="store_true",
-        help="close the pipeline run when done (standalone runs always do)",
-    )
-    parser.add_argument("--dag-id", default=os.environ.get("AIRFLOW_CTX_DAG_ID"))
-    parser.add_argument(
-        "--dag-run-id", default=os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
-    )
-    args = parser.parse_args(argv)
-
-    task_id = os.environ.get("AIRFLOW_CTX_TASK_ID")
-    try_number = (
-        int(os.environ["AIRFLOW_CTX_TRY_NUMBER"])
-        if os.environ.get("AIRFLOW_CTX_TRY_NUMBER")
-        else None
-    )
-
-    fail_stale_runs(
-        max_age_hours=6
-    )  # clean up runs killed earlier (OOM, power loss ...)
-    pipeline_run_id = start_pipeline_run(
-        dag_id=args.dag_id,
-        dag_run_id=args.dag_run_id,
-        trigger_type="airflow" if args.dag_run_id else "manual",
-    )
-
-    configs = get_enabled_tables(SOURCE_NAME)
-    if args.tables:
-        wanted = set(args.tables)
-        configs = [c for c in configs if c["source_table"] in wanted]
-        missing = wanted - {c["source_table"] for c in configs}
-        if missing:
-            logger.warning(
-                "Not registered / not enabled in audit.source_tables: %s",
-                sorted(missing),
-            )
-    if not configs:
-        logger.warning("Nothing to extract for %s", SOURCE_NAME)
-
-    failed, results = 0, {}
-    spark = None
-    try:
-        if configs:
-            spark = get_spark_session("extract_mongo", sources=("mongodb", "postgres"))
-        for cfg in configs:
-            try:
-                results[cfg["source_table"]] = extract_table(
-                    spark, pipeline_run_id, cfg, task_id, try_number
-                )
-            except Exception:  # already recorded in audit.* by table_run(); keep going with the next table
-                results[cfg["source_table"]] = "FAILED"
-                failed += 1
-    finally:
-        stop_spark()
-        if args.finalize or not args.dag_run_id:
-            finish_pipeline_run(pipeline_run_id)
-
-    logger.info("Done: %s", results)
-    return 1 if failed else 0
+    return run_source(SOURCE, argv)
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ import re
 import shutil
 import uuid
 from contextlib import closing
+from datetime import timezone
 from typing import TYPE_CHECKING, Optional
 
 from psycopg2 import sql
@@ -159,11 +160,11 @@ def databricks_max_watermark(cfg: dict) -> Optional[str]:
     if value is None:
         return None
     if hasattr(value, "isoformat"):  # date / datetime
-        return (
-            value.isoformat(sep=" ", timespec="microseconds")
-            if hasattr(value, "hour")
-            else value.isoformat()
-        )
+        if not hasattr(value, "hour"):  # date column
+            return value.isoformat()
+        if value.tzinfo is not None:  # watermark text is naive UTC (see _norm_ts)
+            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+        return value.isoformat(sep=" ", timespec="microseconds")
     return str(value)
 
 
@@ -700,15 +701,15 @@ def promote_staging(
         if not _columns(cur, t_schema, t_name):
             cur.execute(sql.SQL("CREATE TABLE {} (LIKE {})").format(T, S))
             for col, coltype in (column_types or {}).items():
+                if coltype.lower().startswith("timestamptz"):
+                    using = sql.SQL("{} AT TIME ZONE 'UTC'").format(sql.Identifier(col))
+                else:
+                    using = sql.SQL("{}::{}").format(
+                        sql.Identifier(col), sql.SQL(coltype)
+                    )
                 cur.execute(
-                    sql.SQL(
-                        "ALTER TABLE {} ALTER COLUMN {} TYPE {} USING {}::{}"
-                    ).format(
-                        T,
-                        sql.Identifier(col),
-                        sql.SQL(coltype),
-                        sql.Identifier(col),
-                        sql.SQL(coltype),
+                    sql.SQL("ALTER TABLE {} ALTER COLUMN {} TYPE {} USING {}").format(
+                        T, sql.Identifier(col), sql.SQL(coltype), using
                     )
                 )
             for col in jsonb_columns:
@@ -724,7 +725,7 @@ def promote_staging(
                 cur.execute(
                     sql.SQL(
                         "ALTER TABLE {} ALTER COLUMN {} TYPE timestamptz "
-                        "USING {}::timestamptz"
+                        "USING {} AT TIME ZONE 'UTC'"
                     ).format(
                         T, sql.Identifier("_loaded_at"), sql.Identifier("_loaded_at")
                     )

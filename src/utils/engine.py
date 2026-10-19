@@ -221,6 +221,7 @@ def get_spark(
         .config("spark.default.parallelism", str(cores))
         .config("spark.sql.adaptive.enabled", "true")
         .config("spark.sql.adaptive.coalescePartitions.enabled", "true")
+        .config("spark.scheduler.mode", "FAIR")
         # --- correctness: everything in UTC (JVM + Spark SQL) ------------------------
         .config("spark.sql.session.timeZone", "UTC")
         .config("spark.driver.extraJavaOptions", jvm_opts)
