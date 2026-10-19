@@ -36,10 +36,10 @@ def month_range(
     label: str = "Month range",
 ) -> tuple[pd.Timestamp, pd.Timestamp]:
     """Two-handle month slider over a date column, defaults to the full history."""
-    months = sorted(df[column].dropna().unique())
+    months = sorted(pd.to_datetime(df[column].dropna()).dt.to_period("M").unique())
     if not months:
         return pd.Timestamp.min, pd.Timestamp.max
-    labels = [pd.Timestamp(m).strftime("%b %Y") for m in months]
+    labels = [period.strftime("%b %Y") for period in months]
     start, end = st.select_slider(
         label,
         options=labels,
