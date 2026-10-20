@@ -1,0 +1,54 @@
+name: Bug report
+description: Something is broken in the pipeline, orchestration or tooling
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do **not** paste credentials, `.env` values, row-level data or full connection strings.
+        Redact anything sensitive — mail/audit redaction is not a licence to share secrets.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - extract (mongo / databricks / mysql)
+        - staging
+        - analytics
+        - marts
+        - publish (Databricks)
+        - data quality gate
+        - Airflow / orchestration
+        - dashboard
+        - tooling (make, hooks, tests, CI)
+        - docs
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: Actual behaviour, with the exact command or DAG run id.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence (redacted)
+      description: Task logs, `audit.pipeline_runs.status`, `audit.dq_run` rows (statuses/counts only — no row values).
+    validations:
+      required: false
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python/uv version, Airflow version if relevant.
+    validations:
+      required: false

@@ -1,9 +1,15 @@
 [project]
 name = "banking"
 version = "0.1.0"
-description = "Add your description here"
+description = "Banking-Delta: daily MySQL/MongoDB/Databricks -> PySpark -> PostgreSQL -> Databricks Delta pipeline"
 readme = "README.md"
 requires-python = ">=3.13"
+license = "MIT"
+classifiers = [
+    "Private :: Do Not Upload",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
 dependencies = [
     "pyspark>=3.5.3,<3.6",
     "psycopg2-binary>=2.9",
@@ -26,6 +32,7 @@ dependencies = [
 dev = [
     "apache-airflow-providers-standard>=1.0.0",
     "apache-airflow==3.3.2",
+    "pytest-cov>=7.1.0",
     "pytest>=8.3",
     "ruff==0.12.0",
     "sqlfluff>=3.3,<4",
@@ -34,13 +41,32 @@ dev = [
 [tool.ruff]
 extend-exclude = ["notebooks"]
 
+[tool.setuptools.packages.find]
+include = ["contracts*"]
+
 [tool.pytest.ini_options]
-testpaths = ["airflow/tests"]
+testpaths = ["tests", "airflow/tests"]
 markers = [
     "unit: pure, isolated tests (no DB, no network)",
     "smoke: imports, CLIs, repo/SQL/env contracts",
     "spark: local-Spark tests (needs Java)",
     "integration: behavioural tests on a disposable Postgres",
     "live: read-only checks against the configured environment",
+    "spark_smoke: alias kept for runner scripts that predate the 'spark' marker",
 ]
 filterwarnings = ["ignore::DeprecationWarning:airflow.*"]
+
+[tool.coverage.run]
+branch = true
+source = ["src", "scripts", "airflow/include"]
+
+[tool.coverage.report]
+show_missing = true
+# Operational floor, not a target: raise it as unit tests land (never lower it
+# without a written reason in the PR). Current unit tier covers airflow/ +
+# utils + trend helpers.
+fail_under = 10
+omit = [
+    "*/__pycache__/*",
+    "*/tests/*",
+]

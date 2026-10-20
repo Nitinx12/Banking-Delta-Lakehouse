@@ -28,7 +28,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 	       PGUSER="$${PGUSER:-$$PG_USER}" \
 	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
-.PHONY: help install hooks lint format sql-lint unit cov smoke spark-smoke \
+.PHONY: help install hooks lint format contracts sql-lint unit cov smoke spark-smoke \
         sql-smoke integration smoke-live test leaks ci run-jobs staging analytics \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean
 
@@ -53,6 +53,9 @@ lint: ## ruff check + ruff format --check
 format: ## Auto-fix: ruff check --fix + ruff format
 	$(RUFF) check --fix .
 	$(RUFF) format .
+
+contracts: ## Validate contracts/ against source-table.schema.json
+	$(PY) -m contracts.validate
 
 sql-lint: ## sqlfluff lint (postgres dialect) on sql/ and tests/
 	$(SQLFLUFF) lint sql tests --dialect postgres
@@ -107,8 +110,9 @@ leaks: ## gitleaks over git history (needs gitleaks installed)
 	gitleaks git --redact -v --config .gitleaks.toml
 
 ##@ Gate
-ci: ## Fast local gate == CI: lint + sql-lint + unit + smoke
+ci: ## Fast local gate == CI: lint + contracts + sql-lint + unit + smoke
 	$(MAKE) lint
+	$(MAKE) contracts
 	$(MAKE) sql-lint
 	$(MAKE) unit
 	$(MAKE) smoke

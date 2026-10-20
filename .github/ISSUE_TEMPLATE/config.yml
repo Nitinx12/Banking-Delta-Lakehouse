@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: How to work in this repo
+    url: https://github.com/Nitinx12/Banking-Delta-Lakehouse/blob/main/docs/GITWORKFLOWS.md
+    about: Branching, commits, hooks, the change loop and PR rules.
+  - name: Troubleshooting
+    url: https://github.com/Nitinx12/Banking-Delta-Lakehouse/blob/main/docs/TROUBLESHOOTING.md
+    about: Symptom -> cause -> fix for pipeline, Airflow and tooling problems.
+  - name: Security policy
+    url: https://github.com/Nitinx12/Banking-Delta-Lakehouse/blob/main/SECURITY.md
+    about: How to report a vulnerability privately.

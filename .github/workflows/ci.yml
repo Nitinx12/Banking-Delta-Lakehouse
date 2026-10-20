@@ -1,0 +1,82 @@
+# Required CI gate. Mirrors `make ci` exactly: lint + sql-lint + unit + smoke.
+# Keep the Make targets as the single source of truth so local == CI.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: gate (lint + sql-lint + unit + smoke)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint (ruff)
+        run: make lint
+
+      - name: Data contracts
+        run: make contracts
+
+      - name: SQL lint (sqlfluff)
+        run: make sql-lint
+
+      - name: Unit tests
+        run: make unit
+
+      - name: Smoke tests
+        run: make smoke
+
+      - name: Coverage gate
+        run: make cov
+
+  windows-gate:
+    name: windows-gate (batch runner parity)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install dependencies
+        run: tasks.bat install
+
+      - name: Lint (ruff)
+        run: tasks.bat lint
+
+      - name: Data contracts
+        run: tasks.bat contracts
+
+      - name: Unit + smoke tests
+        run: tasks.bat test

@@ -1,0 +1,116 @@
+{
+  "registry_version": 1,
+  "note": "Mirror of audit.source_tables (sql/scripts/03_register_sources.sql). Change SQL first, then this file and the matching column contracts in the same PR.",
+  "tables": [
+    {
+      "source": "mysql_source",
+      "source_schema": "banking_core_db",
+      "source_table": "accounts",
+      "target_schema": "raw",
+      "target_table": "accounts",
+      "business_key": ["account_id"],
+      "load_strategy": "full",
+      "incremental_column": null,
+      "watermark_strategy": null
+    },
+    {
+      "source": "mysql_source",
+      "source_schema": "banking_core_db",
+      "source_table": "branches",
+      "target_schema": "raw",
+      "target_table": "branches",
+      "business_key": ["branch_id"],
+      "load_strategy": "full",
+      "incremental_column": null,
+      "watermark_strategy": null
+    },
+    {
+      "source": "mysql_source",
+      "source_schema": "banking_core_db",
+      "source_table": "cards",
+      "target_schema": "raw",
+      "target_table": "cards",
+      "business_key": ["card_id"],
+      "load_strategy": "full",
+      "incremental_column": null,
+      "watermark_strategy": null
+    },
+    {
+      "source": "mysql_source",
+      "source_schema": "banking_core_db",
+      "source_table": "customers",
+      "target_schema": "raw",
+      "target_table": "customers",
+      "business_key": ["customer_id"],
+      "load_strategy": "full",
+      "incremental_column": null,
+      "watermark_strategy": null
+    },
+    {
+      "source": "mysql_source",
+      "source_schema": "banking_core_db",
+      "source_table": "employees",
+      "target_schema": "raw",
+      "target_table": "employees",
+      "business_key": ["employee_id"],
+      "load_strategy": "full",
+      "incremental_column": null,
+      "watermark_strategy": null
+    },
+    {
+      "source": "mongodb_source",
+      "source_schema": "banking_support_db",
+      "source_table": "support_tickets",
+      "target_schema": "raw",
+      "target_table": "support_tickets",
+      "business_key": ["_id"],
+      "load_strategy": "incremental",
+      "incremental_column": "_id",
+      "watermark_strategy": "objectid"
+    },
+    {
+      "source": "mongodb_source",
+      "source_schema": "banking_support_db",
+      "source_table": "card_transactions",
+      "target_schema": "raw",
+      "target_table": "card_transactions",
+      "business_key": ["_id"],
+      "load_strategy": "incremental",
+      "incremental_column": "_id",
+      "watermark_strategy": "objectid"
+    },
+    {
+      "source": "databricks_source",
+      "source_schema": "public",
+      "source_table": "loans",
+      "target_schema": "raw",
+      "target_table": "loans",
+      "business_key": ["loan_id"],
+      "load_strategy": "incremental",
+      "incremental_column": "created_at",
+      "watermark_strategy": "timestamp"
+    },
+    {
+      "source": "databricks_source",
+      "source_schema": "public",
+      "source_table": "loan_payments",
+      "target_schema": "raw",
+      "target_table": "loan_payments",
+      "business_key": ["payment_id"],
+      "load_strategy": "incremental",
+      "incremental_column": "created_at",
+      "watermark_strategy": "timestamp"
+    },
+    {
+      "source": "databricks_source",
+      "source_schema": "public",
+      "source_table": "transactions",
+      "target_schema": "raw",
+      "target_table": "transactions",
+      "business_key": ["transaction_id"],
+      "load_strategy": "incremental",
+      "incremental_column": "created_at",
+      "watermark_strategy": "timestamp"
+    }
+  ]
+}

@@ -10,8 +10,12 @@ wheels/
 .venv
 .vscode
 .ruff_cache
-.sqlfluff
 .mypy_cache
+
+# Coverage output
+.coverage
+coverage.xml
+htmlcov/
 
 # Spark local cache (downloaded jars, temp, warehouse)
 .spark/
