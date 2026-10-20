@@ -19,3 +19,9 @@ wheels/
 # Environment / secrets
 .env
 logs/
+
+# Airflow
+airflow/.env.airflow
+airflow/logs/
+airflow/.spark/
+airflow/__pycache__/

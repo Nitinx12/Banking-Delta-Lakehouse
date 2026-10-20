@@ -21,6 +21,7 @@ PostgreSQL warehouse.
 | Databricks `public` schema | Source: loans, loan_payments, transactions | Pure-Python `databricks-sql-connector` → local Parquet → Spark |
 | PostgreSQL `banking_delta` | Warehouse: raw / staging / analytics / marts / audit / exploration schemas | psycopg2 (audit + SQL procedures), Spark JDBC (bulk landing writes) |
 | Databricks `marts` schema | Final Delta marts (published) | databricks-sql-connector + Workspace SDK volume upload |
+| Streamlit dashboard (`dashboard/`) | Read-only BI over the Databricks `marts` (see §16) | databricks-sql-connector (SELECT only) |
 
 There is **no Airflow DAG code in the repo yet** (env vars and `AIRFLOW_CTX_*` plumbing
 exist in the runner, the DAGs themselves live outside).
@@ -63,6 +64,11 @@ Python jobs. Step 6 is a gate: a critical failure blocks publish.
 
 ### Typical daily command sequence
 
+The **single entry point** for all of this is `python main.py` (see §14); it runs the 9
+steps below in order and stops on the first failure. The individual commands are kept here
+because they are what each step actually invokes (and what you run when debugging one
+layer):
+
 ```bash
 python scripts/run_jobs.py                 # [1] mongo -> databricks -> mysql extracts
 psql ... -f sql/staging/00_master_load.sql # [2] CALL staging.sp_load_all()
@@ -83,7 +89,7 @@ python scripts/run_marts_tests.py          # [6d]
 Banking/
 ├── AGENTS.md                   # rules for AI agents (permissions, git, code standards)
 ├── repo_detailes.md            # this file
-├── main.py                     # unused uv template stub ("Hello from banking!")
+├── main.py                     # pipeline entrypoint: runs the 9 gated steps in order (see §14)
 ├── pyproject.toml              # project metadata + dependencies (uv-managed)
 ├── requirements.txt            # pip-style mirror of the runtime deps
 ├── uv.lock                     # uv lockfile
@@ -97,6 +103,7 @@ Banking/
 │   └── log4j2.properties       # Spark/Java logging config
 ├── notebooks/                  # one exploration notebook per source system
 │   ├── mysql.ipynb  mongodb.ipynb  databricks.ipynb
+├── dashboard/                  # Streamlit + Plotly dashboard over the Databricks marts (see §16)
 ├── scripts/                    # operator entry points (see §5)
 ├── src/
 │   ├── jobs/                   # runnable jobs (see §6)
@@ -556,3 +563,226 @@ scripts/run_{raw,staging,analytics,marts}_tests.py
   use `05_switch_mongo_databricks_incremental.sql` on an already-seeded database.
 - **Windows-aware**: single-file Parquet reads (no Hadoop dir listing), Ivy cache inside
   the project, `.bat`-friendly paths everywhere.
+
+---
+
+## 14. `main.py` — the full-pipeline runner
+
+`main.py` runs the whole daily pipeline as **9 gated steps in order**, stopping at the
+first failing step so nothing downstream sees half-loaded data (override with
+`--keep-going`). It is the Windows-friendly single entry point that replaces the manual
+`psql`/`python` sequence in §2.
+
+```
+raw-inject -> raw-tests -> staging-load -> staging-tests -> analytics-load
+  -> analytics-tests -> marts-load -> marts-tests -> publish
+```
+
+| Step | Kind | Runs |
+|---|---|---|
+| raw-inject | script | `scripts/run_jobs.py` (mongo → databricks → mysql) |
+| raw-tests | script | `scripts/run_raw_tests.py` |
+| staging-load | SQL | `sql/staging/00_master_load.sql`, then `CALL staging.sp_load_all()` |
+| staging-tests | script | `scripts/run_staging_tests.py` |
+| analytics-load | SQL | `sql/analytics/00_master_load.sql`, then `CALL analytics.sp_load_all()` |
+| analytics-tests | script | `scripts/run_analytics_tests.py` |
+| marts-load | SQL | `sql/marts/00_master_load.sql`, then `CALL marts.sp_load_all()` |
+| marts-tests | script | `scripts/run_marts_tests.py` |
+| publish | script | `src/jobs/publish_marts.py` |
+
+- The three `*-load` steps read the schema's `00_master_load.sql`, execute it (so the
+  procedures are refreshed) and then `CALL <schema>.sp_load_all()` on one connection; PG
+  `NOTICE` output is echoed as dim text. Exit code is non-zero if any executed step failed.
+- Flags: `--list`, `--from <step>`, `--only <step>` (repeatable), `--keep-going`.
+- Each child script runs in a subprocess rooted at the repo, so exactly one Spark/JVM
+  lives at a time.
+- `main.py` pins UTF-8 on `sys.stdout`/`sys.stderr` (`errors="replace"`) before building
+  the Rich `Console(legacy_windows=False)`, because legacy Windows consoles default to
+  cp1252 and choke on the `·` / `—` glyphs in the report.
+
+---
+
+## 15. Session log — bug fixes and open items
+
+This section records a debugging/verification session that made the full
+`python main.py` run green (all 9 steps SUCCESS, every DQ gate passing) on a Windows
+dev box. It documents **what was changed, why, and what is still open** so the next
+agent does not re-derive it. No commits were made from this session unless stated.
+
+### 15.1 Fixes applied
+
+| Area | Problem | Fix |
+|---|---|---|
+| `.env` parsing | inline `#` comments on the same line as a value corrupted that value (e.g. the Spark jars list) | moved inline comments onto their own lines |
+| `src/utils/engine.py` | a `#` comment inside `SPARK_JARS_PACKAGES` was passed to Maven, breaking jar resolution | added `_COORD_RE` + `_clean_packages()` to strip `#` comments and fall back to auto-resolving coordinates from the installed PySpark/Scala version |
+| `main.py` console | Windows console (cp1252) crashed on `·` / `—` glyphs in the Rich report | reconfigure `sys.stdout`/`sys.stderr` to UTF-8 (`errors="replace"`) before `Console(legacy_windows=False)` |
+| `src/utils/spark_io.py` `_dbx_where` | Databricks incremental predicate used `>= start`, so a boundary row was re-landed every run and duplicated (all batch rows share one `created_at`) | changed the lower bound to `> start` |
+| `tests/data-quality/raw/{01,02,03,08,09,10}_*.sql` | transient Spark staging tables `raw._stg_*` were picked up by schema/contract checks and failed the gate | added `AND c.relname NOT LIKE '\_stg\_%'` to the `pg_class` filters |
+| `tests/data-quality/staging/10_lp_check_value_domains.sql` | the `staging.scd1_history.table_name` allowed set did not include the `analytics.*` names, so analytics history rows failed the staging domain check | extended the allowed set (all `analytics.dim_*` / `analytics.fact_*` names) |
+| `src/utils/audit.py` | `SKIPPED` table runs logged only `extracted=None landed=None`; the real reason lived only in `table_runs.execution_metadata.skip_reason` | added a follow-up `logger.info("[%s] skipped: %s", …)` when `run.metadata["skip_reason"]` is present |
+| mart publish | `mart_support_performance` was 193 rows short in Databricks vs PostgreSQL | one-off `--full` republish; see 15.3 for the root cause and the recommended durable fix |
+
+### 15.2 Root causes worth remembering
+
+- **Databricks boundary duplication.** All rows in a batch share a single
+  `created_at` timestamp. With a `>= start` predicate the whole "current" batch was
+  re-read on the next run and appended again. `>` fixes it but means a genuinely
+  re-emitted row with an unchanged timestamp is *not* picked up — the source must
+  advance `created_at` for new/changed rows.
+- **Staging/analytics DQ vs. source data.** Staging intentionally NULLs
+  `date_resolved` when it falls outside `[2000-01-01, CURRENT_DATE]` (future dates), and
+  the analytics DQ requires `date_resolved` / `resolution_days` NOT NULL. So a source
+  ticket with a future resolution date looks correct in the source but fails analytics
+  DQ. Seeded test data must therefore use **past** resolution dates.
+- **Mongo seed hygiene.** Test tickets/transactions need unique sequential business IDs
+  (`ticket_id`, `card_txn_id`), valid categorical domains, and populated
+  `date_resolved`. Bad earlier seeds (`NEW%` IDs) had to be deleted from raw (by
+  `_batch_id`) *and* from Mongo before a clean run.
+
+### 15.3 Open items (decisions, not yet changed)
+
+1. **Publish lookback gap (recurring).** `src/jobs/publish_marts.py` only re-sends
+   `watermark >= last watermark in the Delta target`; with `PUBLISH_LOOKBACK_MONTHS=0`
+   the default, late-arriving/edited rows in older months never get republished. This is
+   what caused the `mart_support_performance` 193-row gap across months 2024-05 → 2026-05
+   (4–15 rows per month). Durable fix: set a non-zero `PUBLISH_LOOKBACK_MONTHS` (e.g. 3)
+   for the date-windowed marts and/or schedule a periodic `--full` republish. **Not
+   applied.**
+2. **Timezone off-by-offset bug (needs approval).** The PG sessions resolve to
+   `Asia/Calcutta`, while Spark's JVM is pinned UTC (`engine.py` sets
+   `-Duser.timezone=UTC`). The PG JDBC URL in `pg_jdbc()` sets no timezone, so Postgres
+   interprets Spark's naive UTC timestamp strings as IST: `raw.*._loaded_at`,
+   staging `source_loaded_at` and the staging watermarks are stored **5.5 h earlier than
+   the real instant** (displayed with a misleading `+05:30`). Harmless for the 24 h
+   freshness gate, but wrong for any "compare to real time" logic. Fix: pin `TimeZone=UTC`
+   on the PG JDBC URL and `SET TIME ZONE 'UTC'` / `options=-c timezone=UTC` on the psycopg
+   connections. This changes how every raw/staging timestamp and watermark is stored, so it
+   is an **ask-first** change; also decide whether to backfill existing rows or fix
+   forward. **Not applied.**
+3. **Analytics band drift (recurring).** `age_band` / `tenure_band` / `account_age_band`
+   are derived from `CURRENT_DATE`, so they drift at date boundaries. The daily
+   `analytics-load` step runs incremental (`sp_load_all()` without `p_force_full`), so the
+   drift will recur and can fail the analytics DQ on a later date. `p_force_full => TRUE`
+   refreshes them. Decision needed: force-refresh the derived-attribute dims on every
+   daily load, or move the bands to a date-independent definition. **Not changed.**
+
+### 15.4 Confirmed working as designed (not bugs)
+
+- `mart_customer_360` has 60001 rows and `mart_branch_performance` 151: the extra row is
+  the intentional `customer_key = -1` / `branch_key = -1` "Unknown" member, so facts never
+  carry a broken key (`sql/analytics/01_dim_customer.sql`, `03_dim_branch.sql`).
+- `mart_customer_360`, `mart_branch_performance` and `mart_loan_portfolio` republish every
+  row each run: they key on `mart_refreshed_at`, which a full rebuild always advances.
+  Publish is a MERGE/upsert, so totals still reconcile.
+- MySQL tables being full-loaded every run and landing "unchanged" in staging is correct;
+  only Mongo and Databricks are incremental.
+
+### 15.5 Verification status
+
+- Full `python main.py` run: **9/9 steps SUCCESS**; gates raw 10/10, staging 10/10,
+  analytics 13/13, marts 11/11; all `SKIPPED` reasons resolved to
+  `no new data past the watermark` (expected on a same-day second run).
+- `make lint` / `make test` could not be run: the project `pyproject.toml` has no dev
+  dependencies installed on this box, and there are no Python unit tests (§9 is the test
+  suite). This remains open for a properly provisioned environment.
+
+---
+
+## 16. Dashboard — Streamlit + Plotly over the Databricks marts
+
+`dashboard/` is a standalone Streamlit app that reads the **published Databricks `marts`
+schema live** through a SQL warehouse. It is completely decoupled from the pipeline: no
+extracts, no cached copies, no writes — every chart is a plain `SELECT` against Delta. It
+only sees data that `src/jobs/publish_marts.py` (§6) has already pushed.
+
+### 16.1 Pages
+
+| Page | File | Mart | Focus |
+|---|---|---|---|
+| Executive Overview | `app.py` | `mart_kpi_monthly` | KPI cards, dual-axis lines, area, diverging MoM bars |
+| KPI Explorer | `pages/KPI.py` | `mart_kpi_monthly` | Per-metric small multiples, quarterly rollup, MoM bars, full table |
+| Customers | `pages/customers.py` | `mart_customer_360` | Segment treemap, gender/credit donuts, income vs exposure scatter, top-activity bars |
+| Loans | `pages/loans.py` | `mart_loan_portfolio` | Mix treemap, vintage lines, band bars, interest-vs-late scatter |
+| Cards | `pages/cards.py` | `mart_card_fraud` | Spend-vs-fraud lines, fraud treemap, tier×merchant heatmaps |
+| Branches | `pages/branches.py` | `mart_branch_performance` | League bars, region treemap, efficiency scatters |
+
+`mart_monthly_transactions` and `mart_support_performance` have loaders in
+`helpers/marts.py` but no dedicated page yet.
+
+### 16.2 Layout
+
+```
+dashboard/
+├── app.py                     # Executive overview (Streamlit's implicit home page)
+├── pages/                     # KPI.py, customers.py, loans.py, cards.py, branches.py
+├── lib/
+│   ├── db.py                  # Databricks SQL connection + cached queries (+ ping/health)
+│   ├── charts.py              # Plotly builders: line, bars, area, donut, treemap, scatter, heatmap, funnel, diverging_mom
+│   └── filter.py              # Sidebar controls + dataframe filter helpers
+├── helpers/
+│   ├── marts.py               # Typed loaders, one per marts table
+│   ├── components.py          # Page chrome: header, KPI cards, section, chart, table, footer, auto-refresh fragment
+│   ├── theme.py               # Brand palette + ₹ / % / int / date formatting + SI tick labels
+│   └── plotly_template.py     # Shared "banking" Plotly template
+├── .streamlit/                # config.toml (committed), secrets.toml (git-ignored)
+├── requirements.txt           # streamlit, pandas, plotly, databricks-sql-connector
+├── Dockerfile                 # python:3.13-slim, healthcheck, entrypoint on :8501
+└── README.md
+```
+
+### 16.3 Connection and caching (`lib/db.py`)
+
+- Config comes from `.streamlit/secrets.toml` first, then environment variables:
+  `DATABRICKS_HOST`, `DATABRICKS_HTTP_PATH`, `DATABRICKS_TOKEN`, `DATABRICKS_CATALOG`
+  (default `main`), `DATABRICKS_MARTS_SCHEMA` (default `marts`) — `setting()` /
+  `require_setting()`.
+- One connection is opened and reused across reruns (`@st.cache_resource get_connection`);
+  queries are cached for **5 minutes** (`DEFAULT_TTL_SECONDS`) via `@st.cache_data run_query`.
+- `run_query` prefers Arrow (`fetchall_arrow().to_pandas()`), falls back to row fetch, and
+  on a Databricks error shows `st.error` and stops the page. `ping()` is a health check;
+  `last_success_at()` feeds the "Live" badge; `clear_cache()` backs the **Refresh now**
+  button.
+- Every loader runs `SELECT * FROM <catalog>.<marts_schema>.<table>` (no `WHERE`), then
+  `_cast_decimals` converts the connector's `Decimal` columns to float64 for pandas/Plotly.
+  So all filtering happens **in the browser**, not in SQL.
+
+### 16.4 UI behaviour
+
+- Each page wraps its live body in `@auto_fragment` (`st.fragment(run_every=interval)`), so
+  only that section re-queries on the sidebar auto-refresh interval (Off / 1 / 5 / 15 min).
+- `render_sidebar()` draws the global controls (auto-refresh selector, **Refresh now**,
+  cache-age caption) and every page adds its own filters below it: month-range sliders and
+  categorical multiselects (`multiselect_all` returns `None` while empty = "no filter").
+- `helpers/components.py` provides the shared chrome: `page_header`, `live_badge`,
+  `kpi_cards` (`Kpi` dataclass), `section`, `chart`/`two_charts`, `table` (typed column
+  config with ₹ / % / int formats), and `footer` (lineage note).
+- `helpers/theme.py` + `helpers/plotly_template.py` give every page the same palette,
+  `₹` lakh/crore formatting and a registered default Plotly template.
+
+### 16.5 Run it
+
+```bash
+cd dashboard
+python -m venv .venv && .venv\Scripts\activate      # Windows (or source .venv/bin/activate)
+pip install -r requirements.txt
+cp .streamlit/secrets.toml.example .streamlit/secrets.toml   # then fill in real values
+streamlit run app.py
+```
+
+Docker: `docker build -t banking-dashboard .` then
+`docker run -p 8501:8501 banking-dashboard` (pass secrets as env vars or mount the secrets
+file). `.streamlit/secrets.toml` is git-ignored; only the `.example` is committed.
+
+### 16.6 Dashboard gotchas
+
+- **Read-only and post-publish.** The dashboard reflects only what has been published to
+  Databricks. Because `publish_marts.py` is incremental (§15.3), corrections in older
+  months can be missing from the dashboard until a `--full` republish or a lookback is
+  configured — the dashboard will faithfully show the stale number.
+- **The derived-band drift (§15.3) is visible here too.** Customer/branch age bands and the
+  KPI monthly rows are computed at pipeline time, so the dashboard shows whatever the last
+  load wrote; it never recomputes bands.
+- **`SELECT *` loaders.** The marts schema must match the columns each page expects; a
+  newly added mart column is harmless, but a renamed/removed one can blank a chart.
+- **No auth in the app.** Access control (if any) is expected at the network/proxy layer;
+  the app itself only needs a token with read on the marts schema.

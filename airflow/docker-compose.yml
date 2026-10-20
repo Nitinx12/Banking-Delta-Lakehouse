@@ -1,0 +1,127 @@
+name: banking-delta-airflow
+
+x-airflow-common: &airflow-common
+  image: banking-delta-airflow:${AIRFLOW_IMAGE_TAG:-local}
+  build:
+    context: ..
+    dockerfile: airflow/Dockerfile
+    args:
+      AIRFLOW_VERSION: ${AIRFLOW_VERSION:?set AIRFLOW_VERSION}
+      PYTHON_VERSION: ${PYTHON_VERSION:-3.13}
+      GIT_SHA: ${GIT_SHA:-unknown}
+  env_file: .env.airflow
+  environment: &airflow-env
+    AIRFLOW__CORE__EXECUTOR: CeleryExecutor
+    AIRFLOW__CORE__AUTH_MANAGER: airflow.providers.fab.auth_manager.fab_auth_manager.FabAuthManager
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+    AIRFLOW__CORE__EXECUTION_API_SERVER_URL: http://airflow-apiserver:8080/execution/
+    AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-db:5432/${AIRFLOW_DB_NAME}
+    AIRFLOW__CELERY__BROKER_URL: redis://:${REDIS_PASSWORD}@airflow-redis:6379/0
+    AIRFLOW__CELERY__RESULT_BACKEND: db+postgresql://${AIRFLOW_DB_USER}:${AIRFLOW_DB_PASSWORD}@airflow-db:5432/${AIRFLOW_DB_NAME}
+    AIRFLOW__CELERY__WORKER_CONCURRENCY: "${WORKER_CONCURRENCY:-4}"
+    AIRFLOW__API__BASE_URL: ${AIRFLOW_BASE_URL}
+    AIRFLOW__API__EXPOSE_CONFIG: "false"
+    PYTHONPATH: /opt/airflow/include
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options: {max-size: "50m", max-file: "5"}
+  depends_on: &airflow-depends
+    airflow-db: {condition: service_healthy}
+    airflow-redis: {condition: service_healthy}
+
+services:
+  airflow-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${AIRFLOW_DB_USER}
+      POSTGRES_PASSWORD: ${AIRFLOW_DB_PASSWORD}
+      POSTGRES_DB: ${AIRFLOW_DB_NAME}
+    volumes: [airflow_db_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AIRFLOW_DB_USER} -d ${AIRFLOW_DB_NAME}"]
+      interval: 10s
+      retries: 5
+
+  airflow-redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      retries: 5
+    environment: {REDIS_PASSWORD: "${REDIS_PASSWORD}"}
+
+  airflow-init:
+    <<: *airflow-common
+    restart: "no"
+    command: ["bash", "/opt/airflow/scripts/init.sh"]
+
+  airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports: ["127.0.0.1:8080:8080"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/api/v2/monitor/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    depends_on:
+      <<: *airflow-depends
+      airflow-init: {condition: service_completed_successfully}
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type SchedulerJob --local"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    depends_on:
+      <<: *airflow-depends
+      airflow-init: {condition: service_completed_successfully}
+
+  airflow-dag-processor:
+    <<: *airflow-common
+    command: dag-processor
+    healthcheck:
+      test: ["CMD-SHELL", "airflow jobs check --job-type DagProcessorJob --local"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    depends_on:
+      <<: *airflow-depends
+      airflow-init: {condition: service_completed_successfully}
+
+  airflow-triggerer:
+    <<: *airflow-common
+    command: triggerer
+    depends_on:
+      <<: *airflow-depends
+      airflow-init: {condition: service_completed_successfully}
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker
+    mem_limit: ${WORKER_MEM_LIMIT:-6g}
+    stop_grace_period: 5m
+    environment:
+      <<: *airflow-env
+      DUMB_INIT_SETSID: "0"
+    volumes: [spark_cache:/opt/banking/.spark]
+    healthcheck:
+      test: ["CMD-SHELL", "celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d celery@$${HOSTNAME}"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+    depends_on:
+      <<: *airflow-depends
+      airflow-init: {condition: service_completed_successfully}
+
+volumes:
+  airflow_db_data:
+  spark_cache:

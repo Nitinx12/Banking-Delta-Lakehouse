@@ -100,7 +100,11 @@ def mysql_jdbc() -> dict:
         "connectTimeout": "30000",
     }
     query = "&".join(f"{k}={v}" for k, v in params.items())
-    host, port, db = require("MYSQL_HOST"), os.environ.get("MYSQL_PORT", "3306"), require("MYSQL_DB")
+    host, port, db = (
+        require("MYSQL_HOST"),
+        os.environ.get("MYSQL_PORT", "3306"),
+        require("MYSQL_DB"),
+    )
     return {
         "url": f"jdbc:mysql://{host}:{port}/{db}?{query}",
         "user": require("MYSQL_USER"),
@@ -115,7 +119,11 @@ def pg_jdbc() -> dict:
     reWriteBatchedInserts=true -> multi-row INSERTs (3-5x faster writes).
     stringtype=unspecified     -> lets Spark strings land in jsonb/uuid columns.
     """
-    host, port, db = require("PG_HOST"), os.environ.get("PG_PORT", "5432"), require("PG_DB")
+    host, port, db = (
+        require("PG_HOST"),
+        os.environ.get("PG_PORT", "5432"),
+        require("PG_DB"),
+    )
     return {
         "url": (
             f"jdbc:postgresql://{host}:{port}/{db}"

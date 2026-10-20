@@ -21,7 +21,9 @@ logger = get_logger(__name__)
 _spark = None
 
 
-def get_spark_session(app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)):
+def get_spark_session(
+    app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)
+):
     """Process-wide SparkSession (see engine.get_spark for `sources`)."""
     global _spark
     if _spark is None:
@@ -80,6 +82,8 @@ def mongo_database(db_name: str | None = None) -> Iterator:
 
     client = get_mongo_client()
     try:
-        yield client[db_name or os.environ.get("MONGO_DB_NAME") or require("MONGO_DB_NAME")]
+        yield client[
+            db_name or os.environ.get("MONGO_DB_NAME") or require("MONGO_DB_NAME")
+        ]
     finally:
         client.close()

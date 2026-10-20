@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ subject }}</title></head>
+<body style="margin:0;padding:16px;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1f2937;">
+<div style="max-width:700px;margin:0 auto;background:#ffffff;border-radius:8px;padding:20px;">
+  {% set color = '#16a34a' if status == 'SUCCESS' else ('#b45309' if status == 'WARNING' else '#dc2626') %}
+  <div style="background:{{ color }};color:#ffffff;border-radius:6px;padding:14px 16px;">
+    <div style="font-size:18px;font-weight:600;">{{ subject }}</div>
+    <div style="font-size:13px;margin-top:4px;">Run {{ run_id }} &middot; {{ duration }} &middot; env={{ env }} &middot; build={{ git_sha }}</div>
+  </div>
+
+  <h3 style="margin:20px 0 8px;">Steps</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <tr><th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">Step</th>
+        <th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">State</th>
+        <th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">Duration</th></tr>
+    {% for s in steps %}
+    <tr>
+      <td style="padding:6px 4px;{% if s.bad %}color:#dc2626;font-weight:600;{% endif %}">{{ s.task_id }}</td>
+      <td style="padding:6px 4px;">{{ s.state }}</td>
+      <td style="padding:6px 4px;">{{ s.duration }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if sections.failures %}
+  <h3 style="margin:20px 0 8px;color:#dc2626;">Failures</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <tr><th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">Step</th>
+        <th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">Category</th>
+        <th align="left" style="border-bottom:1px solid #e5e7eb;padding:6px 4px;">Message</th></tr>
+    {% for f in sections.failures %}
+    <tr><td style="padding:6px 4px;">{{ f.task_id }}</td>
+        <td style="padding:6px 4px;">{{ f.error_category }}</td>
+        <td style="padding:6px 4px;">{{ f.message }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+
+  <h3 style="margin:20px 0 8px;">Notes</h3>
+  <ul style="font-size:13px;margin:0;padding-left:18px;">
+    {% for note in notes %}<li>{{ note }}</li>{% else %}<li>none</li>{% endfor %}
+  </ul>
+
+  <p style="font-size:12px;color:#6b7280;margin-top:24px;">
+    Generated {{ generated_at }} &middot; DAG {{ dag_id }} &middot; runbook airflow/AIRFLOW_AGENT_GUIDE.md &sect;14
+  </p>
+</div>
+</body>
+</html>

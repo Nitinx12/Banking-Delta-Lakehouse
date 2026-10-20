@@ -285,10 +285,10 @@ def _add_missing_columns(cur, catalog: str, schema: str, table: str, df) -> None
     missing = [f for f in df.schema.fields if f.name.lower() not in present]
     if not missing:
         return
-    columns = ", ".join(
-        f"`{_ident(f.name)}` {_dbx_type(f.dataType)}" for f in missing
+    columns = ", ".join(f"`{_ident(f.name)}` {_dbx_type(f.dataType)}" for f in missing)
+    cur.execute(
+        f"ALTER TABLE {_dbx_name(catalog, schema, table)} ADD COLUMNS ({columns})"
     )
-    cur.execute(f"ALTER TABLE {_dbx_name(catalog, schema, table)} ADD COLUMNS ({columns})")
     logger.info("[%s] added columns: %s", table, [f.name for f in missing])
 
 
@@ -501,7 +501,9 @@ def publish_table(
         if exists:
             _add_missing_columns(cur, catalog, schema, table, df)
         else:
-            cur.execute(f"CREATE TABLE IF NOT EXISTS {target} ({_column_ddl(df)}) USING DELTA")
+            cur.execute(
+                f"CREATE TABLE IF NOT EXISTS {target} ({_column_ddl(df)}) USING DELTA"
+            )
 
         volume_dir = (
             f"/Volumes/{_ident(catalog)}/{_ident(schema)}/{_ident(volume)}"
@@ -534,7 +536,10 @@ def publish_table(
 
 def _preflight() -> None:
     missing = []
-    for module, package in (("databricks.sdk", "databricks-sdk"), ("pyarrow", "pyarrow")):
+    for module, package in (
+        ("databricks.sdk", "databricks-sdk"),
+        ("pyarrow", "pyarrow"),
+    ):
         try:
             importlib.import_module(module)
         except ImportError:
@@ -546,14 +551,18 @@ def _preflight() -> None:
 def _log_failure(table: str, exc: BaseException) -> None:
     java = getattr(exc, "java_exception", None)
     detail = str(java.toString()) if java is not None else str(exc)
-    first = detail.strip().splitlines()[0][:300] if detail.strip() else type(exc).__name__
+    first = (
+        detail.strip().splitlines()[0][:300] if detail.strip() else type(exc).__name__
+    )
     if java is not None:
         logger.error("[%s] publish failed (Spark): %s", table, first)
     else:
         logger.error("[%s] publish failed: %s", table, first, exc_info=exc)
 
 
-def _record_outcome(pipeline_run_id: Any, results: dict[str, str], crashed: bool) -> None:
+def _record_outcome(
+    pipeline_run_id: Any, results: dict[str, str], crashed: bool
+) -> None:
     ok = sum(1 for status in results.values() if status == "SUCCESS")
     failed = len(results) - ok + (1 if crashed else 0)
     if not results and not crashed:
@@ -571,7 +580,13 @@ def _record_outcome(pipeline_run_id: Any, results: dict[str, str], crashed: bool
             """,
             (status, len(results), ok, failed, pipeline_run_id),
         )
-    logger.info("Pipeline run %s recorded as %s (%d ok, %d failed)", pipeline_run_id, status, ok, failed)
+    logger.info(
+        "Pipeline run %s recorded as %s (%d ok, %d failed)",
+        pipeline_run_id,
+        status,
+        ok,
+        failed,
+    )
 
 
 def _prepare_databricks(catalog: str, schema: str, volume: str) -> None:

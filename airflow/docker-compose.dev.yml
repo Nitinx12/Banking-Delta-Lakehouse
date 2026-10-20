@@ -1,0 +1,38 @@
+# Dev override: bind-mount the repo so code edits need no rebuild, and reach
+# host services (warehouse, MySQL, Mongo) through host.docker.internal.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml --env-file .env.airflow up -d
+name: banking-delta-airflow
+
+x-airflow-common: &airflow-common
+  build:
+    context: ..
+    dockerfile: airflow/Dockerfile
+  environment: &airflow-env
+    AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "false"
+  extra_hosts:
+    - "host.docker.internal:host-gateway"
+  volumes:
+    - ../dags:/opt/airflow/dags
+    - ../scripts:/opt/airflow/scripts
+    - ../main.py:/opt/banking/main.py
+    - ../src:/opt/banking/src
+    - ../scripts:/opt/banking/scripts
+    - ../sql:/opt/banking/sql
+    - ../tests/data-quality:/opt/banking/tests/data-quality
+    - ../include:/opt/airflow/include
+
+services:
+  airflow-apiserver:
+    <<: *airflow-common
+  airflow-scheduler:
+    <<: *airflow-common
+  airflow-dag-processor:
+    <<: *airflow-common
+  airflow-triggerer:
+    <<: *airflow-common
+  airflow-worker:
+    <<: *airflow-common
+    environment:
+      <<: *airflow-env
+      DUMB_INIT_SETSID: "0"

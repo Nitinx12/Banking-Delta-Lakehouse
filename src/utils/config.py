@@ -18,7 +18,8 @@ if _dotenv_path:
 # Where local runtime files (.spark/ivy, .spark/tmp ...) live.
 # Set PROJECT_ROOT in Airflow, where cwd is not the repo.
 PROJECT_ROOT = Path(
-    os.environ.get("PROJECT_ROOT") or (Path(_dotenv_path).parent if _dotenv_path else Path.cwd())
+    os.environ.get("PROJECT_ROOT")
+    or (Path(_dotenv_path).parent if _dotenv_path else Path.cwd())
 ).resolve()
 
 

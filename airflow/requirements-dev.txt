@@ -1,0 +1,6 @@
+pytest
+ruff==0.12.0
+jinja2
+psycopg2-binary
+pendulum
+apache-airflow==3.3.2

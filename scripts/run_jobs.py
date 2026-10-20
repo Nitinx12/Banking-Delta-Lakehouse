@@ -39,7 +39,9 @@ def run_job(source: str, extra: list[str]) -> int:
     code = subprocess.run(
         [sys.executable, str(script), *extra], cwd=PROJECT_ROOT
     ).returncode
-    logger.info("%s finished in %.0fs (exit %s)", source, time.monotonic() - started, code)
+    logger.info(
+        "%s finished in %.0fs (exit %s)", source, time.monotonic() - started, code
+    )
     return code
 
 

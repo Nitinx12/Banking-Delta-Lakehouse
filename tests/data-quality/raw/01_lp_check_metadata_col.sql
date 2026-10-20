@@ -48,6 +48,7 @@ BEGIN
           AND c.relkind IN ('r', 'p')        -- tables + partitioned parents
           AND NOT c.relispartition           -- skip individual partitions
           AND c.relname <> ALL (v_exempt_tables)
+          AND c.relname NOT LIKE '\_stg\_%'  -- transient staging tables are not raw data
         ORDER BY c.relname
     LOOP
         v_batch_ok  := FALSE;

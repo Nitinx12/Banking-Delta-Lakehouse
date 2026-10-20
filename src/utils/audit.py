@@ -132,10 +132,11 @@ def finish_pipeline_run(pipeline_run_id: uuid.UUID, conn=None) -> str:
         conn,
         """
         WITH latest AS (   -- only the LAST attempt per table counts
-            SELECT DISTINCT ON (config_id) status
+            SELECT DISTINCT ON (COALESCE(config_id, 0), processing_layer, target_table) status
             FROM audit.table_runs
             WHERE pipeline_run_id = %(id)s
-            ORDER BY config_id, attempt_number DESC, started_at DESC
+            ORDER BY COALESCE(config_id, 0), processing_layer, target_table,
+                     attempt_number DESC NULLS LAST, started_at DESC
         ), agg AS (
             SELECT count(*)                                   AS total,
                    count(*) FILTER (WHERE status = 'SUCCESS') AS ok,
@@ -164,6 +165,46 @@ def finish_pipeline_run(pipeline_run_id: uuid.UUID, conn=None) -> str:
     status = row["status"]
     logger.info("Pipeline run %s finished: %s", pipeline_run_id, status)
     return status
+
+
+def finalize_dag_run(dag_id: str, dag_run_id: str, conn=None) -> Optional[str]:
+    """Close this DAG run's pipeline run after every task has finished.
+
+    Reaps table_runs that stayed RUNNING (killed worker) so the rollup settles,
+    then recomputes. Returns the final status, or None if the run was never
+    recorded. Safe to run twice.
+    """
+    row = _q(
+        conn,
+        """
+        SELECT pipeline_run_id FROM audit.pipeline_runs
+        WHERE dag_id = %s AND dag_run_id = %s
+        """,
+        (dag_id, dag_run_id),
+        fetch="one",
+    )
+    if row is None:
+        return None
+    run_id = row["pipeline_run_id"]
+    reaped = _q(
+        conn,
+        """
+        UPDATE audit.table_runs
+        SET status = 'FAILED', ended_at = clock_timestamp(),
+            duration_seconds = EXTRACT(EPOCH FROM clock_timestamp() - started_at),
+            execution_metadata = COALESCE(execution_metadata, '{}'::jsonb)
+                || '{"task_never_finished": true}'::jsonb
+        WHERE pipeline_run_id = %s AND status = 'RUNNING'
+        """,
+        (run_id,),
+    )
+    if reaped:
+        logger.warning(
+            "Finalize reaped %d RUNNING table run(s) for pipeline run %s",
+            reaped,
+            run_id,
+        )
+    return finish_pipeline_run(run_id, conn=conn)
 
 
 # ----------------------------------------------------------- source registry
@@ -204,7 +245,8 @@ def start_table_run(
              airflow_try_number, execution_metadata)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s,
                 (SELECT COALESCE(MAX(attempt_number), 0) + 1
-                   FROM audit.table_runs WHERE pipeline_run_id = %s AND config_id = %s),
+                   FROM audit.table_runs
+                   WHERE pipeline_run_id = %s AND config_id IS NOT DISTINCT FROM %s),
                 %s, %s, '{}'::jsonb)
         """,
         (
@@ -417,6 +459,8 @@ def table_run(
             run.rows_extracted,
             run.rows_landed,
         )
+        if run.status == "SKIPPED" and run.metadata.get("skip_reason"):
+            logger.info("[%s] skipped: %s", label, run.metadata["skip_reason"])
 
 
 # ---------------------------------------------------------------- watermarks

@@ -33,7 +33,7 @@ DECLARE
         "support_tickets.issue_type":       ["Account Statement", "App Login Issue", "Card Blocked", "Cheque Bounce", "Fraud Report", "Interest Query", "KYC Update", "Loan Query", "Net Banking Issue", "Wrong Debit"],
         "support_tickets.status":           ["Escalated", "Open", "Resolved"],
         "loan_payments.amount_check":       ["DERIVED", "INCOMPLETE", "MISMATCH", "OK"],
-        "scd1_history.table_name":          ["staging.accounts", "staging.branches", "staging.card_transactions", "staging.cards", "staging.customers", "staging.employees", "staging.loan_payments", "staging.loans", "staging.support_tickets", "staging.transactions"]
+        "scd1_history.table_name":          ["staging.accounts", "staging.branches", "staging.card_transactions", "staging.cards", "staging.customers", "staging.employees", "staging.loan_payments", "staging.loans", "staging.support_tickets", "staging.transactions", "analytics.dim_customer", "analytics.dim_account", "analytics.dim_branch", "analytics.dim_employee", "analytics.dim_card", "analytics.dim_loan", "analytics.dim_txn_profile", "analytics.fact_card_transactions", "analytics.fact_loan_payments", "analytics.fact_transactions", "analytics.fact_support_tickets"]
     }'::JSONB;
 
     -- staging cleaning guarantees: phone digits starting 6-9,

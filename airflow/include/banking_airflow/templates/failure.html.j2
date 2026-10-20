@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>{{ dag_id }}.{{ task_id }} failed</title></head>
+<body style="margin:0;padding:16px;background:#f4f4f5;font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1f2937;">
+<div style="max-width:640px;margin:0 auto;background:#ffffff;border-radius:8px;padding:20px;">
+  <div style="background:#dc2626;color:#ffffff;border-radius:6px;padding:14px 16px;">
+    <div style="font-size:18px;font-weight:600;">Task failed</div>
+    <div style="font-size:13px;margin-top:4px;">{{ dag_id }}.{{ task_id }} &middot; try {{ try_number }}/{{ max_tries }}</div>
+  </div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:16px;">
+    <tr><td style="padding:4px 0;color:#6b7280;">Run</td><td>{{ run_id }}</td></tr>
+    <tr><td style="padding:4px 0;color:#6b7280;">Started</td><td>{{ start }}</td></tr>
+    <tr><td style="padding:4px 0;color:#6b7280;">Ended</td><td>{{ end }}</td></tr>
+    <tr><td style="padding:4px 0;color:#6b7280;">Duration</td><td>{{ duration }}</td></tr>
+    <tr><td style="padding:4px 0;color:#6b7280;">Exception</td><td>{{ exception_class }}</td></tr>
+  </table>
+  <p style="font-size:13px;margin-top:16px;">
+    Safe to clear and re-run? <strong>{{ 'yes' if retry_safe else 'no — fix the data first' }}</strong>
+  </p>
+  {% if base_url %}
+  <p style="font-size:13px;"><a href="{{ base_url }}/dags/{{ dag_id }}/runs/{{ run_id }}/tasks/{{ task_id }}">Open the task log</a></p>
+  {% endif %}
+  <p style="font-size:12px;color:#6b7280;margin-top:20px;">See the runbook: {{ guide }}</p>
+</div>
+</body>
+</html>

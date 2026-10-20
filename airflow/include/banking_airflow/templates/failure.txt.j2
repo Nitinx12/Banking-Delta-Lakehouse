@@ -1,0 +1,6 @@
+[FAILED] {{ dag_id }}.{{ task_id }} (try {{ try_number }}/{{ max_tries }})
+Run: {{ run_id }} | {{ duration }} | {{ start }} -> {{ end }}
+Exception: {{ exception_class }}
+Safe to clear and re-run? {{ 'yes' if retry_safe else 'no - fix the data first' }}
+{% if base_url %}Log: {{ base_url }}/dags/{{ dag_id }}/runs/{{ run_id }}/tasks/{{ task_id }}{% endif %}
+Runbook: {{ guide }}

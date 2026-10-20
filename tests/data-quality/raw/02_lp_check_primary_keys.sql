@@ -63,6 +63,7 @@ BEGIN
           AND c.relkind IN ('r', 'p')
           AND NOT c.relispartition
           AND c.relname <> ALL (v_exempt_tables)
+          AND c.relname NOT LIKE '\_stg\_%'  -- transient staging tables are not raw data
         ORDER BY c.relname
     LOOP
         v_keys := NULL;

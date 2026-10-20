@@ -459,7 +459,9 @@ def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
     col, strat = _dbx_ident(cfg["incremental_column"]), cfg["watermark_strategy"]
     clauses = [f"`{col}` <= {_dbx_literal(strat, end)}"]
     if start is not None:
-        clauses.append(f"`{col}` >= {_dbx_literal(strat, start)}")
+        # strict > : created_at is often shared by a whole batch, so >= would
+        # re-read every row already loaded at the watermark and duplicate raw
+        clauses.append(f"`{col}` > {_dbx_literal(strat, start)}")
     return " WHERE " + " AND ".join(clauses)
 
 

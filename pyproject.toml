@@ -20,3 +20,27 @@ dependencies = [
     "pandas>=3.0,<4",
     "plotly>=7.0,<8",
 ]
+
+# dev group: make lint / make test (uv sync installs it by default)
+[dependency-groups]
+dev = [
+    "apache-airflow-providers-standard>=1.0.0",
+    "apache-airflow==3.3.2",
+    "pytest>=8.3",
+    "ruff==0.12.0",
+    "sqlfluff>=3.3,<4",
+]
+
+[tool.ruff]
+extend-exclude = ["notebooks"]
+
+[tool.pytest.ini_options]
+testpaths = ["airflow/tests"]
+markers = [
+    "unit: pure, isolated tests (no DB, no network)",
+    "smoke: imports, CLIs, repo/SQL/env contracts",
+    "spark: local-Spark tests (needs Java)",
+    "integration: behavioural tests on a disposable Postgres",
+    "live: read-only checks against the configured environment",
+]
+filterwarnings = ["ignore::DeprecationWarning:airflow.*"]

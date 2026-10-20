@@ -90,14 +90,21 @@ class Extractor:
                 start = wm["last_watermark_value"] if wm else None
                 end = source.max_watermark(cfg)
                 if end is None:
-                    run.skip(source.empty_message.format(column=cfg["incremental_column"]))
+                    run.skip(
+                        source.empty_message.format(column=cfg["incremental_column"])
+                    )
                     return "SKIPPED"
                 if start is not None and end == start:
                     run.skip("no new data past the watermark")
                     return "SKIPPED"
                 lock_version = begin_batch(cfg, start, end)["lock_version"]
                 run.watermark_start, run.watermark_end = start, end
-                log.info("[%s] incremental window: %s -> %s", label, start or "(beginning)", end)
+                log.info(
+                    "[%s] incremental window: %s -> %s",
+                    label,
+                    start or "(beginning)",
+                    end,
+                )
             else:
                 log.info("[%s] full load", label)
 
@@ -165,7 +172,9 @@ class Extractor:
             help="number of tables extracted at the same time",
         )
         parser.add_argument("--dag-id", default=os.environ.get("AIRFLOW_CTX_DAG_ID"))
-        parser.add_argument("--dag-run-id", default=os.environ.get("AIRFLOW_CTX_DAG_RUN_ID"))
+        parser.add_argument(
+            "--dag-run-id", default=os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
+        )
         args = parser.parse_args(argv)
         if args.parallel < 1:
             parser.error("--parallel must be 1 or more")
@@ -191,7 +200,8 @@ class Extractor:
             missing = wanted - {c["source_table"] for c in configs}
             if missing:
                 log.warning(
-                    "Not registered / not enabled in audit.source_tables: %s", sorted(missing)
+                    "Not registered / not enabled in audit.source_tables: %s",
+                    sorted(missing),
                 )
         if not configs:
             log.warning("Nothing to extract for %s", source.name)
@@ -201,14 +211,21 @@ class Extractor:
             if configs:
                 workers = min(args.parallel, len(configs))
                 if workers > 1 and not _independent_connections():
-                    log.warning("pg_transaction shares one connection, running tables one at a time")
+                    log.warning(
+                        "pg_transaction shares one connection, running tables one at a time"
+                    )
                     workers = 1
                 spark = get_spark_session(source.app, sources=source.spark_sources)
                 log.info("extracting %d table(s), %d at a time", len(configs), workers)
                 with ThreadPoolExecutor(max_workers=workers) as pool:
                     futures = {
                         pool.submit(
-                            self.extract_table, spark, pipeline_run_id, cfg, task_id, try_number
+                            self.extract_table,
+                            spark,
+                            pipeline_run_id,
+                            cfg,
+                            task_id,
+                            try_number,
                         ): cfg["source_table"]
                         for cfg in configs
                     }

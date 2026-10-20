@@ -120,6 +120,7 @@ BEGIN
           AND NOT c.relispartition
           AND c.relname <> ALL (v_exempt_tables)
           AND (c.relname || '.' || a.attname) <> ALL (v_exempt_columns)
+          AND c.relname NOT LIKE '\_stg\_%'  -- transient staging tables are not raw data
           AND (a.atttypid IN ('date'::regtype, 'timestamp'::regtype, 'timestamptz'::regtype)
                OR a.attname ~* v_name_pattern)
         ORDER BY c.relname, a.attnum

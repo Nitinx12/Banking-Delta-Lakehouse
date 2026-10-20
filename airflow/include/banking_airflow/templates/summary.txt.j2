@@ -1,0 +1,11 @@
+{{ subject }}
+Run: {{ run_id }}  | {{ duration }} | trigger={{ trigger_type }} | env={{ env }} | build={{ git_sha }}
+{% if base_url %}Open: {{ base_url }}/dags/{{ dag_id }}/runs/{{ run_id }}{% endif %}
+
+STEPS
+{% for s in steps %} {% if s.bad %}!{% else %} {% endif %} {{ "%-20s"|format(s.task_id) }} {{ "%-16s"|format(s.state) }} {{ s.duration }}
+{% endfor %}
+NOTES
+{% for note in notes %}  {{ note }}
+{% else %}  none
+{% endfor %}

@@ -50,6 +50,7 @@ BEGIN
         WHERE n.nspname = v_schema
           AND c.relkind IN ('r', 'p')
           AND NOT c.relispartition
+          AND c.relname NOT LIKE '\_stg\_%'  -- transient staging tables are not raw data
         ORDER BY c.relname
     LOOP
         EXECUTE format('SELECT count(*) FROM %I.%I', v_schema, v_tbl.relname)

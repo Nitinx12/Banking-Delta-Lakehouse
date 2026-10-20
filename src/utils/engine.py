@@ -113,9 +113,30 @@ def _prepare_environment() -> None:
     os.environ.setdefault("SPARK_LOCAL_IP", "127.0.0.1")
 
 
+_COORD_RE = re.compile(r"^[^:\s]+:[^:\s]+:[^:\s]+$")
+
+
+def _clean_packages(raw: str) -> str:
+    """Drop comments and bad entries from a package list; return Maven coordinates only.
+
+    Guards against inline `.env` comments (e.g. "  # empty = ...") leaking into
+    spark.jars.packages, which Spark rejects with a cryptic IllegalArgumentException.
+    """
+    kept: list[str] = []
+    for part in raw.replace("\n", ",").split(","):
+        coord = part.split("#", 1)[0].strip()
+        if not coord:
+            continue
+        if not _COORD_RE.match(coord):
+            logger.warning("Ignoring invalid spark.jars.packages entry: %r", coord)
+            continue
+        kept.append(coord)
+    return ",".join(kept)
+
+
 def _packages(sources: Iterable[str]) -> str:
     # explicit override wins; empty/unset -> resolve the jars this run needs
-    override = (os.environ.get("SPARK_JARS_PACKAGES") or "").strip()
+    override = _clean_packages(os.environ.get("SPARK_JARS_PACKAGES") or "")
     if override:
         return override
     scala = "2.13" if _pyspark_version()[0] >= 4 else "2.12"
@@ -240,7 +261,7 @@ def get_spark(
         .config("spark.ui.showConsoleProgress", "false")
     )
 
-    override = (os.environ.get("SPARK_JARS_PACKAGES") or "").strip()
+    override = _clean_packages(os.environ.get("SPARK_JARS_PACKAGES") or "")
     if override or not _have_source_jars(sources):
         packages = _packages(sources)
         if packages:

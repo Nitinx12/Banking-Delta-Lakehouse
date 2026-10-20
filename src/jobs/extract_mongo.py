@@ -44,7 +44,9 @@ def prepare(ctx: TableContext) -> Prepared:
     df, json_cols = prepare_for_jdbc(df)
     df = add_audit_columns(df, ctx.run.table_run_id)
     if json_cols:
-        ctx.logger.info("[%s] nested fields stored as jsonb: %s", ctx.label, ", ".join(json_cols))
+        ctx.logger.info(
+            "[%s] nested fields stored as jsonb: %s", ctx.label, ", ".join(json_cols)
+        )
 
     def check_temporal(expected: int) -> None:
         try:
@@ -72,7 +74,9 @@ def prepare(ctx: TableContext) -> Prepared:
             config_id=cfg["config_id"],
         )
 
-    return Prepared(df, {"jsonb_columns": json_cols}, check_temporal if temporal_cols else None)
+    return Prepared(
+        df, {"jsonb_columns": json_cols}, check_temporal if temporal_cols else None
+    )
 
 
 SOURCE = Source(

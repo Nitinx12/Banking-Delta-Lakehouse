@@ -8,20 +8,25 @@
 --
 -- Usage:
 --   CALL marts.sp_load_all();                       -- refresh every mart
---   CALL marts.sp_load_all(p_force_full => TRUE); -- always full refresh
+--   CALL marts.sp_load_all(p_force_full => TRUE);   -- always full refresh
+--   CALL marts.sp_load_all(p_pipeline_run_id => ...);
 --
 -- To add a new mart: add one CALL line in the marked place below.
 -- ============================================================
 
+-- The DROP retires the pre-audit (boolean) signature; a no-op on a fresh database.
+DROP PROCEDURE IF EXISTS marts.sp_load_all(boolean);
+
 CREATE OR REPLACE PROCEDURE marts.sp_load_all(
-    IN p_force_full BOOLEAN DEFAULT FALSE
+    IN p_force_full BOOLEAN DEFAULT FALSE,
+    IN p_pipeline_run_id UUID DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS $$
 DECLARE
     -- One batch label shared by every refresh in this run
     v_batch_id        TEXT := 'run_' || to_char(clock_timestamp(), 'YYYYMMDD_HH24MISS');
-    v_pipeline_run_id UUID := gen_random_uuid();
+    v_pipeline_run_id UUID := COALESCE(p_pipeline_run_id, gen_random_uuid());
 BEGIN
     p_force_full := COALESCE(p_force_full, FALSE);
 
