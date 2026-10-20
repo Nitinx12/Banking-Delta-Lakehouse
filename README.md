@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo4.png" alt="Banking-Delta" width="420">
+  <img src="assets/logo/logo4.png" alt="Banking-Delta" width="420">
 </p>
 
 # Banking-Delta
@@ -10,18 +10,30 @@ Airflow orchestrates, stored procedures transform, Great Expectations validates.
 
 ## Tech stack
 
-| Layer | Tools |
-| --- | --- |
-| Runtime | Python 3.13, PySpark 3.5, Java 17, uv |
-| Sources | MySQL, MongoDB, Databricks `public` |
-| Warehouse | PostgreSQL 16 (`raw → staging → analytics → marts`) |
-| Transformation | PostgreSQL stored procedures (plpgsql), SQL |
-| Data quality | SQL DQ suites (`tests/data-quality/`), sqlfluff |
-| Orchestration | Apache Airflow 3.3.2 (CeleryExecutor, Docker Compose) |
-| Serving | Databricks Delta + Unity Catalog |
-| Dashboard | Streamlit, Plotly |
-| Libraries | psycopg2, PyMySQL, PyMongo, pyarrow, pandas, databricks-sql-connector, databricks-sdk |
-| Tooling | ruff, pytest, pytest-cov, sqlfluff, GitHub Actions, gitleaks, CodeQL |
+<p align="center">
+  <img alt="Python 3.13" src="https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white" />
+  <img alt="Ubuntu" src="https://img.shields.io/badge/Ubuntu-24.04-E95420?logo=ubuntu&logoColor=white" />
+  <img alt="PySpark 4.1" src="https://img.shields.io/badge/PySpark-4.1-E25A1C?logo=apachespark&logoColor=white" />
+  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
+  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white" />
+  <img alt="Airflow" src="https://img.shields.io/badge/Airflow-3.3.2-017CEE?logo=apacheairflow&logoColor=white" />
+  <img alt="dbt" src="https://img.shields.io/badge/dbt-1.8-FF694B?logo=dbt&logoColor=white" />
+  <img alt="Docker" src="https://img.shields.io/badge/Docker-27-2496ED?logo=docker&logoColor=white" />
+  <img alt="Medallion" src="https://img.shields.io/badge/Medallion-Lakehouse-8B5CF6" />
+  <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.62-FF4B4B?logo=streamlit&logoColor=white" />
+  <img alt="Plotly" src="https://img.shields.io/badge/Plotly-7-3F4F75?logo=plotly&logoColor=white" />
+  <img alt="CI" src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/ci.yml/badge.svg" />
+  <img alt="Last Release" src="https://img.shields.io/github/v/release/Nitinx12/Banking-Delta-Lakehouse?label=Release" />
+  <img alt="Ruff" src="https://img.shields.io/badge/Ruff-0.12.0-000000?logo=ruff" />
+  <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-FAB005?logo=precommit" />
+  <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  <img alt="Discord" src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord" />
+  <img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin" />
+  <img alt="Twitter" src="https://img.shields.io/badge/Twitter-Follow-1DA1F2?logo=x" />
+  <img alt="Awesome Python" src="https://awesome-python.com/badge.svg" />
+  <img alt="Live Demo" src="https://img.shields.io/badge/Live%20Demo-Open-2ea44f" />
+  <img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repo-181717?logo=github" />
+</p>
 
 ## Pipeline at a glance
 
@@ -120,3 +132,17 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 
 Contributing and security policies live in [CONTRIBUTING.md](CONTRIBUTING.md)
 and [SECURITY.md](SECURITY.md).
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ for the data community</strong> · MIT License ·
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/issues">Report a bug</a> ·
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse">⭐ Star on GitHub</a>
+</p>
+
+<p align="center">
+  <a href="#">💬 Discord chat</a> ·
+  <a href="#">💼 LinkedIn</a> ·
+  <a href="#">🐦 Twitter</a>
+</p>

@@ -1,3 +1,4 @@
+# Runtime dependencies — mirrors pyproject.toml [project] dependencies.
 # Spark 3.5.x = Scala 2.12 -> matches the connector jars pinned in utils/engine.py. Needs Java 17.
 pyspark>=3.5.3,<3.6
 psycopg2-binary>=2.9
@@ -7,3 +8,10 @@ python-dotenv>=1.0
 # Databricks source (pure Python, no JVM). Only needed for the Databricks extractor:
 databricks-sql-connector>=3.0
 pyarrow>=15
+matplotlib>=3.11.2
+seaborn>=0.13.2
+rich>=15.0.0
+databricks-sdk>=0.154.0
+streamlit==1.62.0
+pandas>=3.0,<4
+plotly>=7.0,<8
