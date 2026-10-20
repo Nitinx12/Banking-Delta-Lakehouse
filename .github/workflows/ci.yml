@@ -1,4 +1,5 @@
-# Required CI gate. Mirrors `make ci` exactly: lint + sql-lint + unit + smoke.
+# Required CI gate. Mirrors `make ci` (lint + contracts + sql-lint + unit + smoke),
+# running the unit tests under the coverage floor instead of a separate bare run.
 # Keep the Make targets as the single source of truth so local == CI.
 name: ci
 
@@ -17,20 +18,24 @@ permissions:
 
 jobs:
   gate:
+    # NOTE: job name is a required status check in branch protection. If you rename it, update the rule too.
     name: gate (lint + sql-lint + unit + smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
       - name: Set up Python (from pyproject)
         run: uv python install
+
+      - name: Lockfile is in sync with pyproject
+        run: uv lock --check
 
       - name: Install dependencies
         run: make install
@@ -44,13 +49,11 @@ jobs:
       - name: SQL lint (sqlfluff)
         run: make sql-lint
 
-      - name: Unit tests
-        run: make unit
-
       - name: Smoke tests
         run: make smoke
 
-      - name: Coverage gate
+      # `make cov` runs the unit tests under the coverage floor, so unit is not run separately.
+      - name: Unit tests + coverage gate
         run: make cov
 
   windows-gate:
@@ -59,12 +62,13 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
+        # default shell on Windows runners is pwsh, which won't run `tasks.bat` from the cwd without `.\`
         shell: cmd
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock

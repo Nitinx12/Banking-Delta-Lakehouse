@@ -110,11 +110,11 @@ leaks: ## gitleaks over git history (needs gitleaks installed)
 	gitleaks git --redact -v --config .gitleaks.toml
 
 ##@ Gate
-ci: ## Fast local gate == CI: lint + contracts + sql-lint + unit + smoke
+ci: ## Fast local gate == CI: lint + contracts + sql-lint + coverage + smoke
 	$(MAKE) lint
 	$(MAKE) contracts
 	$(MAKE) sql-lint
-	$(MAKE) unit
+	$(MAKE) cov
 	$(MAKE) smoke
 	@echo "ci OK"
 

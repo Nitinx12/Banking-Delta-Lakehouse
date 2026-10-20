@@ -1,0 +1,89 @@
+# Goes in .github/labeler.yml  (config for actions/labeler)
+# One label per area of the repo, matching the layout in ARCHITECTURE.md §3.
+
+extract:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/jobs/extract_*.py
+          - src/utils/extract_runner.py
+          - src/utils/spark_io.py
+          - scripts/run_jobs.py
+          - scripts/seed_watermarks.py
+
+publish:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/jobs/publish_marts.py
+
+core-utils:
+  - changed-files:
+      - any-glob-to-any-file:
+          - src/utils/**
+          - main.py
+
+sql-bootstrap:
+  - changed-files:
+      - any-glob-to-any-file:
+          - sql/scripts/**
+
+sql-staging:
+  - changed-files:
+      - any-glob-to-any-file:
+          - sql/staging/**
+
+sql-analytics:
+  - changed-files:
+      - any-glob-to-any-file:
+          - sql/analytics/**
+
+sql-marts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - sql/marts/**
+
+data-quality:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/data-quality/**
+          - scripts/run_*_tests.py
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - tests/unit/**
+          - tests/smoke/**
+          - tests/conftest.py
+
+contracts:
+  - changed-files:
+      - any-glob-to-any-file:
+          - contracts/**
+
+airflow:
+  - changed-files:
+      - any-glob-to-any-file:
+          - airflow/**
+
+dashboard:
+  - changed-files:
+      - any-glob-to-any-file:
+          - dashboard/**
+
+ci:
+  - changed-files:
+      - any-glob-to-any-file:
+          - .github/**
+          - Makefile
+          - tasks.bat
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - pyproject.toml
+          - uv.lock
+
+documentation:
+  - changed-files:
+      - any-glob-to-any-file:
+          - docs/**
+          - "*.md"
