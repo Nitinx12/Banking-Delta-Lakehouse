@@ -35,7 +35,7 @@ dev = [
 extend-exclude = ["notebooks"]
 
 [tool.pytest.ini_options]
-testpaths = ["airflow/tests"]
+testpaths = ["tests", "airflow/tests"]
 markers = [
     "unit: pure, isolated tests (no DB, no network)",
     "smoke: imports, CLIs, repo/SQL/env contracts",
