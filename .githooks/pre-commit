@@ -1,32 +1,50 @@
 #!/usr/bin/env bash
-# .githooks/pre-commit — secrets guard + fast lint (mirrors pre-commit CI)
+# .githooks/pre-commit - secrets guard + fast lint (mirrors the CI lint job)
+# Runs in Git-for-Windows / MSYS bash (this repo is used from Windows).
 # Enable with: git config core.hooksPath .githooks
 set -euo pipefail
 
 # 1. Never commit real secrets
 if git diff --cached --name-only | grep -Eq '(^\.env$|\.pem$|\.key$|id_rsa)'; then
-  echo "✖ refusing to commit secrets (.env, *.pem, *.key)" >&2
+  echo "✖ refusing to commit secrets (.env, *.pem, *.key, id_rsa)" >&2
   exit 1
 fi
 
-# 2. Ruff check on staged python files (skip if ruff is not installed)
+# Find ruff: prefer the project venv, fall back to PATH.
+RUFF=""
+for candidate in ".venv/Scripts/ruff.exe" ".venv/bin/ruff" "ruff"; do
+  if command -v "$candidate" >/dev/null 2>&1 || [ -x "$candidate" ]; then
+    RUFF="$candidate"
+    break
+  fi
+done
+
+# 2. Ruff check + format on staged python files (skip if ruff is not installed)
 staged_py=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.py$' || true)
 if [ -n "$staged_py" ]; then
-  if command -v ruff >/dev/null 2>&1; then
-    echo "$staged_py" | xargs ruff check
-    echo "$staged_py" | xargs ruff format --check
+  if [ -n "$RUFF" ]; then
+    echo "$staged_py" | tr -d '\r' | xargs "$RUFF" check
+    echo "$staged_py" | tr -d '\r' | xargs "$RUFF" format --check
   else
-    echo "  (ruff not found — skipping python lint)" >&2
+    echo "  (ruff not found - skipping python lint)" >&2
   fi
 fi
 
 # 3. Staged data contracts must stay valid JSON (skip if python is missing)
+PY=""
+for candidate in ".venv/Scripts/python.exe" ".venv/bin/python" "python3" "python"; do
+  if command -v "$candidate" >/dev/null 2>&1 || [ -x "$candidate" ]; then
+    PY="$candidate"
+    break
+  fi
+done
+
 staged_json=$(git diff --cached --name-only --diff-filter=ACM | grep -E '^contracts/.*\.json$' || true)
 if [ -n "$staged_json" ]; then
-  if command -v python >/dev/null 2>&1; then
-    echo "$staged_json" | xargs python -c \
+  if [ -n "$PY" ]; then
+    echo "$staged_json" | tr -d '\r' | xargs "$PY" -c \
       "import json,sys; [json.load(open(p, encoding='utf-8')) for p in sys.argv[1:]]; print('  contracts JSON OK')"
   else
-    echo "  (python not found — skipping contracts JSON check)" >&2
+    echo "  (python not found - skipping contracts JSON check)" >&2
   fi
 fi

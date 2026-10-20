@@ -1,17 +1,38 @@
 #!/usr/bin/env bash
-# .githooks/pre-push — offline sanity before push (fast, no DB needed)
+# .githooks/pre-push - offline sanity before push (fast, no DB needed)
+# Runs in Git-for-Windows / MSYS bash (this repo is used from Windows).
 # Enable with: git config core.hooksPath .githooks
 set -euo pipefail
 
-if ! command -v python >/dev/null 2>&1; then
-  echo "  (python not found — skipping pre-push checks)" >&2
+# Find a Python that can compile the source tree: prefer the project venv
+# (created by `make install`), fall back to `python3`/`python`.
+PY=""
+for candidate in ".venv/Scripts/python.exe" ".venv/bin/python" "python3" "python"; do
+  if command -v "$candidate" >/dev/null 2>&1 || [ -x "$candidate" ]; then
+    PY="$candidate"
+    break
+  fi
+done
+
+if [ -z "$PY" ]; then
+  echo "  (python not found - skipping pre-push checks)" >&2
   exit 0
 fi
 
 # 1. Everything under src/ and scripts/ must compile
-python -m compileall -q src scripts
+"$PY" -m compileall -q src scripts
 
-# 2. All data contracts must parse as JSON
-python -c "import json, glob; [json.load(open(p, encoding='utf-8')) for p in glob.glob('contracts/*/*.json')]; print('  contracts JSON OK')"
+# 2. All data contracts must parse as JSON (files only - glob also matches dirs)
+"$PY" - <<'PY'
+import glob
+import json
+import os
+
+paths = [p for p in glob.glob("contracts/*/*.json") if os.path.isfile(p)]
+for path in paths:
+    with open(path, encoding="utf-8") as handle:
+        json.load(handle)
+print(f"  contracts JSON OK ({len(paths)} file(s))")
+PY
 
 echo "✔ pre-push checks passed"

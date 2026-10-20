@@ -1,0 +1,25 @@
+# Default owners for everything. Adjust to real GitHub handles/teams before relying on it.
+# Teams use @org/team-slug; the placeholder below is the current maintainer.
+* @Nitinx12
+
+# Pipeline code and SQL need a second pair of eyes.
+/main.py @Nitinx12
+/src/ @Nitinx12
+/scripts/ @Nitinx12
+/sql/ @Nitinx12
+
+# Orchestration and alerting.
+/airflow/ @Nitinx12
+
+# Quality gates and the CI/CD wiring itself.
+/tests/ @Nitinx12
+/.github/ @Nitinx12
+/.githooks/ @Nitinx12
+/Makefile @Nitinx12
+/tasks.bat @Nitinx12
+
+# Governance docs.
+/AGENTS.md @Nitinx12
+/SECURITY.md @Nitinx12
+/CONTRIBUTING.md @Nitinx12
+/docs/ @Nitinx12

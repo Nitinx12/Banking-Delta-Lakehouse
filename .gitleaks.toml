@@ -1,0 +1,35 @@
+# gitleaks config for Banking-Delta (used by `make leaks` and the CI `leaks` job).
+# Docs: https://github.com/gitleaks/gitleaks/blob/master/README.md
+title = "Banking-Delta secret scan"
+
+[extend]
+useDefault = true
+
+# Allow-list: placeholders and generated/graph artefacts, never real secrets.
+[allowlist]
+description = "Repo-wide allow-list: env templates, generated artefacts, docs"
+paths = [
+  '''\.env\.example$''',
+  '''airflow/\.env\.airflow\.example$''',
+  '''dashboard/\.streamlit/secrets\.toml\.example$''',
+  '''\.example$''',
+  '''\.md$''',
+  '''uv\.lock$''',
+  '''\.codeql/''',
+]
+regexes = [
+  # obvious placeholders used in templates and test fixtures
+  '''<your-[a-z-]+>''',
+  '''changeme''',
+  '''test-only''',
+  '''example\.invalid''',
+]
+
+[[rules]]
+id = "banking-placeholder-passwords"
+description = "Ignore obvious placeholder secret assignments in templates"
+regex = '''(?i)(password|pass|secret|token)\s*[:=]\s*(changeme|test-only|<your-[a-z-]+>|placeholder)'''
+secretGroup = 2
+[rules.allowlist]
+regexTarget = "match"
+regexes = ['''(?i)(changeme|test-only|<your-[a-z-]+>|placeholder)''']
