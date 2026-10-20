@@ -20,6 +20,7 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 
 | Doc | What it covers |
 | --- | --- |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | The blueprint: layers, flow, gates and contracts. |
 | [docs/PIPELINE.md](docs/PIPELINE.md) | The daily pipeline end to end. |
 | [docs/CONTRACTS.md](docs/CONTRACTS.md) | Data contracts: source → `raw` landing. |
 | [docs/DATA-QUALITY.md](docs/DATA-QUALITY.md) | DQ contract per layer and how it gates publish. |
