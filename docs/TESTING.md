@@ -112,8 +112,12 @@ Restricted (ask first): `make spark-smoke`, `ALLOW_SQL_SMOKE=1 make sql-smoke in
 
 ## Known status (2026-10-20)
 
-- `make lint`, `make unit`, `make smoke` green.
-- `make sql-lint` red: ~2,800 pre-existing violations in `sql/` (sqlfluff 3.x layout
-  defaults; no `.sqlfluff` config). `tests/data-quality/` is clean. Planned as a separate
-  fix branch.
-- `make cov` broken: `pytest-cov` is not in the dev dependency group yet.
+- `make lint`, `make contracts`, `make sql-lint`, `make unit`, `make smoke`,
+  `make cov` and `make ci` are green. `tasks.bat ci` mirrors them on Windows.
+- `make sql-lint` uses an explicit `.sqlfluff` baseline (dialect `postgres`,
+  keyword/identifier/type case pinned, and the merged SQL's layout/aliasing/ambiguity
+  rules excluded with reasons). `sql/raw/*.sql` exploration probes are ignored via
+  `.sqlfluffignore` because they use a bare `OFFSET 0` Spark hint the parser rejects.
+  Pipeline SQL under `sql/{staging,analytics,marts}` and `sql/scripts` is linted.
+- `make sql-smoke`, `make integration` and `make spark-smoke` need a disposable
+  Postgres / local Spark and are out of the PR gate.

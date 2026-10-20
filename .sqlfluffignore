@@ -1,0 +1,9 @@
+# Files sqlfluff skips entirely. Each entry is ad-hoc exploration SQL, not pipeline
+# code, and is not executed by `main.py`, Airflow or any DQ suite.
+#
+# The raw exploration scripts use a bare `OFFSET 0` as a Spark/PySpark evaluation
+# hint (it forces the lateral probe to run). That construct is intentionally not
+# valid standalone Postgres, so the linter cannot parse it, and ST06 ordering in
+# probes is not meaningful. Pipeline SQL under sql/{staging,analytics,marts} and
+# sql/scripts is linted normally.
+sql/raw/*.sql

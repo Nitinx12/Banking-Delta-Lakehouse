@@ -48,8 +48,8 @@ Colour legend: `docs/PIPELINE.md`.
 | ruff/format fails in the hook | style drift | `make format`, then re-stage |
 | pre-commit rejects a file | secret-like filename or ruff failure | remove the file / fix the style — never `--no-verify` |
 | `make leaks` fails immediately | `.gitleaks.toml` / `gitleaks` absent | known gap (§16.3 #5): add config + install; don't drop the target |
-| `make sql-lint` red | ~2,800 pre-existing violations in `sql/`, no `.sqlfluff` config | separate fix branch planned (`docs/TESTING.md`) — do not weaken rules |
-| `make cov` fails: no `--cov` | `pytest-cov` not in the dev group | add the dep (approval needed), don't skip the gate |
+| `make sql-lint` red | a rule outside the `.sqlfluff` baseline | fix the new SQL; don't widen `exclude_rules` (`docs/TESTING.md`) |
+| `make cov` fails: no `--cov` | `pytest-cov` missing from the dev group | it is pinned in `pyproject.toml`; run `make install` |
 | `make help` errors on `awk` | Windows make + no awk in PATH | `make <target>` still works; use the target directly |
 | sqlfluff flags a procedure | dialect/case/style | uppercase keywords, `snake_case`, explicit column lists (`AGENTS.md`) |
 | Spark test won't start | unsupported Java / jar download blocked | Java 8/11/17/21; `repo1.maven.org:443` reachable |
@@ -85,6 +85,5 @@ flowchart TB
 2. Publish lookback gap for late/old rows — `PUBLISH_LOOKBACK_MONTHS` / periodic `--full`.
 3. Timezone off-by-offset on stored timestamps — needs approval + backfill decision.
 4. Analytics band drift from `CURRENT_DATE` — design decision pending.
-5. Stale links to a non-existent `airflow/AIRFLOW_AGENT_GUIDE.md`; `make leaks` lacks
-   `.gitleaks.toml`.
-6. `sql-lint` baseline red; `make cov` missing `pytest-cov`.
+5. Stale links to a non-existent `airflow/AIRFLOW_AGENT_GUIDE.md`.
+6. `make leaks` needs `gitleaks` on PATH (config is `.gitleaks.toml`).

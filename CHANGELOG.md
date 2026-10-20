@@ -39,6 +39,9 @@ the `release` workflow verifies before publishing.
 
 - Data-quality procedures are documented per file and grouped under per-layer
   master gate procedures.
+- `make sql-lint` is green: added an explicit `.sqlfluff` baseline (dialect,
+  capitalisation policy, `max_line_length`) and `.sqlfluffignore` for the raw
+  exploration probes, so `make ci` and `tasks.bat ci` pass end to end.
 
 ### Removed
 

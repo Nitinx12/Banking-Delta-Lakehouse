@@ -146,7 +146,7 @@ Every `require()`d variable is listed in `.env.example` — enforced by
 
 ## Promotion checklist
 
-- [ ] `make ci` green (note: `sql-lint` currently red — see `docs/TESTING.md`)
+- [ ] `make ci` green (lint + contracts + sql-lint + unit + smoke)
 - [ ] new migrations added as numbered files, applied twice to confirm idempotence
 - [ ] `.env.example` updated for new variables; smoke tests updated
 - [ ] `docs/` updated if behaviour or targets changed
