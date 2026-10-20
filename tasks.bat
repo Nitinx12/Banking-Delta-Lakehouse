@@ -16,7 +16,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean) do (
+for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -27,7 +27,7 @@ exit /b 2
 echo Usage: tasks ^<target^> [extra args]
 echo.
 echo Setup     : install hooks
-echo Static    : lint format sql-lint
+echo Static    : lint format contracts sql-lint
 echo Tests     : unit cov smoke test spark-smoke sql-smoke integration smoke-live
 echo Security  : leaks
 echo Gate      : ci   (lint + sql-lint + unit + smoke)
@@ -52,6 +52,10 @@ exit /b 0
 :t_format
 uv run ruff check --fix . || exit /b 1
 uv run ruff format . || exit /b 1
+exit /b 0
+
+:t_contracts
+uv run python -m contracts.validate || exit /b 1
 exit /b 0
 
 :t_sql-lint
@@ -105,6 +109,7 @@ exit /b 0
 
 :t_ci
 call :t_lint || exit /b 1
+call :t_contracts || exit /b 1
 call :t_sql-lint || exit /b 1
 call :t_unit || exit /b 1
 call :t_smoke || exit /b 1

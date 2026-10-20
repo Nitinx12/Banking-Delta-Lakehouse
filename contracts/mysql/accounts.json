@@ -1,0 +1,35 @@
+{
+  "contract_version": 1,
+  "name": "account",
+  "description": "MySQL account master. Full load; amounts are NUMERIC(18,2), never float.",
+  "source": "mysql_source",
+  "source_schema": "banking_core_db",
+  "source_table": "accounts",
+  "target_schema": "raw",
+  "target_table": "accounts",
+  "business_key": ["account_id"],
+  "load_strategy": "full",
+  "num_partitions": 4,
+  "columns": [
+    { "name": "account_id", "type": "bigint", "nullable": false, "key": true },
+    { "name": "customer_id", "type": "bigint", "nullable": false },
+    { "name": "branch_id", "type": "bigint", "nullable": false },
+    { "name": "account_type", "type": "text", "nullable": false },
+    { "name": "status", "type": "text", "nullable": false },
+    { "name": "balance", "type": "numeric(18,2)", "nullable": true },
+    { "name": "open_date", "type": "date", "nullable": true },
+    { "name": "created_at", "type": "timestamptz", "nullable": true },
+    { "name": "updated_at", "type": "timestamptz", "nullable": true }
+  ],
+  "quality": {
+    "row_count": { "mode": "source_vs_landed_exact", "severity": "ERROR" },
+    "freshness": {
+      "mode": "max_loaded_at_within_window",
+      "window": "PT24H",
+      "compare": "landing_loaded_at",
+      "severity": "WARNING"
+    }
+  },
+  "owner": "banking-data-platform",
+  "tags": ["master-data"]
+}

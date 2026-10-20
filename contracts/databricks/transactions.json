@@ -1,0 +1,37 @@
+{
+  "contract_version": 1,
+  "name": "transactions",
+  "description": "Databricks public transactions, incremental on created_at (real timestamp column).",
+  "source": "databricks_source",
+  "source_schema": "public",
+  "source_table": "transactions",
+  "target_schema": "raw",
+  "target_table": "transactions",
+  "business_key": ["transaction_id"],
+  "load_strategy": "incremental",
+  "incremental_column": "created_at",
+  "watermark_strategy": "timestamp",
+  "num_partitions": 4,
+  "match_mode": "strict_gt",
+  "columns": [
+    { "name": "transaction_id", "type": "bigint", "nullable": false, "key": true },
+    { "name": "account_id", "type": "bigint", "nullable": false },
+    { "name": "txn_date", "type": "timestamptz", "nullable": false },
+    { "name": "amount", "type": "numeric(18,2)", "nullable": false },
+    { "name": "txn_type", "type": "text", "nullable": true },
+    { "name": "channel", "type": "text", "nullable": true },
+    { "name": "merchant_category", "type": "text", "nullable": true },
+    { "name": "created_at", "type": "timestamptz", "nullable": false }
+  ],
+  "quality": {
+    "row_count": { "mode": "source_vs_landed_exact", "severity": "ERROR" },
+    "freshness": {
+      "mode": "max_loaded_at_within_window",
+      "window": "PT24H",
+      "compare": "landing_loaded_at",
+      "severity": "WARNING"
+    }
+  },
+  "owner": "banking-data-platform",
+  "tags": ["incremental"]
+}

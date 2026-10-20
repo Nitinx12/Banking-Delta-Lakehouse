@@ -30,7 +30,7 @@ if [ -n "$staged_py" ]; then
   fi
 fi
 
-# 3. Staged data contracts must stay valid JSON (skip if python is missing)
+# 3. Staged data contracts must stay valid JSON and validate (skip if python missing)
 PY=""
 for candidate in ".venv/Scripts/python.exe" ".venv/bin/python" "python3" "python"; do
   if command -v "$candidate" >/dev/null 2>&1 || [ -x "$candidate" ]; then
@@ -44,7 +44,8 @@ if [ -n "$staged_json" ]; then
   if [ -n "$PY" ]; then
     echo "$staged_json" | tr -d '\r' | xargs "$PY" -c \
       "import json,sys; [json.load(open(p, encoding='utf-8')) for p in sys.argv[1:]]; print('  contracts JSON OK')"
+    "$PY" -m contracts.validate
   else
-    echo "  (python not found - skipping contracts JSON check)" >&2
+    echo "  (python not found - skipping contracts checks)" >&2
   fi
 fi

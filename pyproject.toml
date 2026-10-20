@@ -41,6 +41,9 @@ dev = [
 [tool.ruff]
 extend-exclude = ["notebooks"]
 
+[tool.setuptools.packages.find]
+include = ["contracts*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests", "airflow/tests"]
 markers = [

@@ -38,6 +38,9 @@ jobs:
       - name: Lint (ruff)
         run: make lint
 
+      - name: Data contracts
+        run: make contracts
+
       - name: SQL lint (sqlfluff)
         run: make sql-lint
 
@@ -71,6 +74,9 @@ jobs:
 
       - name: Lint (ruff)
         run: tasks.bat lint
+
+      - name: Data contracts
+        run: tasks.bat contracts
 
       - name: Unit + smoke tests
         run: tasks.bat test

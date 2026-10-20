@@ -1,0 +1,31 @@
+{
+  "contract_version": 1,
+  "name": "example_source_table",
+  "description": "Worked example of a valid contract. Copy this shape for a new source table.",
+  "source": "mysql_source",
+  "source_schema": "banking_core_db",
+  "source_table": "example_table",
+  "target_schema": "raw",
+  "target_table": "example_table",
+  "business_key": ["example_id"],
+  "load_strategy": "full",
+  "incremental_column": null,
+  "watermark_strategy": null,
+  "num_partitions": 1,
+  "columns": [
+    { "name": "example_id", "type": "bigint", "nullable": false, "key": true },
+    { "name": "amount", "type": "numeric(18,2)", "nullable": true },
+    { "name": "updated_at", "type": "timestamptz", "nullable": true }
+  ],
+  "quality": {
+    "row_count": { "mode": "source_vs_landed_exact", "severity": "ERROR" },
+    "freshness": {
+      "mode": "max_loaded_at_within_window",
+      "window": "PT24H",
+      "compare": "landing_loaded_at",
+      "severity": "WARNING"
+    }
+  },
+  "owner": "banking-data-platform",
+  "tags": ["example"]
+}
