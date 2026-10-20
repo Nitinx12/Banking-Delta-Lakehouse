@@ -8,6 +8,21 @@ Daily lakehouse pipeline: MySQL, MongoDB and Databricks `public` → PySpark →
 PostgreSQL (`landing → staging → core → mart`) → Databricks `core`/`mart`.
 Airflow orchestrates, stored procedures transform, Great Expectations validates.
 
+## Tech stack
+
+| Layer | Tools |
+| --- | --- |
+| Runtime | Python 3.13, PySpark 3.5, Java 17, uv |
+| Sources | MySQL, MongoDB, Databricks `public` |
+| Warehouse | PostgreSQL 16 (`raw → staging → analytics → marts`) |
+| Transformation | PostgreSQL stored procedures (plpgsql), SQL |
+| Data quality | SQL DQ suites (`tests/data-quality/`), sqlfluff |
+| Orchestration | Apache Airflow 3.3.2 (CeleryExecutor, Docker Compose) |
+| Serving | Databricks Delta + Unity Catalog |
+| Dashboard | Streamlit, Plotly |
+| Libraries | psycopg2, PyMySQL, PyMongo, pyarrow, pandas, databricks-sql-connector, databricks-sdk |
+| Tooling | ruff, pytest, pytest-cov, sqlfluff, GitHub Actions, gitleaks, CodeQL |
+
 ## Pipeline at a glance
 
 ```mermaid
