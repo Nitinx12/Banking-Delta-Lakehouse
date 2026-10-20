@@ -2,11 +2,13 @@
   <img src="assets/logo/logo4.png" alt="Banking-Delta" width="420">
 </p>
 
-# Banking-Delta
+<h1 align="center">Banking Delat Lakehouse</h1>
 
-Daily lakehouse pipeline: MySQL, MongoDB and Databricks `public` → PySpark →
-PostgreSQL (`landing → staging → core → mart`) → Databricks `core`/`mart`.
-Airflow orchestrates, stored procedures transform, Great Expectations validates.
+<p align="center">
+  Daily lakehouse pipeline: MySQL, MongoDB and Databricks `public` → PySpark →
+  PostgreSQL (`landing → staging → core → mart`) → Databricks `core`/`mart`.<br/>
+  Airflow orchestrates, stored procedures transform, Great Expectations validates.
+</p>
 
 ## Tech stack
 
@@ -17,7 +19,6 @@ Airflow orchestrates, stored procedures transform, Great Expectations validates.
   <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
   <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white" />
   <img alt="Airflow" src="https://img.shields.io/badge/Airflow-3.3.2-017CEE?logo=apacheairflow&logoColor=white" />
-  <img alt="dbt" src="https://img.shields.io/badge/dbt-1.8-FF694B?logo=dbt&logoColor=white" />
   <img alt="Docker" src="https://img.shields.io/badge/Docker-27-2496ED?logo=docker&logoColor=white" />
   <img alt="Medallion" src="https://img.shields.io/badge/Medallion-Lakehouse-8B5CF6" />
   <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.62-FF4B4B?logo=streamlit&logoColor=white" />
@@ -27,12 +28,6 @@ Airflow orchestrates, stored procedures transform, Great Expectations validates.
   <img alt="Ruff" src="https://img.shields.io/badge/Ruff-0.12.0-000000?logo=ruff" />
   <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-FAB005?logo=precommit" />
   <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  <img alt="Discord" src="https://img.shields.io/badge/Discord-Join-5865F2?logo=discord" />
-  <img alt="LinkedIn" src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?logo=linkedin" />
-  <img alt="Twitter" src="https://img.shields.io/badge/Twitter-Follow-1DA1F2?logo=x" />
-  <img alt="Awesome Python" src="https://awesome-python.com/badge.svg" />
-  <img alt="Live Demo" src="https://img.shields.io/badge/Live%20Demo-Open-2ea44f" />
-  <img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repo-181717?logo=github" />
 </p>
 
 ## Pipeline at a glance
