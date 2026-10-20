@@ -57,6 +57,9 @@ jobs:
     name: windows-gate (batch runner parity)
     runs-on: windows-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        shell: cmd
     steps:
       - uses: actions/checkout@v4
 
@@ -78,5 +81,11 @@ jobs:
       - name: Data contracts
         run: tasks.bat contracts
 
+      - name: SQL lint (sqlfluff)
+        run: tasks.bat sql-lint
+
       - name: Unit + smoke tests
         run: tasks.bat test
+
+      - name: Coverage gate
+        run: tasks.bat cov
