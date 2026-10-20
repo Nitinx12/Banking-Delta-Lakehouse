@@ -5,8 +5,6 @@ Everything lands in the `audit` schema of the PostgreSQL warehouse, written with
 transaction still leaves a FAILED record behind. Redaction rules: never log row values or
 credentials (`AGENTS.md`).
 
-Deep reference: `repo_detailes.md` §9.
-
 ## Data model
 
 ```mermaid

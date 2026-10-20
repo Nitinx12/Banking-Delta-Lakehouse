@@ -1,8 +1,7 @@
 # Git workflows — Banking-Delta
 
 How this repository manages git: branches, commits, hooks, the change loop and PR rules.
-Rules for AI agents (`AGENTS.md`) always win on conflict. Deep reference:
-`repo_detailes.md` §14.
+Rules for AI agents (`AGENTS.md`) always win on conflict.
 
 ## Ground rules
 
@@ -84,7 +83,7 @@ Hygiene: stage explicitly (`git add <paths>`), review with `git diff --staged`. 
 ## The change loop
 
 ```text
-1  Read AGENTS.md + relevant section of repo_detailes.md
+1  Read AGENTS.md and the relevant docs/ page
 2  Sync main, create branch
 3  Write/adjust the test FIRST (see docs/TESTING.md — red)
 4  Implement the smallest change (green)

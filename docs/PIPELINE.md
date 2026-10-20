@@ -4,8 +4,6 @@ Daily pipeline: MySQL / MongoDB / Databricks `public` → PySpark → PostgreSQL
 (`raw → staging → analytics → marts`) → Databricks Delta marts. SQL stored procedures do
 the transformations, SQL data-quality suites gate every layer, Airflow orchestrates.
 
-Deep reference: `repo_detailes.md` (§2–§3, §11). Rules: `AGENTS.md`.
-
 ## Colour legend (used in every diagram)
 
 | Colour | Meaning |
@@ -272,4 +270,4 @@ psql ... -f sql/staging/00_master_load.sql     # CALL staging.sp_load_all()
 ```
 
 Pipeline targets act on the environment `.env` points at — see `AGENTS.md` before running
-them. Airflow stack lives in `airflow/` (see `repo_detailes.md` §7).
+them. Airflow stack lives in `airflow/` (see `docs/AIRFLOW.md`).

@@ -123,8 +123,7 @@ python src/jobs/publish_marts.py --lookback 3                       # re-read la
 
 Why: with `PUBLISH_LOOKBACK_MONTHS=0` (default) late/edited rows in older months are not
 republished (caused the `mart_support_performance` 193-row gap). Durable fix — non-zero
-lookback and/or periodic `--full` — is an **open item**, not applied
-(`repo_detailes.md` §16.3 #2).
+lookback and/or periodic `--full` — is an **open item**, not applied.
 
 ## Recovery
 
@@ -147,4 +146,4 @@ docker compose -f airflow/docker-compose.yml exec airflow-worker \
 
 Anything that touches the real warehouse, Databricks, merges to `main`, timezone/watermark
 behaviour changes, or DQ thresholds: **ask a human first** (`AGENTS.md`). Open known issues
-are listed in `docs/TROUBLESHOOTING.md` and `repo_detailes.md` §16.3.
+are listed in `docs/TROUBLESHOOTING.md`.

@@ -285,5 +285,5 @@ loads both DAGs; graph, retries, pools, `max_active_runs=1`, `dagrun_timeout < 6
 `NOT_RUN`, so a green run emails `[FAILED]` (and `env=unknown | build=unknown`).
 The audit sections in the same mail are correct. Fix: use
 `TaskInstance.get_task_states(dag_id=…, run_ids=[run_id])` and pass `env`/`git_sha` from
-the DAG. A regression test for this exists as a known gap — see `docs/TESTING.md` and
-`repo_detailes.md` §16.3 #1. Do not "fix" it silently.
+the DAG. A regression test for this exists as a known gap — see `docs/TESTING.md`.
+Do not "fix" it silently.

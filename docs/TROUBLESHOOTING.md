@@ -88,5 +88,3 @@ flowchart TB
 5. Stale links to a non-existent `airflow/AIRFLOW_AGENT_GUIDE.md`; `make leaks` lacks
    `.gitleaks.toml`.
 6. `sql-lint` baseline red; `make cov` missing `pytest-cov`.
-
-Full list with context: `repo_detailes.md` §16.3.

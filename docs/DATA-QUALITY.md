@@ -4,8 +4,6 @@ Every layer is gated by a SQL data-quality suite that runs **against the warehou
 before the next layer may load. A critical failure blocks publish. This is *data* testing;
 code testing lives in `docs/TESTING.md`.
 
-Deep reference: `repo_detailes.md` §10.
-
 ## Gate flow
 
 ```mermaid

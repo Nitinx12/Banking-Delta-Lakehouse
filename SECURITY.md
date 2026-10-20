@@ -16,7 +16,7 @@ In scope: the pipeline code (`src/`, `scripts/`, `main.py`), SQL (`sql/`,
 CI/CD wiring (`.github/`, `.githooks/`).
 
 Out of scope: findings that require production credentials you were not given, and
-pre-existing open items already listed in `repo_detailes.md` §16.3.
+pre-existing open items already listed in `docs/TROUBLESHOOTING.md`.
 
 ## How secrets are handled here
 

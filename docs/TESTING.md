@@ -7,8 +7,7 @@ Two kinds of tests live here:
 2. **Python tests** (`tests/`, `airflow/tests/`) — test *the code*, hermetically.
    This document.
 
-Rules: never weaken a test to get green (`AGENTS.md`). Deep reference: `repo_detailes.md`
-§10, §16.
+Rules: never weaken a test to get green (`AGENTS.md`).
 
 ## Test tiers
 

@@ -56,4 +56,4 @@ in `AGENTS.md`.
 | Deploy / configure | `docs/DEPLOYMENT.md` |
 | Operate / recover | `docs/RUNBOOK.md` |
 | It is broken | `docs/TROUBLESHOOTING.md` |
-| Everything, deep | `repo_detailes.md` |
+| Data contracts | `docs/CONTRACTS.md` |
