@@ -1,0 +1,25 @@
+# Freshness windows for landing tables without a contract freshness window.
+# contracts/ covers accounts, customers, support_tickets and transactions;
+# the remaining registry tables are listed here.
+schema_version: 1
+default_window: PT24H
+default_severity: WARNING
+tables:
+  branches:
+    window: PT24H
+    severity: WARNING
+  cards:
+    window: PT24H
+    severity: WARNING
+  employees:
+    window: PT24H
+    severity: WARNING
+  loans:
+    window: PT24H
+    severity: WARNING
+  loan_payments:
+    window: PT24H
+    severity: WARNING
+  card_transactions:
+    window: PT24H
+    severity: WARNING

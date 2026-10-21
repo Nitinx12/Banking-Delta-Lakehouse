@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "kind": "weekly",
+    "generated_at": "2026-10-26T08:05:40+05:30",
+    "env": "dev",
+    "git_sha": "a1b2c3d",
+    "airflow_version": "3.3.2",
+    "dag_id": "banking_report_weekly",
+    "dag_run_id": "scheduled__2026-10-26T02:30:00+00:00"
+  },
+  "run": {
+    "status": "SUCCESS",
+    "duration_s": 3200,
+    "total_tables": 10,
+    "successful_tables": 10,
+    "failed_tables": 0,
+    "skipped_tables": 1,
+    "started_at": "2026-10-26T02:05:00+05:30",
+    "ended_at": "2026-10-26T02:58:20+05:30"
+  },
+  "steps": [
+    {"id": "n01", "name": "preflight", "layer": "orchestration", "state": "ok", "duration_s": 22, "attempts": 1},
+    {"id": "n02", "name": "extract_mongo", "layer": "source", "state": "ok", "duration_s": 410, "attempts": 1},
+    {"id": "n03", "name": "extract_databricks", "layer": "source", "state": "ok", "duration_s": 505, "attempts": 1},
+    {"id": "n04", "name": "extract_mysql", "layer": "source", "state": "ok", "duration_s": 360, "attempts": 1},
+    {"id": "n05", "name": "raw_tests", "layer": "raw", "state": "ok", "duration_s": 48, "attempts": 1},
+    {"id": "n06", "name": "staging_load", "layer": "staging", "state": "ok", "duration_s": 320, "attempts": 1},
+    {"id": "n07", "name": "staging_tests", "layer": "staging", "state": "ok", "duration_s": 55, "attempts": 1},
+    {"id": "n08", "name": "analytics_load", "layer": "analytics", "state": "ok", "duration_s": 480, "attempts": 1},
+    {"id": "n09", "name": "analytics_tests", "layer": "analytics", "state": "ok", "duration_s": 62, "attempts": 1},
+    {"id": "n10", "name": "marts_load", "layer": "marts", "state": "ok", "duration_s": 430, "attempts": 1},
+    {"id": "n11", "name": "marts_tests", "layer": "marts", "state": "ok", "duration_s": 40, "attempts": 1},
+    {"id": "n12", "name": "publish", "layer": "publish", "state": "ok", "duration_s": 340, "attempts": 1},
+    {"id": "n13", "name": "finalize_audit", "layer": "audit", "state": "ok", "duration_s": 18, "attempts": 1}
+  ],
+  "tables": [
+    {"layer": "raw", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": null, "watermark_end": null, "attempts": 1},
+    {"layer": "raw", "table": "branches", "status": "SKIPPED", "rows_extracted": 0, "rows_landed": 0, "watermark_start": null, "watermark_end": null, "attempts": 1},
+    {"layer": "staging", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
+    {"layer": "analytics", "table": "dim_customer", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
+    {"layer": "publish", "table": "marts.fact_transactions", "status": "SUCCESS", "rows_extracted": 50000, "rows_landed": 47200, "watermark_start": null, "watermark_end": null, "attempts": 1}
+  ],
+  "dq": [
+    {"layer": "raw", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
+    {"layer": "staging", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
+    {"layer": "analytics", "script_name": "12_lp_check_derived_attributes.sql", "status": "PASS", "violation_count": 0},
+    {"layer": "marts", "script_name": "01_lp_check_row_counts.sql", "status": "WARNING", "violation_count": 1}
+  ],
+  "errors": [],
+  "freshness": [
+    {"table": "customers", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
+    {"table": "accounts", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
+    {"table": "loans", "age_s": 7200, "window": "PT24H", "breached": false, "severity": "WARNING"},
+    {"table": "card_transactions", "age_s": 9500, "window": "PT24H", "breached": false, "severity": "WARNING"}
+  ],
+  "trends": [
+    {"run_key": "scheduled__2026_10_19T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3090, "rows_landed": 53600, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_20T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3180, "rows_landed": 54000, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_21T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3240, "rows_landed": 54200, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_22T20_30_00_00_00", "status": "PARTIAL", "duration_s": 3400, "rows_landed": 41000, "failed_tables": 1, "dq_failures": 1},
+    {"run_key": "scheduled__2026_10_23T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3150, "rows_landed": 53900, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_24T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3110, "rows_landed": 53700, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_25T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3095, "rows_landed": 53550, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_26T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3200, "rows_landed": 54000, "failed_tables": 0, "dq_failures": 0}
+  ],
+  "events": [
+    {
+      "event_id": "R009:publish:marts.fact_transactions",
+      "rule": "R009",
+      "severity": "MINOR",
+      "layer": "publish",
+      "subject": "marts.fact_transactions",
+      "category": "VOLUME",
+      "first_seen": "2026-10-26T02:52:10+05:30",
+      "message": "rows_landed=47200, trailing median 53700, deviation 12 percent",
+      "impact": "one quiet Sunday, watch if it repeats tomorrow",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "event_id": "R008:marts:01_lp_check_row_counts",
+      "rule": "R008",
+      "severity": "MINOR",
+      "layer": "marts",
+      "subject": "audit.dq_marts_row_counts",
+      "category": "DATA",
+      "first_seen": "2026-10-26T02:50:02+05:30",
+      "message": "WARNING check not passing, violation_count=1",
+      "impact": "publish reconcile gap, marts still published",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    }
+  ],
+  "verdict": {"severity": "MINOR", "label": "ATTENTION"},
+  "sections_failed": []
+}

@@ -371,6 +371,10 @@ dev = [
     { name = "ruff" },
     { name = "sqlfluff" },
 ]
+reports = [
+    { name = "jsonschema" },
+    { name = "pyyaml" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -398,6 +402,10 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.1.0" },
     { name = "ruff", specifier = "==0.12.0" },
     { name = "sqlfluff", specifier = ">=3.3,<4" },
+]
+reports = [
+    { name = "jsonschema", specifier = ">=4.26.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
 ]
 
 [[package]]

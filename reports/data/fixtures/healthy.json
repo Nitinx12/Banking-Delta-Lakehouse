@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "meta": {
+    "kind": "daily",
+    "generated_at": "2026-10-21T02:58:12+05:30",
+    "env": "dev",
+    "git_sha": "a1b2c3d",
+    "airflow_version": "3.3.2",
+    "dag_id": "banking_delta_daily",
+    "dag_run_id": "scheduled__2026-10-20T20:30:00+00:00"
+  },
+  "run": {
+    "status": "SUCCESS",
+    "duration_s": 3180,
+    "total_tables": 10,
+    "successful_tables": 10,
+    "failed_tables": 0,
+    "skipped_tables": 0,
+    "started_at": "2026-10-21T02:05:00+05:30",
+    "ended_at": "2026-10-21T02:58:00+05:30"
+  },
+  "steps": [
+    {"id": "n01", "name": "preflight", "layer": "orchestration", "state": "ok", "duration_s": 22, "attempts": 1},
+    {"id": "n02", "name": "extract_mongo", "layer": "source", "state": "ok", "duration_s": 410, "attempts": 1},
+    {"id": "n03", "name": "extract_databricks", "layer": "source", "state": "ok", "duration_s": 505, "attempts": 1},
+    {"id": "n04", "name": "extract_mysql", "layer": "source", "state": "ok", "duration_s": 360, "attempts": 1},
+    {"id": "n05", "name": "raw_tests", "layer": "raw", "state": "ok", "duration_s": 48, "attempts": 1},
+    {"id": "n06", "name": "staging_load", "layer": "staging", "state": "ok", "duration_s": 320, "attempts": 1},
+    {"id": "n07", "name": "staging_tests", "layer": "staging", "state": "ok", "duration_s": 55, "attempts": 1},
+    {"id": "n08", "name": "analytics_load", "layer": "analytics", "state": "ok", "duration_s": 480, "attempts": 1},
+    {"id": "n09", "name": "analytics_tests", "layer": "analytics", "state": "ok", "duration_s": 62, "attempts": 1},
+    {"id": "n10", "name": "marts_load", "layer": "marts", "state": "ok", "duration_s": 430, "attempts": 1},
+    {"id": "n11", "name": "marts_tests", "layer": "marts", "state": "ok", "duration_s": 40, "attempts": 1},
+    {"id": "n12", "name": "publish", "layer": "publish", "state": "ok", "duration_s": 340, "attempts": 1},
+    {"id": "n13", "name": "finalize_audit", "layer": "audit", "state": "ok", "duration_s": 18, "attempts": 1}
+  ],
+  "tables": [
+    {"layer": "raw", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": null, "watermark_end": null, "attempts": 1},
+    {"layer": "raw", "table": "accounts", "status": "SUCCESS", "rows_extracted": 1500, "rows_landed": 1500, "watermark_start": null, "watermark_end": null, "attempts": 1},
+    {"layer": "staging", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-20T00:00:00+00:00", "watermark_end": "2026-10-21T00:00:00+00:00", "attempts": 1},
+    {"layer": "analytics", "table": "dim_customer", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-20T00:00:00+00:00", "watermark_end": "2026-10-21T00:00:00+00:00", "attempts": 1},
+    {"layer": "publish", "table": "marts.fact_transactions", "status": "SUCCESS", "rows_extracted": 50000, "rows_landed": 50000, "watermark_start": null, "watermark_end": null, "attempts": 1}
+  ],
+  "dq": [
+    {"layer": "raw", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
+    {"layer": "staging", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
+    {"layer": "analytics", "script_name": "12_lp_check_derived_attributes.sql", "status": "PASS", "violation_count": 0}
+  ],
+  "errors": [],
+  "freshness": [
+    {"table": "customers", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
+    {"table": "accounts", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
+    {"table": "card_transactions", "age_s": 9500, "window": "PT24H", "breached": false, "severity": "WARNING"}
+  ],
+  "trends": [
+    {"run_key": "scheduled__2026_10_16T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3100, "rows_landed": 53500, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_17T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3250, "rows_landed": 54100, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_18T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3180, "rows_landed": 53800, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_19T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3090, "rows_landed": 53600, "failed_tables": 0, "dq_failures": 0},
+    {"run_key": "scheduled__2026_10_20T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3180, "rows_landed": 54000, "failed_tables": 0, "dq_failures": 0}
+  ],
+  "events": [
+    {
+      "event_id": "R017:raw:branches",
+      "rule": "R017",
+      "severity": "INFO",
+      "layer": "raw",
+      "subject": "raw.branches",
+      "category": "DATA",
+      "first_seen": "2026-10-21T02:12:40+05:30",
+      "message": "table skipped, no new data since last watermark",
+      "impact": "none, branches refreshed once the source changes",
+      "runbook": null
+    }
+  ],
+  "verdict": {"severity": "INFO", "label": "HEALTHY"},
+  "sections_failed": []
+}

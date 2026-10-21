@@ -1,0 +1,17 @@
+# Report kinds, chapter sets and severity thresholds. Sev changes need a human.
+schema_version: 1
+timezone: Asia/Kolkata
+trend_runs: 14
+kinds:
+  daily:
+    chapters: [summary, flow, timeline, volumes, dq, freshness, incidents, appendix]
+    drop_when_empty: [dq, incidents]
+  incident:
+    chapters: [summary, flow, incidents, dq, timeline, appendix]
+  weekly:
+    chapters: [summary, trends, volumes, dq, freshness, incidents, appendix]
+thresholds:
+  volume_deviation_ratio: 0.5
+  duration_regression_ratio: 1.5
+  freshness_default_window: PT24H
+  max_message_chars: 300

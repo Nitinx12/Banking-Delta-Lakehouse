@@ -37,6 +37,13 @@ dev = [
     "ruff==0.12.0",
     "sqlfluff>=3.3,<4",
 ]
+reports = [
+    "jsonschema>=4.26.0",
+    "pyyaml>=6.0.3",
+]
+
+[tool.uv]
+default-groups = ["dev", "reports"]
 
 [tool.ruff]
 extend-exclude = ["notebooks"]

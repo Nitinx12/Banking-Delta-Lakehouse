@@ -1,0 +1,14 @@
+# Generated report artefacts, never commit real data.
+build/
+output/
+figures/*.pdf
+figures/*.png
+data/context.json
+data/context.*.json
+!data/context.schema.json
+!data/fixtures/
+*.aux
+*.log
+*.fdb_latexmk
+*.fls
+*.synctex.gz
