@@ -1,4 +1,4 @@
-# Runbook — Banking-Delta
+# Runbook — Banking-Delta-Lakehouse
 
 Day-to-day operations: run it, watch it, recover it. Diagram colour legend:
 `docs/PIPELINE.md` (red = failure paths, green = healthy, slate = audit, violet = actions).

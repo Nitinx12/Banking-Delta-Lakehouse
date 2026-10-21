@@ -1,4 +1,4 @@
-# Security Policy — Banking-Delta
+# Security Policy — Banking-Delta-Lakehouse
 
 ## Reporting a vulnerability
 

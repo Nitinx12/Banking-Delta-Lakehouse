@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Rules for AI agents working in Banking-Delta. Read `ARCHITECTURE.md` first. If this file and the architecture disagree on design, the architecture wins.
+Rules for AI agents working in Banking-Delta-Lakehouse. Read `ARCHITECTURE.md` first. If this file and the architecture disagree on design, the architecture wins.
 
 ## Project in one line
 

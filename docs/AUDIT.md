@@ -1,4 +1,4 @@
-# Audit — Banking-Delta
+# Audit — Banking-Delta-Lakehouse
 
 Everything lands in the `audit` schema of the PostgreSQL warehouse, written with plain
 `psycopg2`. Audit writes use their **own** short transactions, so a failed data

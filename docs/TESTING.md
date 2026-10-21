@@ -1,4 +1,4 @@
-# Testing — Banking-Delta
+# Testing — Banking-Delta-Lakehouse
 
 Two kinds of tests live here:
 

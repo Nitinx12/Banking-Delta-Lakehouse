@@ -1,4 +1,4 @@
-# Deployment — Banking-Delta
+# Deployment — Banking-Delta-Lakehouse
 
 Four pieces deploy independently: the **local toolchain**, the **PostgreSQL warehouse**,
 the **Airflow stack** (Docker Compose) and the **Streamlit dashboard**. Databricks is

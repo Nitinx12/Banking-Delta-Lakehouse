@@ -1,4 +1,4 @@
-# Contributing — Banking-Delta
+# Contributing — Banking-Delta-Lakehouse
 
 Thanks for helping. This is the short version; the authoritative rules are `AGENTS.md`
 (agents) and `docs/GITWORKFLOWS.md` (everyone).

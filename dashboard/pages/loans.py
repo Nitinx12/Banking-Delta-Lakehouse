@@ -23,7 +23,7 @@ from lib import charts
 from lib.filter import apply_multiselect, multiselect_all, render_sidebar
 
 st.set_page_config(
-    page_title="Banking Delta · Loans",
+    page_title="Banking Delta Lakehouse · Loans",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded",

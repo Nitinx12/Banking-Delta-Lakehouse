@@ -1,4 +1,4 @@
-# Banking Delta — Executive Dashboard
+# Banking Delta Lakehouse — Executive Dashboard
 
 Streamlit + Plotly dashboard that queries the **Databricks `marts` schema live** through a
 SQL warehouse (no extracts, no cached copies — every chart is a `SELECT` against Delta).

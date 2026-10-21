@@ -1,4 +1,4 @@
-# Troubleshooting — Banking-Delta
+# Troubleshooting — Banking-Delta-Lakehouse
 
 Symptom → cause → fix. Related: `docs/RUNBOOK.md` (failed-run triage),
 `docs/AIRFLOW.md` (stack + known banner bug), `docs/TESTING.md` (test-suite symptoms).

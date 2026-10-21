@@ -1,4 +1,4 @@
-# Data quality — Banking-Delta
+# Data quality — Banking-Delta-Lakehouse
 
 Every layer is gated by a SQL data-quality suite that runs **against the warehouse**
 before the next layer may load. A critical failure blocks publish. This is *data* testing;

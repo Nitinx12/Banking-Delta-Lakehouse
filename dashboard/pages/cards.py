@@ -29,7 +29,7 @@ from lib.filter import (
 )
 
 st.set_page_config(
-    page_title="Banking Delta · Cards",
+    page_title="Banking Delta Lakehouse · Cards",
     page_icon="💳",
     layout="wide",
     initial_sidebar_state="expanded",

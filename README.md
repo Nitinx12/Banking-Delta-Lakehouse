@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo/logo4.png" alt="Banking-Delta" width="420">
+  <img src="assets/logo/logo4.png" alt="Banking-Delta-Lakehouse" width="420">
 </p>
 
 <h1 align="center">Banking Delat Lakehouse</h1>

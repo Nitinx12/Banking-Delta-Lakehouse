@@ -1,7 +1,7 @@
 [project]
 name = "banking"
 version = "0.1.0"
-description = "Banking-Delta: daily MySQL/MongoDB/Databricks -> PySpark -> PostgreSQL -> Databricks Delta pipeline"
+description = "Banking-Delta-Lakehouse: daily MySQL/MongoDB/Databricks -> PySpark -> PostgreSQL -> Databricks Delta pipeline"
 readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
