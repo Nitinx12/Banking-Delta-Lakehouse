@@ -50,7 +50,7 @@ Colour legend: `docs/PIPELINE.md`.
 | `make leaks` fails immediately | `.gitleaks.toml` / `gitleaks` absent | known gap (§16.3 #5): add config + install; don't drop the target |
 | `make sql-lint` red | a rule outside the `.sqlfluff` baseline | fix the new SQL; don't widen `exclude_rules` (`docs/TESTING.md`) |
 | `make cov` fails: no `--cov` | `pytest-cov` missing from the dev group | it is pinned in `pyproject.toml`; run `make install` |
-| `make help` errors on `awk` | Windows make + no awk in PATH | `make <target>` still works; use the target directly |
+| `make help` errors on `awk` | Windows make + no awk in PATH | `make help` now runs `scripts/make_help.py`; on an older checkout use `tasks.bat help` |
 | sqlfluff flags a procedure | dialect/case/style | uppercase keywords, `snake_case`, explicit column lists (`AGENTS.md`) |
 | Spark test won't start | unsupported Java / jar download blocked | Java 8/11/17/21; `repo1.maven.org:443` reachable |
 | Dashboard chart blank | `SELECT *` loader vs renamed/removed mart column | restore the column or fix the loader (`docs/DEPLOYMENT.md`) |

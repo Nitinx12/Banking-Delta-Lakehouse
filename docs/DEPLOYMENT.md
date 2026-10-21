@@ -51,9 +51,9 @@ make hooks          # git config core.hooksPath .githooks — mandatory
 make ci             # gate: lint + sql-lint + unit + smoke + report-fixture
 ```
 
-Prerequisites: `uv`, GNU Make (Windows: choco `make`; no `tasks.bat` exists yet), Java
-8/11/17/21 for Spark paths, `git`. Copy `.env.example` → `.env` and fill real values —
-`.env` is git-ignored and must never be committed.
+Prerequisites: `uv`, GNU Make (Windows: choco `make`, or `tasks.bat <target>` without
+Make), Java 8/11/17/21 for Spark paths, `git`. Copy `.env.example` → `.env` and fill
+real values — `.env` is git-ignored and must never be committed.
 
 `make report-pdf` needs a TeX distribution with `latexmk` and `pdflatex` (TinyTeX or TeX
 Live are enough). Without TeX, `make report-fixture` still renders the documents and

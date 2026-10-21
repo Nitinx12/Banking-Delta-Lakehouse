@@ -1,6 +1,6 @@
 # =============================================================================
 # Banking-Delta-Lakehouse task runner (GNU Make >= 3.82, bash).
-# Windows / cmd.exe users: use make.bat (same target names).
+# Windows / cmd.exe users: use tasks.bat (same target names).
 # CI calls these same targets, so `make ci` green locally == CI green.
 #
 #   make help
@@ -36,9 +36,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 
 ##@ Setup
 help: ## Show this help
-	@awk 'BEGIN {FS = ":.*##"; printf "Usage: make <target> [ARGS=\"...\"]\n"} \
-	  /^##@/ {printf "\n%s\n", substr($$0, 5)} \
-	  /^[a-zA-Z0-9_-]+:.*##/ {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@$(PY) scripts/make_help.py
 
 install: ## Install runtime + dev dependencies (uv)
 	$(UV) sync --group dev
