@@ -9,8 +9,8 @@
 Severity & Message & Impact & Runbook \\
 \midrule
 \BLOCK{for event in attention}
-\severitytag{\VAR{event.severity}} & \VAR{event.message} & \VAR{event.impact} &
-  \texttt{\VAR{event.runbook or 'docs/RUNBOOK.md'}} \\
+\severitytag{\VAR{event.severity}} & \VAR{event.message | breakable} & \VAR{event.impact | breakable} &
+  \texttt{\VAR{(event.runbook or 'docs/RUNBOOK.md') | breakable}} \\
 \BLOCK{endfor}
 \bottomrule
 \end{tabular}

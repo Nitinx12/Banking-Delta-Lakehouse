@@ -465,6 +465,16 @@ def ident(value: object) -> RawTeX:
     return RawTeX(text.replace(r"\_", r"\_\allowbreak{}").replace(".", r".\allowbreak{}"))
 
 
+def breakable(value: object) -> RawTeX:
+    parts = []
+    for part in re.split(r"([^A-Za-z0-9\s])", "" if value is None else str(value)):
+        if not part:
+            continue
+        parts.append(tex_escape(part) if part.isalnum() or part.isspace()
+                     else r"\allowbreak{}" + tex_escape(part))
+    return RawTeX("".join(parts))
+
+
 def make_env(*template_dirs: Path) -> jinja2.Environment:
     env = jinja2.Environment(
         loader=jinja2.FileSystemLoader([str(p) for p in template_dirs]),
@@ -482,7 +492,7 @@ def make_env(*template_dirs: Path) -> jinja2.Environment:
         undefined=jinja2.StrictUndefined,
     )
     env.finalize = tex_escape
-    env.filters.update({"raw": RawTeX, "ident": ident})
+    env.filters.update({"raw": RawTeX, "ident": ident, "breakable": breakable})
     return env
 ```
 
@@ -498,6 +508,9 @@ Template conventions:
   "section unavailable" box.
 - Identifiers in tables use `\texttt{\VAR{x | ident}}` so long names such as
   `raw.card_transactions` break cleanly.
+- Free text in a table cell uses `\VAR{x | breakable}`, which allows a break at every
+  punctuation mark. Without it a long message such as `rows_landed=22500,` cannot wrap
+  and pushes the cell past the margin.
 - No logic that belongs in Python. Templates loop, branch on presence and format. Sorting,
   thresholds, joins and colour decisions are computed before rendering.
 - Free text from the warehouse is always plain `\VAR{}`. Only Python built values use `raw`.
@@ -768,11 +781,13 @@ Steps, in order, with a total budget under 60 seconds in CI and under 2 minutes 
 3. Draw charts into `figures/`, skipping any that fail.
 4. Render `build/meta.tex`, `build/manifest.tex` and the chapters. A chapter that still
    holds a `\VAR{` or `\BLOCK{` tag fails the build with exit code 2.
-5. Compile with `latexmk -jobname=report main.tex`. On failure retry once with
-   `--no-charts` (safe mode) and mark the report "degraded" on page one.
-6. Copy to `output/runs/RUN_KEY/<kind>.pdf` and `output/<kind>.pdf` (latest). Write the
-   redacted compile log to `build/<kind>.log`. Prune runs older than
-   `REPORT_RETENTION_DAYS`.
+5. Compile with `latexmk -jobname=report main.tex`. The LaTeX state of the job is
+   deleted first, so a broken `.aux` from an earlier run cannot break this one. On failure
+   retry once with `--no-charts` (safe mode) and mark the report "degraded" on page one.
+6. Copy to `output/runs/RUN_KEY/<pdf name>` and `output/<pdf name>` (latest): `report.pdf`
+   for the daily, `incident.pdf`, `weekly.pdf`. Write the redacted compile log to
+   `build/<jobname>.log` (`report.log`, `incident.log`, `weekly.log`). Prune runs older
+   than `REPORT_RETENTION_DAYS`.
 7. Print a one line JSON result (`kind`, `verdict`, `pages`, `path`, `degraded`).
 
 Exit codes: `0` built, `2` render or schema error, `3` compile failed even in safe mode,
@@ -914,7 +929,7 @@ or when `ci` picks up a non hermetic target, so add every target to both files.
 | --- | --- | --- | --- |
 | `report-fixture` | render every fixture to `.tex` with `--no-pdf`, no TeX and no database | hermetic, part of `make ci` | yes |
 | `report-pdf` | compile every fixture to PDF with a local TeX Live | `tex` tier, not in `ci` | yes, when TeX is installed |
-| `report-tex` | run the `tex` tier: every fixture compiles, the log is clean, the page budget holds | `tex` tier, not in `ci` | yes, when TeX is installed |
+| `report-tex` | run the `tex` tier: every fixture compiles, the log has no error and no overfull box, the page budget holds | `tex` tier, not in `ci` | yes, when TeX is installed |
 | `report-docker` | build `reports/Dockerfile` and compile the fixtures inside it | `tex` tier | yes |
 | `report` | build the daily report against the environment `.env` points at | reads the warehouse | ask first |
 | `report-incident RUN=<id>` | build an incident report for a run | reads the warehouse | ask first |
@@ -994,7 +1009,7 @@ regenerate and read a report), `docs/TROUBLESHOOTING.md` (symptoms below),
 | `Undefined control sequence` in the log | unescaped text, or a macro missing from the style file | check the `.tex` line named in the log, make sure the value went through `\VAR{}` |
 | `Missing character` or tofu glyphs | font lacks a glyph | keep status glyphs to words, or add the glyph to the fallback chain |
 | `File 'bankingreport.sty' not found` | `TEXINPUTS` not set | run through `latexmk` with the repo `latexmkrc`, from `reports/` |
-| `Overfull \hbox` in tables | long identifier | use the `ident` filter or a narrower column |
+| `Overfull \hbox` in tables | long identifier or a message that cannot wrap | use the `ident` or `breakable` filter, or a narrower column; the `tex` tier fails on any overfull box |
 | Blank figure or empty chart | no data for that section | expected: the placeholder box shows, check `sections_failed` |
 | Charts use the wrong font | fonts not registered | confirm `fonts/*.ttf` exist, matplotlib font cache may need clearing |
 | Build works locally, fails in Airflow | package missing from the image | compare `apt-packages.txt`, rebuild the image |

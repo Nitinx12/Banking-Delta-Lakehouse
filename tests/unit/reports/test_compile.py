@@ -95,6 +95,59 @@ def test_page_count_reads_the_compile_log(tmp_path: Path) -> None:
     assert compile_mod.page_count(tmp_path / "missing.log") is None
 
 
+def test_page_count_takes_the_last_pass(tmp_path: Path) -> None:
+    log = tmp_path / "report.log"
+    log.write_text(
+        "Output written on report.pdf (1 pages, 10 bytes).\n"
+        "Output written on report.pdf (6 pages, 123456 bytes).\n",
+        encoding="utf-8",
+    )
+    assert compile_mod.page_count(log) == 6
+
+
+def test_latexmk_dirs_follow_the_latexmkrc(tmp_path: Path) -> None:
+    out_dir, aux_dir = compile_mod.latexmk_dirs(tmp_path)
+    assert out_dir == tmp_path / "build"
+    assert aux_dir == tmp_path / "build" / "aux"
+
+
+def test_clean_job_state_removes_the_stale_latex_files(tmp_path: Path) -> None:
+    out_dir = tmp_path / "build"
+    aux_dir = out_dir / "aux"
+    aux_dir.mkdir(parents=True)
+    for name in ("report.aux", "report.fdb_latexmk", "report.fls", "report.pdf"):
+        (aux_dir / name).write_text("x", encoding="utf-8")
+    (out_dir / "report.pdf").write_text("x", encoding="utf-8")
+    (aux_dir / "incident.aux").write_text("x", encoding="utf-8")
+
+    compile_mod.clean_job_state(out_dir, aux_dir, "report")
+
+    assert not (aux_dir / "report.aux").exists()
+    assert not (aux_dir / "report.fdb_latexmk").exists()
+    assert not (aux_dir / "report.fls").exists()
+    assert not (aux_dir / "report.pdf").exists()
+    assert not (out_dir / "report.pdf").exists()
+    assert (aux_dir / "incident.aux").exists()
+
+
+def test_compile_pdf_cleans_the_state_before_it_runs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    aux_dir = tmp_path / "build" / "aux"
+    aux_dir.mkdir(parents=True)
+    stale = aux_dir / "report.aux"
+    stale.write_text("ent }", encoding="utf-8")
+
+    class Result:
+        returncode = 0
+        stdout = "ok"
+        stderr = ""
+
+    monkeypatch.setattr(compile_mod.subprocess, "run", lambda *_a, **_k: Result())
+    assert compile_mod.compile_pdf(tmp_path) is True
+    assert not stale.exists()
+
+
 def test_source_date_epoch_follows_the_run_end() -> None:
     expected = datetime(
         2026, 10, 21, 2, 5, tzinfo=timezone(timedelta(hours=5, minutes=30))

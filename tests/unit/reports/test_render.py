@@ -55,6 +55,22 @@ def test_ident_breaks_long_names() -> None:
     assert r".\allowbreak{}" in render.ident("marts.fact_transactions")
 
 
+def test_breakable_breaks_at_every_punctuation() -> None:
+    assert render.breakable("rows_landed=22500,") == (
+        r"rows\allowbreak{}\_landed\allowbreak{}=22500\allowbreak{},"
+    )
+
+
+def test_breakable_escapes_special_characters() -> None:
+    assert render.breakable("50% & 1#2") == (
+        r"50\allowbreak{}\% \allowbreak{}\&\allowbreak{} 1\allowbreak{}\#2"
+    )
+
+
+def test_breakable_keeps_a_latex_command_intact() -> None:
+    assert render.breakable("a\\b") == r"a\allowbreak{}\textbackslash{}b"
+
+
 def test_env_uses_custom_delimiters_and_escapes_output() -> None:
     env = render.make_env(REPORTS_DIR / "template")
     template = env.from_string(

@@ -1,6 +1,7 @@
 # LaTeX safe Jinja environment for the report templates.
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 
@@ -47,6 +48,20 @@ def ident(value: object) -> RawTeX:
     return RawTeX(
         text.replace(r"\_", r"\_\allowbreak{}").replace(".", r".\allowbreak{}")
     )
+
+
+def breakable(value: object) -> RawTeX:
+    """Escape and allow a line break at every punctuation mark."""
+    text = "" if value is None else str(value)
+    parts: list[str] = []
+    for part in re.split(r"([^A-Za-z0-9\s])", text):
+        if not part:
+            continue
+        if part.isalnum() or part.isspace():
+            parts.append(tex_escape(part))
+        else:
+            parts.append(r"\allowbreak{}" + tex_escape(part))
+    return RawTeX("".join(parts))
 
 
 def fmt_int(value: object) -> RawTeX:
@@ -127,6 +142,7 @@ FILTERS: dict[str, Any] = {
     "plural": plural,
     "raw": RawTeX,
     "ident": ident,
+    "breakable": breakable,
 }
 
 

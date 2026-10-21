@@ -132,6 +132,7 @@ The PDF report is built from the `audit` schema, so it can be rebuilt at any tim
 ```bash
 make report-fixture                 # render every fixture, no TeX, no database
 make report-pdf                     # compile every fixture to PDF (needs latexmk)
+make report-tex                     # compile every fixture and check log and page budget
 make report-docker                  # compile inside the TeX image (needs docker)
 make report                         # daily report for the warehouse in .env
 make report-incident RUN=<run id>   # incident report for one run
@@ -140,7 +141,8 @@ make report-weekly                  # weekly digest
 
 The PDFs land in `reports/output/runs/<run key>/`, with a latest copy per kind in
 `reports/output/`. The context the report was built from sits next to it as
-`context.json`, and the redacted compile log is in `reports/build/`. Design and rule
+`context.json`, and the redacted compile log is in `reports/build/report.log` for the
+daily build, `incident.log` or `weekly.log` for the others. Design and rule
 reference: `docs/REPORTING.md`.
 
 ## Recovery

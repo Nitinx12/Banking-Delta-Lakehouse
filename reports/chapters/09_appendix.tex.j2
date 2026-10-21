@@ -17,8 +17,8 @@ Airflow & \VAR{meta.airflow_version | ident} \\
 DAG run & \VAR{meta.dag_run_id | ident} \\
 Context schema & \VAR{schema_version | fmt_int} \\
 Sections degraded & \VAR{sections_failed and sections_failed | join(', ') or 'none'} \\
-Regeneration & \texttt{\VAR{regeneration | ident}} \\
-Known open issues & \texttt{docs/TROUBLESHOOTING.md} \\
+Regeneration & \texttt{\VAR{regeneration | breakable}} \\
+Known open issues & \texttt{\VAR{'docs/TROUBLESHOOTING.md' | breakable}} \\
 \bottomrule
 \end{tabular}
 \end{center}

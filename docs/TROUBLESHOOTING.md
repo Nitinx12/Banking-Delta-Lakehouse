@@ -61,9 +61,12 @@ Colour legend: `docs/PIPELINE.md`.
 |---|---|---|
 | `make report-pdf` fails with `latexmk: not found` | no TeX distribution on the host | install TinyTeX or TeX Live, or use `make report-docker` |
 | Report build exits `2` with `render error` | a chapter template left a `\VAR{` or `\BLOCK{` tag | fix the template in `reports/chapters/`; the build refuses to ship an unfinished chapter |
-| Report build exits `3` | the LaTeX compile failed, also in safe mode | read the redacted log in `reports/build/<kind>.log`; `docs/REPORTING.md` §15 lists the usual causes |
+| Report build exits `3` | the LaTeX compile failed, also in safe mode | read the redacted log in `reports/build/report.log` (daily), `incident.log` or `weekly.log`; `docs/REPORTING.md` §15 lists the usual causes |
+| Report build exits `3` with `Missing \begin{document}` in the log | a broken `.aux` of an earlier run | the builder deletes the LaTeX state before it compiles; if it happens, clear `reports/build/aux` and rebuild |
 | Report says "degraded report" | a figure or a section could not be built | check `sections_failed` in `reports/output/runs/<run key>/context.json` |
 | Footer shows "Page 3" without "of 3" | `lastpage.sty` is not installed | install `texlive-latex-extra`; the page count is otherwise correct |
+| A table cell sticks out past the margin (`Overfull \hbox` in the log) | a long identifier or a message that cannot wrap | use the `ident` or `breakable` filter in `reports/chapters/`, or a narrower column; the `tex` tier fails on any overfull box |
+| `Underfull \hbox (badness 10000)` in the log | an empty line inside a page, no content | harmless, the `tex` tier only fails on errors and overfull boxes |
 | Numbers look wrong in the PDF | the fixture was edited | regenerate from the fixture: `make report-fixture`, then `make report-pdf` |
 
 ## Stuck DAG — quick flow
