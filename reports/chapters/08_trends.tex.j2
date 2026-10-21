@@ -1,0 +1,20 @@
+\section{Trends}
+\BLOCK{if trends}
+\VAR{figures.get('trend_duration', '') | raw}
+\VAR{figures.get('trend_failures', '') | raw}
+\begin{center}
+\begin{tabular}{@{}L{5cm}L{2cm}L{2cm}L{2.5cm}L{2cm}L{2cm}@{}}
+\toprule
+Run & Status & Duration & Rows landed & Failed & DQ fails \\
+\midrule
+\BLOCK{for row in trends}
+\VAR{row.run_key | ident} & \VAR{row.status} & \VAR{row.duration_s | fmt_dur} &
+  \VAR{row.rows_landed | fmt_int} & \VAR{row.failed_tables | fmt_int} &
+  \VAR{row.dq_failures | fmt_int} \\
+\BLOCK{endfor}
+\bottomrule
+\end{tabular}
+\end{center}
+\BLOCK{else}
+\BLOCK{include 'partials/section_unavailable.tex.j2'}
+\BLOCK{endif}

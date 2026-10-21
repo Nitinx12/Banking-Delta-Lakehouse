@@ -1,0 +1,9 @@
+\section{Incidents}
+\BLOCK{if events}
+\VAR{figures.get('error_categories', '') | raw}
+\BLOCK{include 'partials/event_table.tex.j2'}
+\BLOCK{else}
+\begin{center}
+\statebox{no incidents}{okfill}{okstroke}
+\end{center}
+\BLOCK{endif}

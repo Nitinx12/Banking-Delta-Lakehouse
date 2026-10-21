@@ -1,0 +1,188 @@
+% Shared report style: palette, page furniture, KPI cards, event tags, flow nodes.
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{bankingreport}[2026/10/21 Banking Delta Lakehouse report style]
+
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}
+\RequirePackage{lmodern}
+\RequirePackage{geometry}
+\RequirePackage{xcolor}
+\RequirePackage{tikz}
+\RequirePackage{pgfplots}
+\RequirePackage{booktabs}
+\RequirePackage{longtable}
+\RequirePackage{array}
+\RequirePackage{graphicx}
+\RequirePackage{fancyhdr}
+\RequirePackage{microtype}
+\IfFileExists{lastpage.sty}{\RequirePackage{lastpage}}{}
+\IfFileExists{tcolorbox.sty}{\RequirePackage{tcolorbox}}{}
+
+\geometry{left=20mm,right=20mm,top=22mm,bottom=22mm}
+\pgfplotsset{compat=1.18}
+
+% Palette mirrored from reports/scripts/charts.py PALETTE; tested for drift.
+\definecolor{srcstroke}{HTML}{1D4ED8}
+\definecolor{srcfill}{HTML}{DBEAFE}
+\definecolor{orchstroke}{HTML}{6D28D9}
+\definecolor{orchfill}{HTML}{EDE9FE}
+\definecolor{rawstroke}{HTML}{C2410C}
+\definecolor{rawfill}{HTML}{FFEDD5}
+\definecolor{stagstroke}{HTML}{0E7490}
+\definecolor{stagfill}{HTML}{CFFAFE}
+\definecolor{anastroke}{HTML}{15803D}
+\definecolor{anafill}{HTML}{DCFCE7}
+\definecolor{martstroke}{HTML}{BE185D}
+\definecolor{martfill}{HTML}{FCE7F3}
+\definecolor{pubstroke}{HTML}{A16207}
+\definecolor{pubfill}{HTML}{FEF9C3}
+\definecolor{auditstroke}{HTML}{475569}
+\definecolor{auditfill}{HTML}{F1F5F9}
+\definecolor{okstroke}{HTML}{15803D}
+\definecolor{okfill}{HTML}{DCFCE7}
+\definecolor{warnstroke}{HTML}{A16207}
+\definecolor{warnfill}{HTML}{FEF9C3}
+\definecolor{badstroke}{HTML}{B91C1C}
+\definecolor{badfill}{HTML}{FEE2E2}
+\definecolor{critstroke}{HTML}{7F1D1D}
+\definecolor{critfill}{HTML}{FECACA}
+\definecolor{idlestroke}{HTML}{475569}
+\definecolor{idlefill}{HTML}{F1F5F9}
+
+\newcommand{\reporttitle}{Banking Delta Lakehouse}
+\providecommand{\reportkindname}{report}
+\providecommand{\reportverdict}{UNKNOWN}
+\providecommand{\reportseverity}{UNKNOWN}
+\providecommand{\reportdagid}{unknown dag}
+\providecommand{\reportdagrunid}{unknown run}
+\providecommand{\reportgenerated}{unknown time}
+\providecommand{\reportenv}{unknown env}
+
+% Colour lookup by name, so templates only pass a state word.
+\newcommand{\statefill}[1]{\csname state@fill@#1\endcsname}
+\newcommand{\statestroke}[1]{\csname state@stroke@#1\endcsname}
+\def\state@fill@ok{okfill}
+\def\state@stroke@ok{okstroke}
+\def\state@fill@warn{warnfill}
+\def\state@stroke@warn{warnstroke}
+\def\state@fill@bad{badfill}
+\def\state@stroke@bad{badstroke}
+\def\state@fill@crit{critfill}
+\def\state@stroke@crit{critstroke}
+\def\state@fill@idle{idlefill}
+\def\state@stroke@idle{idlestroke}
+
+\newcommand{\severityfill}[1]{\csname sev@fill@#1\endcsname}
+\newcommand{\severitystroke}[1]{\csname sev@stroke@#1\endcsname}
+\def\sev@fill@INFO{okfill}
+\def\sev@stroke@INFO{okstroke}
+\def\sev@fill@MINOR{warnfill}
+\def\sev@stroke@MINOR{warnstroke}
+\def\sev@fill@MAJOR{badfill}
+\def\sev@stroke@MAJOR{badstroke}
+\def\sev@fill@CRITICAL{critfill}
+\def\sev@stroke@CRITICAL{critstroke}
+\def\sev@fill@UNKNOWN{idlefill}
+\def\sev@stroke@UNKNOWN{idlestroke}
+
+% \statusbanner{state}{label}: full width verdict band.
+\newcommand{\statusbanner}[2]{%
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=\statestroke{#1}, fill=\statefill{#1}, rounded corners=3pt,
+            inner sep=10pt, text width=0.92\linewidth, align=center]{%
+            {\Large\bfseries\color{\statestroke{#1}}#2}\\[3pt]
+            {\small\color{\statestroke{#1}}run status \reportkindname, run \reportdagrunid}};
+    \end{tikzpicture}
+  \end{center}}
+
+% \kpicard{title}{value}{subtitle}{state}: one metric card.
+\newcommand{\kpicard}[4]{%
+  \begin{tikzpicture}[baseline=(card.base)]
+    \node[draw=\statestroke{#4}, fill=\statefill{#4}, rounded corners=3pt,
+          inner sep=8pt, minimum height=1.8cm, minimum width=3.1cm] (card) {%
+      \begin{minipage}[c][1.6cm][c]{2.9cm}
+        \centering
+        {\scriptsize\color{\statestroke{#4}}\textbf{#1}}\\[3pt]
+        {\large\bfseries #2}\\[2pt]
+        {\scriptsize #3}
+      \end{minipage}};
+  \end{tikzpicture}}
+
+% \severitytag{severity}: coloured pill with the severity word.
+\newcommand{\severitytag}[1]{%
+  \tikz\node[draw=\severitystroke{#1}, fill=\severityfill{#1}, rounded corners=2pt,
+             inner sep=3pt, font=\scriptsize\bfseries]{#1};}
+
+% \statuspill{status}: table cell status with word and colour.
+\newcommand{\statuspill}[1]{%
+  \tikz\node[draw=\statestroke{#1}, fill=\statefill{#1}, rounded corners=2pt,
+             inner sep=3pt, font=\scriptsize]{#1};}
+
+% \statebox{label}{fill colour}{stroke colour}
+\newcommand{\statebox}[3]{%
+  \tikz\node[draw=#3, fill=#2, rounded corners=2pt, inner sep=4pt,
+             font=\scriptsize\bfseries]{#1};}
+
+% \callout{ok|warn|bad}{title}{text}: boxed note.
+\newcommand{\callout}[3]{%
+  \IfFileExists{tcolorbox.sty}{%
+    \begin{tcolorbox}[colback=\statefill{#1}, colframe=\statestroke{#1},
+                      boxrule=0.6pt, arc=2pt, left=6pt, right=6pt,
+                      top=4pt, bottom=4pt]
+      \textbf{#2}\\[2pt]#3
+    \end{tcolorbox}%
+  }{%
+    \begin{center}
+      \begin{tikzpicture}
+        \node[draw=\statestroke{#1}, fill=\statefill{#1}, rounded corners=3pt,
+              inner sep=8pt, text width=0.85\linewidth, align=center]{%
+              \textbf{#2}\\[2pt]#3};
+      \end{tikzpicture}
+    \end{center}}}
+
+% \eventrow{severity}{rule}{layer}{subject}{message}{impact}
+\newcommand{\eventrow}[6]{%
+  \severitytag{#1} & #2 & #3 & \texttt{#4} & #5 & #6 \\}
+
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\centering\arraybackslash}p{#1}}
+
+% Flow node: the layer style sets the fill, the state style sets the border.
+\tikzset{
+  flowstep/.style={rounded corners=2pt, inner sep=4pt, font=\scriptsize, align=center,
+    minimum width=2.4cm},
+  source/.style={fill=srcfill},
+  orchestration/.style={fill=orchfill},
+  raw/.style={fill=rawfill},
+  staging/.style={fill=stagfill},
+  analytics/.style={fill=anafill},
+  marts/.style={fill=martfill},
+  publish/.style={fill=pubfill},
+  audit/.style={fill=auditfill},
+  ok/.style={draw=okstroke},
+  warn/.style={draw=warnstroke},
+  bad/.style={draw=badstroke},
+  idle/.style={draw=idlestroke},
+  flowarrow/.style={-stealth, draw=idlestroke, thin}
+}
+
+% \sectionunavailable{name}: visible box when a section failed to collect.
+\newcommand{\sectionunavailable}[1]{%
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=warnstroke, fill=warnfill, rounded corners=3pt,
+            inner sep=8pt, text width=0.7\linewidth, align=center]{%
+            \textbf{section unavailable}\\[2pt]\small #1};
+    \end{tikzpicture}
+  \end{center}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\reporttitle}
+\fancyhead[R]{\small\reportkindname, run \reportdagrunid}
+\fancyfoot[C]{\small Internal \quad \reportgenerated \quad Page \thepage
+  \IfFileExists{lastpage.sty}{ of \pageref{LastPage}}{}}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\parskip}{4pt}
+\setlength{\tabcolsep}{5pt}

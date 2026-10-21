@@ -30,7 +30,9 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 
 .PHONY: help install hooks lint format contracts sql-lint unit cov smoke spark-smoke \
         sql-smoke integration smoke-live test leaks ci run-jobs staging analytics \
-        marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean
+        marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
+        report-fixture report-pdf report-tex report-docker report-clean report \
+        report-incident report-weekly
 
 ##@ Setup
 help: ## Show this help
@@ -110,12 +112,13 @@ leaks: ## gitleaks over git history (needs gitleaks installed)
 	gitleaks git --redact -v --config .gitleaks.toml
 
 ##@ Gate
-ci: ## Fast local gate == CI: lint + contracts + sql-lint + coverage + smoke
+ci: ## Fast local gate == CI: lint + contracts + sql-lint + coverage + smoke + report fixtures
 	$(MAKE) lint
 	$(MAKE) contracts
 	$(MAKE) sql-lint
 	$(MAKE) cov
 	$(MAKE) smoke
+	$(MAKE) report-fixture
 	@echo "ci OK"
 
 ##@ Pipeline (acts on the environment .env points at!)
@@ -162,6 +165,32 @@ daily: ## Full gated run: a DQ failure stops everything downstream (incl. publis
 	$(MAKE) marts
 	$(MAKE) dq-marts
 	$(MAKE) publish
+
+##@ Reports
+report-fixture: ## Render every fixture context without TeX (hermetic, part of ci)
+	$(PY) -m reports.scripts.build --all-fixtures --no-pdf
+
+report-pdf: ## Compile every fixture to PDF (needs latexmk)
+	$(PY) -m reports.scripts.build --all-fixtures
+
+report-tex: ## Compile every fixture and check log and page budget (tex tier)
+	$(PYTEST) -m tex
+
+report-docker: ## Compile the fixtures inside the TeX image (needs docker)
+	docker build -t banking-report-tex -f reports/Dockerfile .
+	docker run --rm -v "$(CURDIR)/reports/output:/work/reports/output" banking-report-tex
+
+report: ## Daily report against the warehouse the environment points at
+	$(PY) -m reports.scripts.build --kind daily --dag-id $(or $(DAG_ID),banking_delta_daily)
+
+report-incident: ## Incident report for one run (RUN=<dag run id>)
+	$(PY) -m reports.scripts.build --kind incident --dag-id $(or $(DAG_ID),banking_delta_daily) --dag-run-id $(RUN)
+
+report-weekly: ## Weekly digest against the warehouse
+	$(PY) -m reports.scripts.build --kind weekly --dag-id $(or $(DAG_ID),banking_report_weekly)
+
+report-clean: ## Delete generated report artefacts
+	rm -rf reports/build reports/output reports/figures/*.pdf
 
 ##@ Housekeeping
 clean: ## Remove caches and coverage output (keeps .spark/ jar cache)

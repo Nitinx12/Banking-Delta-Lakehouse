@@ -55,6 +55,17 @@ Colour legend: `docs/PIPELINE.md`.
 | Spark test won't start | unsupported Java / jar download blocked | Java 8/11/17/21; `repo1.maven.org:443` reachable |
 | Dashboard chart blank | `SELECT *` loader vs renamed/removed mart column | restore the column or fix the loader (`docs/DEPLOYMENT.md`) |
 
+## Report PDF
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `make report-pdf` fails with `latexmk: not found` | no TeX distribution on the host | install TinyTeX or TeX Live, or use `make report-docker` |
+| Report build exits `2` with `render error` | a chapter template left a `\VAR{` or `\BLOCK{` tag | fix the template in `reports/chapters/`; the build refuses to ship an unfinished chapter |
+| Report build exits `3` | the LaTeX compile failed, also in safe mode | read the redacted log in `reports/build/<kind>.log`; `docs/REPORTING.md` §15 lists the usual causes |
+| Report says "degraded report" | a figure or a section could not be built | check `sections_failed` in `reports/output/runs/<run key>/context.json` |
+| Footer shows "Page 3" without "of 3" | `lastpage.sty` is not installed | install `texlive-latex-extra`; the page count is otherwise correct |
+| Numbers look wrong in the PDF | the fixture was edited | regenerate from the fixture: `make report-fixture`, then `make report-pdf` |
+
 ## Stuck DAG — quick flow
 
 ```mermaid

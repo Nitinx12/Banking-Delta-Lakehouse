@@ -22,7 +22,8 @@ Rules: never weaken a test to get green (`AGENTS.md`).
 | Integration | `integration` | `integration` | disposable PG + `ALLOW_SQL_SMOKE=1` | ask first |
 | Live smoke | `live` | `smoke-live` | real configured env (read-only) | ask first |
 | DQ gate (data) | — | `dq-*`, `dq` | populated warehouse | ask first |
-| Gate | — | `ci` = lint + sql-lint + unit + smoke | — | yes |
+| Report TeX | `tex` | `report-tex`, `report-pdf`, `report-docker` | TeX Live or Docker | yes |
+| Gate | — | `ci` = lint + sql-lint + unit + smoke + report-fixture | — | yes |
 
 **Unit test:** one function/class in isolation; collaborators faked; deterministic; no I/O
 except `tmp_path`.

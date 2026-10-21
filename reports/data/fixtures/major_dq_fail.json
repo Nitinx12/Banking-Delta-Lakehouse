@@ -70,6 +70,18 @@
   ],
   "events": [
     {
+      "event_id": "R004:publish:marts.fact_transactions",
+      "rule": "R004",
+      "severity": "MAJOR",
+      "layer": "publish",
+      "subject": "publish.marts.fact_transactions",
+      "category": "DATA",
+      "first_seen": "2026-10-21T03:11:00+05:30",
+      "message": "publish status UNKNOWN",
+      "impact": "Databricks marts were not updated",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
       "event_id": "R003:analytics:12_lp_check_derived_attributes",
       "rule": "R003",
       "severity": "MAJOR",

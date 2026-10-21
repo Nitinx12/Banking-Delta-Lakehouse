@@ -1,0 +1,18 @@
+\section{Freshness}
+\BLOCK{if freshness}
+\VAR{figures.get('freshness_bullet', '') | raw}
+\begin{center}
+\begin{tabular}{@{}L{5cm}L{2.5cm}L{2.5cm}L{2cm}@{}}
+\toprule
+Table & Age & Window & Breached \\
+\midrule
+\BLOCK{for row in freshness}
+\VAR{row.table | ident} & \VAR{row.age_s | fmt_dur} & \VAR{row.window} &
+  \VAR{row.breached and 'yes' or 'no'} \\
+\BLOCK{endfor}
+\bottomrule
+\end{tabular}
+\end{center}
+\BLOCK{else}
+\BLOCK{include 'partials/section_unavailable.tex.j2'}
+\BLOCK{endif}

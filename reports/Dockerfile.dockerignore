@@ -1,0 +1,24 @@
+# Banking Delta report image - Docker build ignore
+.git
+.github
+.venv
+**/.venv
+**/__pycache__
+**/*.pyc
+.env
+.env.*
+**/.env.airflow
+logs
+**/logs
+.pytest_cache
+.ruff_cache
+.mypy_cache
+htmlcov
+.coverage
+notebooks
+reports/build
+reports/output
+reports/figures/*.pdf
+reports/figures/*.png
+reports/data/context.json
+reports/data/context.*.json

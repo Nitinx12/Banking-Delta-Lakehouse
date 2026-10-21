@@ -1,0 +1,12 @@
+\begin{center}
+\begin{tikzpicture}[every node/.style={font=\footnotesize}]
+\BLOCK{for node in flow.nodes}
+\node[flowstep, \VAR{node.layer | raw}, \VAR{node.state | raw}] (\VAR{node.id | raw})
+  at (\VAR{node.x | raw}, \VAR{node.y | raw})
+  {\VAR{node.label}\\[1pt]{\scriptsize\VAR{node.duration}}};
+\BLOCK{endfor}
+\BLOCK{for edge in flow.edges}
+\draw[flowarrow] (\VAR{edge.src | raw}) -- (\VAR{edge.dst | raw});
+\BLOCK{endfor}
+\end{tikzpicture}
+\end{center}

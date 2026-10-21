@@ -48,12 +48,16 @@ flowchart LR
 ```bash
 make install        # uv sync --group dev (Python >= 3.13 pinned in pyproject.toml)
 make hooks          # git config core.hooksPath .githooks — mandatory
-make ci             # gate: lint + sql-lint + unit + smoke
+make ci             # gate: lint + sql-lint + unit + smoke + report-fixture
 ```
 
 Prerequisites: `uv`, GNU Make (Windows: choco `make`; no `tasks.bat` exists yet), Java
 8/11/17/21 for Spark paths, `git`. Copy `.env.example` → `.env` and fill real values —
 `.env` is git-ignored and must never be committed.
+
+`make report-pdf` needs a TeX distribution with `latexmk` and `pdflatex` (TinyTeX or TeX
+Live are enough). Without TeX, `make report-fixture` still renders the documents and
+`make report-docker` builds the PDF inside the container instead.
 
 ## 2. PostgreSQL warehouse
 
@@ -131,6 +135,7 @@ Airflow / CI exports win). Airflow containers use `airflow/.env.airflow`.
 | Alerts | `ALERT_EMAIL_FROM/TO`, `SMTP_HOST/PORT/USER/PASSWORD`, `SMTP_STARTTLS`, `SMTP_SSL`, `ALERT_ON_TASK_FAILURE` |
 | Compose | `AIRFLOW_VERSION`, `PYTHON_VERSION`, `AIRFLOW_IMAGE_TAG`, `GIT_SHA`, `AIRFLOW_DB_*`, `REDIS_PASSWORD`, `WORKER_CONCURRENCY`, `WORKER_MEM_LIMIT` |
 | DAG tuning | `BANKING_DAG_SCHEDULE`, `TIMEZONE`, `WATCHDOG_MAX_AGE_HOURS`, `WATCHDOG_STUCK_HOURS` |
+| Reports | `REPORT_ENABLED`, `REPORT_OUTPUT_DIR`, `REPORT_TIMEZONE`, `REPORT_RETENTION_DAYS`, `REPORT_MAX_ATTACH_MB`, `REPORT_EMAIL_TO`, `REPORT_TREND_RUNS` |
 | Misc | `ENVIRONMENT`, `LOG_LEVEL`, `PROJECT_ROOT`, `BANKING_HOME`, `BANKING_PYTHON` |
 
 Every `require()`d variable is listed in `.env.example` — enforced by

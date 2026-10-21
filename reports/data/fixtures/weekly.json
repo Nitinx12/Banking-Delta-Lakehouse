@@ -39,7 +39,7 @@
     {"layer": "raw", "table": "branches", "status": "SKIPPED", "rows_extracted": 0, "rows_landed": 0, "watermark_start": null, "watermark_end": null, "attempts": 1},
     {"layer": "staging", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
     {"layer": "analytics", "table": "dim_customer", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
-    {"layer": "publish", "table": "marts.fact_transactions", "status": "SUCCESS", "rows_extracted": 50000, "rows_landed": 47200, "watermark_start": null, "watermark_end": null, "attempts": 1}
+    {"layer": "publish", "table": "marts.fact_transactions", "status": "SUCCESS", "rows_extracted": 50000, "rows_landed": 50000, "watermark_start": null, "watermark_end": null, "attempts": 1}
   ],
   "dq": [
     {"layer": "raw", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
@@ -62,19 +62,19 @@
     {"run_key": "scheduled__2026_10_23T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3150, "rows_landed": 53900, "failed_tables": 0, "dq_failures": 0},
     {"run_key": "scheduled__2026_10_24T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3110, "rows_landed": 53700, "failed_tables": 0, "dq_failures": 0},
     {"run_key": "scheduled__2026_10_25T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3095, "rows_landed": 53550, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_26T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3200, "rows_landed": 54000, "failed_tables": 0, "dq_failures": 0}
+    {"run_key": "scheduled__2026_10_26T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3200, "rows_landed": 24000, "failed_tables": 0, "dq_failures": 0}
   ],
   "events": [
     {
-      "event_id": "R009:publish:marts.fact_transactions",
+      "event_id": "R009:pipeline:banking_report_weekly",
       "rule": "R009",
       "severity": "MINOR",
-      "layer": "publish",
-      "subject": "marts.fact_transactions",
+      "layer": null,
+      "subject": "banking_report_weekly",
       "category": "VOLUME",
       "first_seen": "2026-10-26T02:52:10+05:30",
-      "message": "rows_landed=47200, trailing median 53700, deviation 12 percent",
-      "impact": "one quiet Sunday, watch if it repeats tomorrow",
+      "message": "rows_landed=24000, trailing median 53750, deviation 55 percent",
+      "impact": "quiet or unusually loud night, check the source",
       "runbook": "RUNBOOK.md#a-run-failed-triage"
     },
     {
@@ -86,7 +86,7 @@
       "category": "DATA",
       "first_seen": "2026-10-26T02:50:02+05:30",
       "message": "WARNING check not passing, violation_count=1",
-      "impact": "publish reconcile gap, marts still published",
+      "impact": "row counts drifted, marts still published",
       "runbook": "RUNBOOK.md#a-run-failed-triage"
     }
   ],

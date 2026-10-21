@@ -2,7 +2,7 @@
 
 Dynamic PDF reporting for the pipeline. When a run finishes, an alert fires or a digest is
 due, a Python builder reads the `audit` schema, scores what happened, renders LaTeX from
-Jinja templates, compiles `reports/main.tex` with XeLaTeX and produces `report.pdf`.
+Jinja templates, compiles `reports/main.tex` with pdfLaTeX and produces `report.pdf`.
 Airflow attaches the PDF to the summary mail. The report adapts to the news: a healthy
 night is a short verdict with a few charts, a bad night adds incident chapters, evidence
 and runbook pointers, and a serious one also produces a separate incident PDF.
@@ -50,7 +50,7 @@ flowchart LR
         EVAL["evaluate<br/>severity rules"]
         FIG["charts<br/>matplotlib to vector PDF"]
         REN["render<br/>Jinja to build/*.tex"]
-        TEX["latexmk<br/>XeLaTeX, no shell escape"]
+        TEX["latexmk<br/>pdfLaTeX, no shell escape"]
     end
 
     PDF[("output/runs/RUN_KEY/<br/>report.pdf, incident.pdf")]
@@ -139,7 +139,7 @@ Existing folders keep their names. New folders are marked.
 ```text
 reports/
 ├── main.tex                 static entry point, never generated
-├── latexmkrc                XeLaTeX settings, TEXINPUTS for template/
+├── latexmkrc                pdfLaTeX settings, TEXINPUTS for template/
 ├── Dockerfile               local and CI TeX builder image (no secrets)
 ├── apt-packages.txt         NEW  TeX package list shared by both Dockerfiles
 ├── README.md                short pointer to docs/REPORTING.md
@@ -538,14 +538,19 @@ No events above INFO. All gates passed.
 `latexmkrc`:
 
 ```perl
-# Build settings for the pipeline report.
-$pdf_mode = 5;
-$xelatex = 'xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape %O %S';
+# Build settings for the pipeline report: no shell escape, output in build/.
+$pdf_mode = 1;
+$pdflatex = 'pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape %O %S';
 $out_dir = 'build';
-$aux_dir = 'build';
+$aux_dir = 'build/aux';
 $max_repeat = 3;
+$ENV{'max_print_line'} = '1000';
 ensure_path('TEXINPUTS', './template//');
+@default_files = ('main.tex');
 ```
+
+`$aux_dir` is a folder of its own so latexmk never rewrites the redacted compile log in
+`build/report.log`.
 
 Compile command used everywhere (`-jobname` fixes the output name):
 
@@ -611,6 +616,14 @@ file is missing the build must still succeed:
 Do the same for the mono font with `TeX Gyre Cursor` as the fallback. Never ship a font
 without its licence. If the font files are absent, ask a human to add them; do not invent
 or download them from an unknown source.
+
+**Current state (pending decision 2 in section 16).** The font files are not in the
+repository, so the builder compiles with pdfLaTeX and the scalable Latin Modern family
+(`\usepackage{lmodern}`), which `microtype` needs to expand. Latin Modern is metric
+compatible with the layout, so switching to Inter later changes the glyphs, not the page
+structure. The `fontspec` block above is the target state, not the shipped state: it
+arrives with the font files, the XeLaTeX switch in `latexmkrc` (`$pdf_mode = 5`) and the
+`fonts-inter` package already listed in `reports/apt-packages.txt`.
 
 Scale: base 10.5 pt, line spacing 1.2, section titles 16 pt, subsection 12 pt, table text
 9 pt, captions 8.5 pt. A4, margins 20 mm left and right, 22 mm top and bottom, text width
@@ -711,18 +724,20 @@ and finalize.
 
 ```tex
 \begin{tikzpicture}[every node/.style={font=\footnotesize}]
-\BLOCK{for s in flow.nodes}
-\node[step, \VAR{s.layer | raw}, \VAR{s.state | raw}] (\VAR{s.id | raw}) at (\VAR{s.x | raw}, \VAR{s.y | raw}) {\VAR{s.label}\\{\scriptsize\VAR{s.duration}}};
+\BLOCK{for node in flow.nodes}
+\node[flowstep, \VAR{node.layer | raw}, \VAR{node.state | raw}] (\VAR{node.id | raw}) at (\VAR{node.x | raw}, \VAR{node.y | raw}) {\VAR{node.label}\\{\scriptsize\VAR{node.duration}}};
 \BLOCK{endfor}
-\BLOCK{for e in flow.edges}
-\draw[flowarrow] (\VAR{e.src | raw}) -- (\VAR{e.dst | raw});
+\BLOCK{for edge in flow.edges}
+\draw[flowarrow] (\VAR{edge.src | raw}) -- (\VAR{edge.dst | raw});
 \BLOCK{endfor}
 \end{tikzpicture}
 ```
 
-`step`, the layer names (`raw`, `staging`, `analytics`, `marts`, `publish`, `audit`) and the
-state names (`ok`, `warn`, `bad`, `idle`) are TikZ styles defined in the style file. Values
-passed with `raw` are validated by Python against an allow list before rendering.
+`flowstep`, the layer names (`raw`, `staging`, `analytics`, `marts`, `publish`, `audit`) and
+the state names (`ok`, `warn`, `bad`, `idle`) are TikZ styles defined in the style file.
+The node style is called `flowstep` and not `step`, because `step` is a PGF key that
+already means something else. Values passed with `raw` are validated by Python against an
+allow list before rendering.
 
 ## 10. The builder
 
@@ -738,21 +753,24 @@ uv run python -m reports.scripts.build --fixture reports/data/fixtures/major_dq_
 | `--kind daily\|incident\|weekly` | which chapter set to build |
 | `--dag-id`, `--dag-run-id` | which run to report, defaults to the latest |
 | `--fixture PATH` | skip the database and use a context file |
+| `--all-fixtures` | build every tracked fixture, one report each |
 | `--no-pdf` | stop after rendering `.tex` (hermetic, no TeX needed) |
 | `--no-charts` | safe mode, no figures and no TikZ flow |
-| `--out DIR` | output root, default `REPORT_OUTPUT_DIR` |
+| `--out DIR` | output root, wins over `REPORT_OUTPUT_DIR` |
 | `--strict` | treat any degraded section as an error, for tests |
 
 Steps, in order, with a total budget under 60 seconds in CI and under 2 minutes in Airflow:
 
-1. Collect and write `data/context.json`, validate against the schema.
+1. Collect and write `data/context.json`, validate against the schema. The same document is
+   copied next to the PDF as `runs/RUN_KEY/context.json`.
 2. Evaluate rules, attach `events` and `verdict`, decide which kinds to build.
 3. Draw charts into `figures/`, skipping any that fail.
-4. Render `build/meta.tex`, `build/manifest.tex` and the chapters.
+4. Render `build/meta.tex`, `build/manifest.tex` and the chapters. A chapter that still
+   holds a `\VAR{` or `\BLOCK{` tag fails the build with exit code 2.
 5. Compile with `latexmk -jobname=report main.tex`. On failure retry once with
    `--no-charts` (safe mode) and mark the report "degraded" on page one.
-6. Copy to `output/runs/RUN_KEY/report.pdf` and `output/report.pdf` (latest). Write the
-   redacted compile log to `build/report.log`. Prune runs older than
+6. Copy to `output/runs/RUN_KEY/<kind>.pdf` and `output/<kind>.pdf` (latest). Write the
+   redacted compile log to `build/<kind>.log`. Prune runs older than
    `REPORT_RETENTION_DAYS`.
 7. Print a one line JSON result (`kind`, `verdict`, `pages`, `path`, `degraded`).
 
@@ -862,7 +880,14 @@ Also copy `reports/` into the image and run `uv sync --frozen --group reports`. 
 `/var/run/docker.sock` into an Airflow container for this feature. `reports/apt-packages.txt`
 starts with `latexmk`, `texlive-xetex`, `texlive-latex-recommended`,
 `texlive-latex-extra`, `texlive-pictures`, `texlive-fonts-recommended` and `fontconfig`;
-trim or extend it after the first clean compile.
+trim or extend it after the first clean compile. `texlive-fonts-recommended` provides
+Latin Modern, which the pdfLaTeX build needs for `microtype`; `fonts-inter` is there for
+the XeLaTeX switch that waits on decision 2 in section 16.
+
+`reports/Dockerfile` is the standalone builder: it installs the same package list, adds
+the report runtime (`jinja2`, `jsonschema`, `pyyaml`, `matplotlib`, `psycopg2-binary`,
+`python-dotenv`) and copies `src/` and `reports/` into `/work`. The entry point compiles
+every fixture, so `docker run` needs no arguments.
 
 ### Environment variables
 
@@ -888,19 +913,23 @@ or when `ci` picks up a non hermetic target, so add every target to both files.
 | --- | --- | --- | --- |
 | `report-fixture` | render every fixture to `.tex` with `--no-pdf`, no TeX and no database | hermetic, part of `make ci` | yes |
 | `report-pdf` | compile every fixture to PDF with a local TeX Live | `tex` tier, not in `ci` | yes, when TeX is installed |
+| `report-tex` | run the `tex` tier: every fixture compiles, the log is clean, the page budget holds | `tex` tier, not in `ci` | yes, when TeX is installed |
 | `report-docker` | build `reports/Dockerfile` and compile the fixtures inside it | `tex` tier | yes |
 | `report` | build the daily report against the environment `.env` points at | reads the warehouse | ask first |
 | `report-incident RUN=<id>` | build an incident report for a run | reads the warehouse | ask first |
 | `report-weekly` | build the weekly digest | reads the warehouse | ask first |
-| `report-clean` | remove `reports/build` and `reports/output` | local | yes |
+| `report-clean` | remove `reports/build`, `reports/output` and the generated figures | local | yes |
 
 On Windows, avoid installing MiKTeX: use the container.
 
 ```powershell
-docker build -t banking-report reports
-docker run --rm -v "${PWD}:/work" -w /work/reports banking-report `
-  uv run python -m reports.scripts.build --fixture data/fixtures/healthy.json
+docker build -t banking-report -f reports/Dockerfile .
+docker run --rm -v "${PWD}/reports/output:/work/reports/output" banking-report
 ```
+
+The image carries the TeX toolchain and the report runtime, so `docker run` compiles every
+fixture with no extra flags. The build context is the repository root because the image
+also copies `src/`.
 
 ## 13. Tests
 
@@ -980,6 +1009,10 @@ These block specific phases. Do not guess; list them in the PR and ask.
 1. TeX inside the Airflow worker image (recommended) against a separate builder service.
    Needs an image size and build time decision.
 2. Final font files (Inter and JetBrains Mono) committed to `reports/fonts/` with licences.
+   Until they exist the builder compiles with pdfLaTeX and Latin Modern; the XeLaTeX
+   switch (`$pdf_mode = 5`) and the `fontspec` block wait for this decision. The
+   `lastpage.sty` package is optional for the same reason: without it the footer shows
+   "Page x" instead of "Page x of y".
 3. Recipients and the weekly schedule, and whether incident PDFs go to a wider list.
 4. Retention of PDFs and whether archived reports should also go to a bucket or volume.
 5. Whether the report should include a short "known open issues" appendix read from

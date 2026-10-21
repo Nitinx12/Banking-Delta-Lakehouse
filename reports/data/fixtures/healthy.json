@@ -36,6 +36,7 @@
   ],
   "tables": [
     {"layer": "raw", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": null, "watermark_end": null, "attempts": 1},
+    {"layer": "raw", "table": "branches", "status": "SKIPPED", "rows_extracted": 0, "rows_landed": 0, "watermark_start": "2026-10-20T00:00:00+00:00", "watermark_end": "2026-10-20T00:00:00+00:00", "attempts": 1},
     {"layer": "raw", "table": "accounts", "status": "SUCCESS", "rows_extracted": 1500, "rows_landed": 1500, "watermark_start": null, "watermark_end": null, "attempts": 1},
     {"layer": "staging", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-20T00:00:00+00:00", "watermark_end": "2026-10-21T00:00:00+00:00", "attempts": 1},
     {"layer": "analytics", "table": "dim_customer", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-20T00:00:00+00:00", "watermark_end": "2026-10-21T00:00:00+00:00", "attempts": 1},

@@ -125,6 +125,24 @@ Why: with `PUBLISH_LOOKBACK_MONTHS=0` (default) late/edited rows in older months
 republished (caused the `mart_support_performance` 193-row gap). Durable fix — non-zero
 lookback and/or periodic `--full` — is an **open item**, not applied.
 
+## Reading and regenerating the report
+
+The PDF report is built from the `audit` schema, so it can be rebuilt at any time.
+
+```bash
+make report-fixture                 # render every fixture, no TeX, no database
+make report-pdf                     # compile every fixture to PDF (needs latexmk)
+make report-docker                  # compile inside the TeX image (needs docker)
+make report                         # daily report for the warehouse in .env
+make report-incident RUN=<run id>   # incident report for one run
+make report-weekly                  # weekly digest
+```
+
+The PDFs land in `reports/output/runs/<run key>/`, with a latest copy per kind in
+`reports/output/`. The context the report was built from sits next to it as
+`context.json`, and the redacted compile log is in `reports/build/`. Design and rule
+reference: `docs/REPORTING.md`.
+
 ## Recovery
 
 | Situation | What to do |

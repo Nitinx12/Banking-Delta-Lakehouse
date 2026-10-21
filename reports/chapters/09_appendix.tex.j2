@@ -1,0 +1,24 @@
+\section{Appendix}
+\begin{center}
+\begin{tabular}{@{}L{5cm}L{10cm}@{}}
+\toprule
+Run status & \textbf{\VAR{run.status or 'unknown'}} \\
+Run duration & \VAR{run.duration_s | fmt_dur} \\
+Tables & \VAR{run.successful_tables | fmt_int} succeeded, \VAR{run.failed_tables | fmt_int} failed,
+  \VAR{run.skipped_tables | fmt_int} skipped \\
+Started & \VAR{run.started_at | fmt_ts} \\
+Ended & \VAR{run.ended_at | fmt_ts} \\
+\midrule
+Report kind & \VAR{meta.kind} \\
+Generated & \VAR{meta.generated_at | fmt_ts} \\
+Environment & \VAR{meta.env} \\
+Git commit & \VAR{meta.git_sha | ident} \\
+Airflow & \VAR{meta.airflow_version | ident} \\
+DAG run & \VAR{meta.dag_run_id | ident} \\
+Context schema & \VAR{schema_version | fmt_int} \\
+Sections degraded & \VAR{sections_failed and sections_failed | join(', ') or 'none'} \\
+Regeneration & \texttt{\VAR{regeneration | ident}} \\
+Known open issues & \texttt{docs/TROUBLESHOOTING.md} \\
+\bottomrule
+\end{tabular}
+\end{center}

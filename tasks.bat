@@ -16,7 +16,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean) do (
+for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -31,6 +31,7 @@ echo Static    : lint format contracts sql-lint
 echo Tests     : unit cov smoke test spark-smoke sql-smoke integration smoke-live
 echo Security  : leaks
 echo Gate      : ci   (lint + sql-lint + unit + smoke)
+echo Reports   : report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly
 echo Pipeline  : run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
 echo Housekeep : clean
 exit /b 0
@@ -111,8 +112,9 @@ exit /b 0
 call :t_lint || exit /b 1
 call :t_contracts || exit /b 1
 call :t_sql-lint || exit /b 1
-call :t_unit || exit /b 1
+call :t_cov || exit /b 1
 call :t_smoke || exit /b 1
+call :t_report-fixture || exit /b 1
 echo ci OK
 exit /b 0
 
@@ -176,4 +178,39 @@ for /d /r . %%D in (__pycache__) do @if exist "%%D" (echo "%%D" | findstr /i /l 
 for %%D in (.pytest_cache .ruff_cache .mypy_cache htmlcov) do @if exist "%%D" rd /s /q "%%D"
 if exist .coverage del /q .coverage
 if exist coverage.xml del /q coverage.xml
+exit /b 0
+
+:t_report-fixture
+uv run python -m reports.scripts.build --all-fixtures --no-pdf || exit /b 1
+exit /b 0
+
+:t_report-pdf
+uv run python -m reports.scripts.build --all-fixtures || exit /b 1
+exit /b 0
+
+:t_report-tex
+uv run pytest -m tex %ARGS% || exit /b 1
+exit /b 0
+
+:t_report-docker
+docker build -t banking-report-tex -f reports\Dockerfile . || exit /b 1
+docker run --rm -v "%cd%/reports/output:/work/reports/output" banking-report-tex || exit /b 1
+exit /b 0
+
+:t_report
+uv run python -m reports.scripts.build --kind daily --dag-id banking_delta_daily || exit /b 1
+exit /b 0
+
+:t_report-incident
+uv run python -m reports.scripts.build --kind incident --dag-id banking_delta_daily --dag-run-id %RUN% || exit /b 1
+exit /b 0
+
+:t_report-weekly
+uv run python -m reports.scripts.build --kind weekly --dag-id banking_report_weekly || exit /b 1
+exit /b 0
+
+:t_report-clean
+if exist reports\build rmdir /s /q reports\build
+if exist reports\output rmdir /s /q reports\output
+if exist reports\figures\*.pdf del /q reports\figures\*.pdf
 exit /b 0

@@ -1,0 +1,23 @@
+\section{Summary}
+\statusbanner{\VAR{verdict.severity | severity_colour}}{\VAR{verdict.label}}
+\BLOCK{include 'partials/kpi_cards.tex.j2'}
+\subsection*{What needs attention}
+\BLOCK{if attention}
+\begin{center}
+\begin{tabular}{@{}C{1.7cm}L{5.6cm}L{4.6cm}L{3.4cm}@{}}
+\toprule
+Severity & Message & Impact & Runbook \\
+\midrule
+\BLOCK{for event in attention}
+\severitytag{\VAR{event.severity}} & \VAR{event.message} & \VAR{event.impact} &
+  \texttt{\VAR{event.runbook or 'docs/RUNBOOK.md'}} \\
+\BLOCK{endfor}
+\bottomrule
+\end{tabular}
+\end{center}
+\BLOCK{else}
+Every gate passed, nothing is late and no action is needed today.
+\BLOCK{endif}
+\BLOCK{if degraded}
+\callout{warn}{degraded report}{Some sections could not be collected, so parts of this report are missing.}
+\BLOCK{endif}

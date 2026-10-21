@@ -38,6 +38,7 @@ dev = [
     "sqlfluff>=3.3,<4",
 ]
 reports = [
+    "jinja2>=3.1.6",
     "jsonschema>=4.26.0",
     "pyyaml>=6.0.3",
 ]
@@ -60,12 +61,13 @@ markers = [
     "integration: behavioural tests on a disposable Postgres",
     "live: read-only checks against the configured environment",
     "spark_smoke: alias kept for runner scripts that predate the 'spark' marker",
+    "tex: report compile tests (needs latexmk)",
 ]
 filterwarnings = ["ignore::DeprecationWarning:airflow.*"]
 
 [tool.coverage.run]
 branch = true
-source = ["src", "scripts", "airflow/include"]
+source = ["src", "scripts", "airflow/include", "reports"]
 
 [tool.coverage.report]
 show_missing = true

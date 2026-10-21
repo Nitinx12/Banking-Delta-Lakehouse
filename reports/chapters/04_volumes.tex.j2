@@ -1,0 +1,20 @@
+\section{Volumes}
+\BLOCK{if tables}
+\VAR{figures.get('volumes_dumbbell', '') | raw}
+\VAR{figures.get('layer_rows', '') | raw}
+\VAR{figures.get('publish_reconcile', '') | raw}
+\begin{center}
+\begin{tabular}{@{}L{2.5cm}L{5cm}L{2cm}L{2.5cm}L{2.5cm}@{}}
+\toprule
+Layer & Table & Status & Extracted & Landed \\
+\midrule
+\BLOCK{for table in tables}
+\VAR{table.layer} & \VAR{table.table | ident} & \VAR{table.status} &
+  \VAR{table.rows_extracted | fmt_int} & \VAR{table.rows_landed | fmt_int} \\
+\BLOCK{endfor}
+\bottomrule
+\end{tabular}
+\end{center}
+\BLOCK{else}
+\BLOCK{include 'partials/section_unavailable.tex.j2'}
+\BLOCK{endif}

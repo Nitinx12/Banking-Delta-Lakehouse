@@ -372,6 +372,7 @@ dev = [
     { name = "sqlfluff" },
 ]
 reports = [
+    { name = "jinja2" },
     { name = "jsonschema" },
     { name = "pyyaml" },
 ]
@@ -404,6 +405,7 @@ dev = [
     { name = "sqlfluff", specifier = ">=3.3,<4" },
 ]
 reports = [
+    { name = "jinja2", specifier = ">=3.1.6" },
     { name = "jsonschema", specifier = ">=4.26.0" },
     { name = "pyyaml", specifier = ">=6.0.3" },
 ]

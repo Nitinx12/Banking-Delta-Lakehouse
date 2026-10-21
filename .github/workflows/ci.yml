@@ -56,6 +56,9 @@ jobs:
       - name: Unit tests + coverage gate
         run: make cov
 
+      - name: Report fixtures render (no TeX, no database)
+        run: make report-fixture
+
   windows-gate:
     name: windows-gate (batch runner parity)
     runs-on: windows-latest
@@ -93,3 +96,6 @@ jobs:
 
       - name: Coverage gate
         run: tasks.bat cov
+
+      - name: Report fixtures render (no TeX, no database)
+        run: tasks.bat report-fixture

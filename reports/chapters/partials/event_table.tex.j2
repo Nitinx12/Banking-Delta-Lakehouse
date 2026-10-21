@@ -1,0 +1,12 @@
+\begin{center}
+\begin{tabular}{@{}C{1.7cm}L{1.1cm}L{2cm}L{3.4cm}L{3.9cm}L{3.4cm}@{}}
+\toprule
+Severity & Rule & Layer & Subject & Message & Impact \\
+\midrule
+\BLOCK{for event in events}
+\eventrow{\VAR{event.severity}}{\VAR{event.rule}}{\VAR{event.layer or 'pipeline'}}
+  {\VAR{event.subject | ident}}{\VAR{event.message}}{\VAR{event.impact}} \\
+\BLOCK{endfor}
+\bottomrule
+\end{tabular}
+\end{center}
