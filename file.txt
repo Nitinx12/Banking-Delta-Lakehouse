@@ -1,0 +1,19 @@
+Banking Delta Lakehouse - Airflow Pipeline Setup
+
+Current status: Setting up Airflow orchestration for daily pipeline (MySQL, MongoDB, Databricks -> Spark -> PostgreSQL -> Databricks Delta).
+
+Issues resolved:
+- Fixed .env.airflow with proper secrets (Fernet, JWT, API keys, DB passwords, Redis password)
+- Fixed docker-compose.dev.yml volume mounts (dags, include, reports directories)
+- Installed missing Python deps in worker (pymongo, databricks-sql-connector)
+- Fixed MONGO_URI to use host.docker.internal for container-to-host connectivity
+- Preflight checks now pass (Java, disk, warehouse, MySQL, Mongo, Databricks, Maven, SMTP)
+
+Pipeline run in progress: scheduled__2026-10-20T20:30:00+00:00
+- Extract (Mongo, Databricks, MySQL): SUCCESS
+- Raw/Staging/Analytics/Marts loads & tests: SUCCESS
+- Publish to Databricks: SUCCESS
+- Finalize audit: SUCCESS
+- Build report: UP_FOR_RETRY (reports directory not mounted - fixed, needs re-run)
+
+Next: Restart services with fixed mounts, re-trigger build_report, verify PDF emailed.
