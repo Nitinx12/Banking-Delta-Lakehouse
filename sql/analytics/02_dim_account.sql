@@ -22,7 +22,8 @@
 --     Because it lives in the target, it advances only if the load commits.
 --   * Late-arriving customers: accounts currently pointing at customer_key = -1
 --     are re-processed automatically once their customer appears in dim_customer.
---   * account_age_band drifts with time; use p_force_full = TRUE to refresh it.
+--   * account_age_band ages with time; rows whose stored band no longer
+--     matches today's recomputation are re-picked on every run.
 --   * Overwritten values go to the shared table staging.scd1_history
 --     (table_name = 'analytics.dim_account').
 --   * Audit: closes audit.table_runs, logs failures to audit.pipeline_errors.
@@ -197,34 +198,39 @@ BEGIN
 
     -- Slice of staging to process, with surrogate-key lookup and derived attributes
     CREATE TEMP TABLE _dim_account_src ON COMMIT DROP AS
-    SELECT
-        a.account_id,
-        COALESCE(c.customer_key, -1)              AS customer_key,
-        a.customer_id,
-        a.branch_id,
-        COALESCE(a.account_type, 'Unknown')       AS account_type,
-        COALESCE(a.status, 'Unknown')             AS status,
-        COALESCE(a.status = 'Active', FALSE)      AS is_active,
-        a.open_date,
-        EXTRACT(YEAR FROM a.open_date)::INT       AS open_year,
-        CASE
-            WHEN a.open_date IS NULL THEN 'Unknown'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 1 THEN '<1 yr'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 3 THEN '1-3 yrs'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 5 THEN '3-5 yrs'
-            ELSE '5+ yrs'
-        END                                       AS account_age_band,
-        a.row_updated_at                          AS source_row_updated_at
-    FROM staging.accounts a
-    LEFT JOIN analytics.dim_customer c
-           ON c.customer_id = a.customer_id
+    SELECT s.*
+    FROM (
+        SELECT
+            a.account_id,
+            COALESCE(c.customer_key, -1)              AS customer_key,
+            a.customer_id,
+            a.branch_id,
+            COALESCE(a.account_type, 'Unknown')       AS account_type,
+            COALESCE(a.status, 'Unknown')             AS status,
+            COALESCE(a.status = 'Active', FALSE)      AS is_active,
+            a.open_date,
+            EXTRACT(YEAR FROM a.open_date)::INT       AS open_year,
+            CASE
+                WHEN a.open_date IS NULL THEN 'Unknown'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 1 THEN '<1 yr'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 3 THEN '1-3 yrs'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, a.open_date)) < 5 THEN '3-5 yrs'
+                ELSE '5+ yrs'
+            END                                       AS account_age_band,
+            a.row_updated_at                          AS source_row_updated_at
+        FROM staging.accounts a
+        LEFT JOIN analytics.dim_customer c
+               ON c.customer_id = a.customer_id
+    ) s
     LEFT JOIN analytics.dim_account cur
-           ON cur.account_id = a.account_id
+           ON cur.account_id = s.account_id
     WHERE p_force_full
        OR v_last_wm IS NULL
-       OR a.row_updated_at > v_last_wm
+       OR s.source_row_updated_at > v_last_wm
        -- Late-arriving customer: account was loaded with Unknown owner, owner exists now
-       OR (cur.customer_key = -1 AND c.customer_key IS NOT NULL);
+       OR (cur.customer_key = -1 AND s.customer_key <> -1)
+       -- account_age_band ages with time; re-pick rows whose stored band drifted
+       OR s.account_age_band IS DISTINCT FROM cur.account_age_band;
 
     SELECT count(*) INTO v_source_rows FROM _dim_account_src;
 

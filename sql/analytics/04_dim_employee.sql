@@ -12,7 +12,8 @@
 --     (-1 = Unknown branch).
 --   * salary is kept as an attribute because there is no payroll fact yet.
 --     If you later build a payroll fact, move salary there.
---   * tenure_band drifts with time; use p_force_full = TRUE to refresh it.
+--   * tenure_band ages with time; rows whose stored band no longer
+--     matches today's recomputation are re-picked on every run.
 --   * Late-arriving branches: employees pointing at branch_key = -1 are
 --     re-processed automatically once their branch exists in dim_branch.
 --   * Row -1 = 'Unknown' member, so facts never carry a NULL / broken key.
@@ -187,34 +188,39 @@ BEGIN
 
     -- Slice of staging to process, with surrogate-key lookup and derived attributes
     CREATE TEMP TABLE _dim_employee_src ON COMMIT DROP AS
-    SELECT
-        e.employee_id,
-        e.employee_name,
-        COALESCE(b.branch_key, -1)              AS branch_key,
-        e.branch_id,
-        COALESCE(e.role, 'Unknown')             AS role,
-        e.hire_date,
-        EXTRACT(YEAR FROM e.hire_date)::INT     AS hire_year,
-        CASE
-            WHEN e.hire_date IS NULL THEN 'Unknown'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 1  THEN '<1 yr'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 3  THEN '1-3 yrs'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 5  THEN '3-5 yrs'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 10 THEN '5-10 yrs'
-            ELSE '10+ yrs'
-        END                                     AS tenure_band,
-        e.salary,
-        e.row_updated_at                        AS source_row_updated_at
-    FROM staging.employees e
-    LEFT JOIN analytics.dim_branch b
-           ON b.branch_id = e.branch_id
+    SELECT s.*
+    FROM (
+        SELECT
+            e.employee_id,
+            e.employee_name,
+            COALESCE(b.branch_key, -1)              AS branch_key,
+            e.branch_id,
+            COALESCE(e.role, 'Unknown')             AS role,
+            e.hire_date,
+            EXTRACT(YEAR FROM e.hire_date)::INT     AS hire_year,
+            CASE
+                WHEN e.hire_date IS NULL THEN 'Unknown'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 1  THEN '<1 yr'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 3  THEN '1-3 yrs'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 5  THEN '3-5 yrs'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, e.hire_date)) < 10 THEN '5-10 yrs'
+                ELSE '10+ yrs'
+            END                                     AS tenure_band,
+            e.salary,
+            e.row_updated_at                        AS source_row_updated_at
+        FROM staging.employees e
+        LEFT JOIN analytics.dim_branch b
+               ON b.branch_id = e.branch_id
+    ) s
     LEFT JOIN analytics.dim_employee cur
-           ON cur.employee_id = e.employee_id
+           ON cur.employee_id = s.employee_id
     WHERE p_force_full
        OR v_last_wm IS NULL
-       OR e.row_updated_at > v_last_wm
+       OR s.source_row_updated_at > v_last_wm
        -- Late-arriving branch: employee was loaded with Unknown branch, branch exists now
-       OR (cur.branch_key = -1 AND b.branch_key IS NOT NULL);
+       OR (cur.branch_key = -1 AND s.branch_key <> -1)
+       -- tenure_band ages with time; re-pick rows whose stored band drifted
+       OR s.tenure_band IS DISTINCT FROM cur.tenure_band;
 
     SELECT count(*) INTO v_source_rows FROM _dim_employee_src;
 

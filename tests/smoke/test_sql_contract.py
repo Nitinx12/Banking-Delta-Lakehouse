@@ -70,3 +70,64 @@ def test_dq_suite_files_follow_contract(layer: str) -> None:
             assert commit_at != -1 and commit_at < raise_at, (
                 f"{sql_file.name}: audit rows must be COMMITted before RAISE"
             )
+
+
+@pytest.mark.parametrize("layer", ["raw", "staging"])
+def test_metadata_freshness_handles_quiet_incremental_tables(layer: str) -> None:
+    """Incremental tables can be skipped; freshness must key off the last run.
+
+    A raw/staging table loaded incrementally only writes rows when the source
+    changes, so its data timestamp ages while the pipeline is healthy. The
+    metadata check must therefore fall back to the last table run for those
+    tables instead of failing on a stale data timestamp.
+    """
+    text = (
+        ROOT / "tests" / "data-quality" / layer / "01_lp_check_metadata_col.sql"
+    ).read_text(encoding="utf-8")
+
+    assert "audit.source_tables" in text, f"{layer}: must read load_strategy"
+    assert "audit.table_runs" in text, f"{layer}: must read the last table run"
+    assert "load_strategy" in text, f"{layer}: must branch on load_strategy"
+    assert "v_schema || '.' || v_tbl.relname" in text, (
+        f"{layer}: table_runs.target_table is schema-qualified"
+    )
+
+
+TIME_DERIVED_BANDS = [
+    ("01_dim_customer.sql", "age_band"),
+    ("02_dim_account.sql", "account_age_band"),
+    ("03_dim_branch.sql", "branch_age_band"),
+    ("04_dim_employee.sql", "tenure_band"),
+]
+
+
+@pytest.mark.parametrize("script,band", TIME_DERIVED_BANDS)
+def test_time_derived_bands_recheck_drift(script: str, band: str) -> None:
+    """Bands computed from AGE(CURRENT_DATE, ...) drift while the source is quiet.
+
+    A birthday or account anniversary crosses a band boundary without any
+    staging row changing, so the incremental load must re-pick rows whose
+    stored band no longer matches today's recomputation — otherwise the
+    derived-attribute DQ gate fails the next run.
+    """
+    text = (ROOT / "sql" / "analytics" / script).read_text(encoding="utf-8")
+
+    assert f"{band} IS DISTINCT FROM cur.{band}" in text, (
+        f"{script}: must re-pick rows whose {band} drifted with time"
+    )
+
+
+def test_employee_tenure_band_boundaries_match_dq_gate() -> None:
+    """`< 10` must map to '5-10 yrs'; '10+ yrs' belongs to ELSE only.
+
+    Guards the 2026-10 regression where the load labelled every employee with
+    under 10 years tenure as '10+ yrs' while the DQ gate expected '5-10 yrs'.
+    """
+    text = (ROOT / "sql" / "analytics" / "04_dim_employee.sql").read_text(
+        encoding="utf-8"
+    )
+
+    assert "< 10 THEN '5-10 yrs'" in text, (
+        "04_dim_employee.sql: the < 10 boundary must read '5-10 yrs'"
+    )
+    assert text.count("< 10 THEN '10+ yrs'") == 0

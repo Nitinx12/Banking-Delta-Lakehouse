@@ -12,9 +12,9 @@
 --               3. Extracted year columns match the date column
 --               4. dim_loan.maturity_date = start_date + term_months
 -- Note        : age / tenure bands are recomputed against
---               CURRENT_DATE, exactly like the load procedures, so a
---               table loaded earlier and never refreshed fails here
---               (that is the drift we want to see)
+--               CURRENT_DATE, exactly like the load procedures, which
+--               re-pick drifted rows on every run; a failure here means
+--               a load was skipped or a formula disagrees
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 

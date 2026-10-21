@@ -2,6 +2,9 @@
 
 One subprocess per source (each job owns its Spark session and audit pipeline
 run), run sequentially so only one Spark/Java instance is alive at a time.
+Each job gets EXTRACT_TIMEOUT_SECONDS (default 180); a job that exceeds it is
+killed together with its JVM children and retried once, because a local Spark
+executor that misses registration hangs forever instead of erroring.
 Stops at the first failing job unless --keep-going is passed. Options this script
 does not know (for example --tables or --parallel) are passed on to every job.
 
@@ -14,6 +17,8 @@ does not know (for example --tables or --parallel) are passed on to every job.
 from __future__ import annotations
 
 import argparse
+import os
+import signal
 import subprocess
 import sys
 import time
@@ -30,18 +35,65 @@ logger = get_logger("run_jobs")
 # Canonical run order, one source each. Edit here to change the sequence.
 JOBS: tuple[str, ...] = ("mongo", "databricks", "mysql")
 
+EXTRACT_TIMEOUT_SECONDS = int(os.environ.get("EXTRACT_TIMEOUT_SECONDS", "180"))
+MAX_ATTEMPTS = 2
+
+
+def _kill_tree(proc: subprocess.Popen) -> None:
+    """Kill the extract process and its JVM child so no orphan Spark survives."""
+    if os.name == "nt":
+        subprocess.run(
+            ["taskkill", "/PID", str(proc.pid), "/T", "/F"],
+            capture_output=True,
+            check=False,
+        )
+    else:
+        os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+    proc.wait()
+
 
 def run_job(source: str, extra: list[str]) -> int:
-    """Run one extract job as a subprocess from the project root; return its exit code."""
+    """Run one extract job; kill and retry once if it hangs or fails; return its exit code."""
     script = PROJECT_ROOT / "src" / "jobs" / f"extract_{source}.py"
-    logger.info("=== %s (%s) ===", source, script.name)
-    started = time.monotonic()
-    code = subprocess.run(
-        [sys.executable, str(script), *extra], cwd=PROJECT_ROOT
-    ).returncode
-    logger.info(
-        "%s finished in %.0fs (exit %s)", source, time.monotonic() - started, code
-    )
+    cmd = [sys.executable, str(script), *extra]
+
+    code = 1
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        logger.info(
+            "=== %s (%s) | attempt %d/%d ===",
+            source,
+            script.name,
+            attempt,
+            MAX_ATTEMPTS,
+        )
+        started = time.monotonic()
+        proc = subprocess.Popen(
+            cmd, cwd=PROJECT_ROOT, start_new_session=(os.name != "nt")
+        )
+        try:
+            code = proc.wait(timeout=EXTRACT_TIMEOUT_SECONDS)
+        except subprocess.TimeoutExpired:
+            _kill_tree(proc)
+            code = 124
+            logger.error(
+                "%s exceeded %ds; process tree killed",
+                source,
+                EXTRACT_TIMEOUT_SECONDS,
+            )
+        except KeyboardInterrupt:
+            _kill_tree(proc)
+            raise
+        elapsed = time.monotonic() - started
+        if code == 0:
+            logger.info("%s finished in %.0fs (exit 0)", source, elapsed)
+            return 0
+        logger.warning(
+            "%s failed in %.0fs (exit %s)%s",
+            source,
+            elapsed,
+            code,
+            "; retrying once" if attempt < MAX_ATTEMPTS else "",
+        )
     return code
 
 

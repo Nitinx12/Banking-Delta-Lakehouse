@@ -12,7 +12,8 @@
 --     Northeast) so branches can be rolled up above state level. The state
 --     list is inline in the procedure; edit it there and run with
 --     p_force_full = TRUE.
---   * branch_age_band drifts with time; use p_force_full = TRUE to refresh it.
+--   * branch_age_band ages with time; rows whose stored band no longer
+--     matches today's recomputation are re-picked on every run.
 --   * Row -1 = 'Unknown' member, so facts never carry a NULL / broken key.
 --   * Watermark = staging.branches.row_updated_at, stored on the dimension row
 --     itself (source_row_updated_at). NULL = bootstrap (load all).
@@ -179,47 +180,54 @@ BEGIN
 
     -- Slice of staging to process, with derived attributes
     CREATE TEMP TABLE _dim_branch_src ON COMMIT DROP AS
-    SELECT
-        b.branch_id,
-        b.branch_name,
-        b.city,
-        b.state,
-        -- Region roll-up from state (edit the lists to suit your data)
-        CASE
-            WHEN b.state IS NULL THEN 'Unknown'
-            WHEN LOWER(b.state) IN (
-                 'delhi', 'haryana', 'punjab', 'himachal pradesh', 'uttarakhand',
-                 'uttar pradesh', 'jammu and kashmir',
-                 'chandigarh', 'ladakh', 'rajasthan')                 THEN 'North'
-            WHEN LOWER(b.state) IN (
-                 'karnataka', 'tamil nadu', 'kerala', 'andhra pradesh',
-                 'telangana', 'puducherry')                           THEN 'South'
-            WHEN LOWER(b.state) IN (
-                 'west bengal', 'odisha', 'bihar', 'jharkhand')       THEN 'East'
-            WHEN LOWER(b.state) IN (
-                 'maharashtra', 'gujarat', 'goa')                     THEN 'West'
-            WHEN LOWER(b.state) IN (
-                 'madhya pradesh', 'chhattisgarh')                    THEN 'Central'
-            WHEN LOWER(b.state) IN (
-                 'assam', 'meghalaya', 'manipur', 'mizoram', 'nagaland',
-                 'tripura', 'arunachal pradesh', 'sikkim')            THEN 'Northeast'
-            ELSE 'Other'
-        END AS region,
-        b.ifsc_code,
-        b.opened_date,
-        EXTRACT(YEAR FROM b.opened_date)::INT AS opened_year,
-        CASE
-            WHEN b.opened_date IS NULL THEN 'Unknown'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 2  THEN '<2 yrs'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 5  THEN '2-5 yrs'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 10 THEN '5-10 yrs'
-            ELSE '10+ yrs'
-        END AS branch_age_band,
-        b.row_updated_at AS source_row_updated_at
-    FROM staging.branches b
+    SELECT s.*
+    FROM (
+        SELECT
+            b.branch_id,
+            b.branch_name,
+            b.city,
+            b.state,
+            -- Region roll-up from state (edit the lists to suit your data)
+            CASE
+                WHEN b.state IS NULL THEN 'Unknown'
+                WHEN LOWER(b.state) IN (
+                     'delhi', 'haryana', 'punjab', 'himachal pradesh', 'uttarakhand',
+                     'uttar pradesh', 'jammu and kashmir',
+                     'chandigarh', 'ladakh', 'rajasthan')                 THEN 'North'
+                WHEN LOWER(b.state) IN (
+                     'karnataka', 'tamil nadu', 'kerala', 'andhra pradesh',
+                     'telangana', 'puducherry')                           THEN 'South'
+                WHEN LOWER(b.state) IN (
+                     'west bengal', 'odisha', 'bihar', 'jharkhand')       THEN 'East'
+                WHEN LOWER(b.state) IN (
+                     'maharashtra', 'gujarat', 'goa')                     THEN 'West'
+                WHEN LOWER(b.state) IN (
+                     'madhya pradesh', 'chhattisgarh')                    THEN 'Central'
+                WHEN LOWER(b.state) IN (
+                     'assam', 'meghalaya', 'manipur', 'mizoram', 'nagaland',
+                     'tripura', 'arunachal pradesh', 'sikkim')            THEN 'Northeast'
+                ELSE 'Other'
+            END AS region,
+            b.ifsc_code,
+            b.opened_date,
+            EXTRACT(YEAR FROM b.opened_date)::INT AS opened_year,
+            CASE
+                WHEN b.opened_date IS NULL THEN 'Unknown'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 2  THEN '<2 yrs'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 5  THEN '2-5 yrs'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, b.opened_date)) < 10 THEN '5-10 yrs'
+                ELSE '10+ yrs'
+            END AS branch_age_band,
+            b.row_updated_at AS source_row_updated_at
+        FROM staging.branches b
+    ) s
+    LEFT JOIN analytics.dim_branch cur
+           ON cur.branch_id = s.branch_id
     WHERE p_force_full
        OR v_last_wm IS NULL
-       OR b.row_updated_at > v_last_wm;
+       OR s.source_row_updated_at > v_last_wm
+       -- branch_age_band ages with time; re-pick rows whose stored band drifted
+       OR s.branch_age_band IS DISTINCT FROM cur.branch_age_band;
 
     SELECT count(*) INTO v_source_rows FROM _dim_branch_src;
 

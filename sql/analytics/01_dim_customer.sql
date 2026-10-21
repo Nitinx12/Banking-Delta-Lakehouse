@@ -12,8 +12,8 @@
 --   * Watermark = staging.customers.row_updated_at, stored on the dimension row
 --     itself (source_row_updated_at). NULL = bootstrap (load all).
 --     Because it lives in the target, it advances only if the load commits.
---   * Derived bands (age_band) can drift with time (birthdays); use
---     p_force_full = TRUE to refresh them across all customers.
+--   * age_band ages with time (birthdays); rows whose stored band no longer
+--     matches today's recomputation are re-picked on every run.
 --   * Gender fix: gender is corrected from the first name using a name list
 --     written inline in the procedure (CTE "ng"); no extra table needed.
 --     Unisex / unlisted names keep the staging gender. After adding names
@@ -226,54 +226,62 @@ BEGIN
             ('hemant','Male'),('mukesh','Male'),('neeraj','Male'),('rajat','Male'),
             ('saurabh','Male'),('tushar','Male'),('ishaan','Male'),('aryan','Male'),
             ('rohan','Male'),('kabir','Male')
+    ),
+    staged AS (
+        SELECT
+            c.customer_id,
+            c.customer_name,
+            -- Gender fix: if the first name is in the inline name list (ng), it wins over
+            -- the staging value; unlisted names keep the staging gender.
+            COALESCE(g.ref_gender, c.gender, 'N/A') AS gender,
+            c.date_of_birth,
+            CASE
+                WHEN c.date_of_birth IS NULL THEN 'Unknown'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 25 THEN '18-24'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 35 THEN '25-34'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 45 THEN '35-44'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 55 THEN '45-54'
+                WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 65 THEN '55-64'
+                ELSE '65+'
+            END AS age_band,
+            c.city,
+            c.state,
+            c.phone,
+            c.email,
+            c.occupation,
+            c.annual_income,
+            -- INR bands: adjust to your data
+            CASE
+                WHEN c.annual_income IS NULL   THEN 'Unknown'
+                WHEN c.annual_income <  300000 THEN 'Low (<3L)'
+                WHEN c.annual_income <  600000 THEN 'Lower-Mid (3-6L)'
+                WHEN c.annual_income < 1200000 THEN 'Middle (6-12L)'
+                WHEN c.annual_income < 2400000 THEN 'Upper-Mid (12-24L)'
+                ELSE 'High (24L+)'
+            END AS income_band,
+            c.join_date,
+            c.credit_score,
+            CASE
+                WHEN c.credit_score IS NULL THEN 'Unknown'
+                WHEN c.credit_score < 550   THEN 'Poor'
+                WHEN c.credit_score < 650   THEN 'Fair'
+                WHEN c.credit_score < 750   THEN 'Good'
+                ELSE 'Excellent'
+            END AS credit_band,
+            c.row_updated_at AS source_row_updated_at
+        FROM staging.customers c
+        LEFT JOIN ng g
+               ON g.first_name_key = LOWER(SPLIT_PART(TRIM(c.customer_name), ' ', 1))
     )
-    SELECT
-        c.customer_id,
-        c.customer_name,
-        -- Gender fix: if the first name is in the inline name list (ng), it wins over
-        -- the staging value; unlisted names keep the staging gender.
-        COALESCE(g.ref_gender, c.gender, 'N/A') AS gender,
-        c.date_of_birth,
-        CASE
-            WHEN c.date_of_birth IS NULL THEN 'Unknown'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 25 THEN '18-24'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 35 THEN '25-34'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 45 THEN '35-44'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 55 THEN '45-54'
-            WHEN DATE_PART('year', AGE(CURRENT_DATE, c.date_of_birth)) < 65 THEN '55-64'
-            ELSE '65+'
-        END AS age_band,
-        c.city,
-        c.state,
-        c.phone,
-        c.email,
-        c.occupation,
-        c.annual_income,
-        -- INR bands: adjust to your data
-        CASE
-            WHEN c.annual_income IS NULL   THEN 'Unknown'
-            WHEN c.annual_income <  300000 THEN 'Low (<3L)'
-            WHEN c.annual_income <  600000 THEN 'Lower-Mid (3-6L)'
-            WHEN c.annual_income < 1200000 THEN 'Middle (6-12L)'
-            WHEN c.annual_income < 2400000 THEN 'Upper-Mid (12-24L)'
-            ELSE 'High (24L+)'
-        END AS income_band,
-        c.join_date,
-        c.credit_score,
-        CASE
-            WHEN c.credit_score IS NULL THEN 'Unknown'
-            WHEN c.credit_score < 550   THEN 'Poor'
-            WHEN c.credit_score < 650   THEN 'Fair'
-            WHEN c.credit_score < 750   THEN 'Good'
-            ELSE 'Excellent'
-        END AS credit_band,
-        c.row_updated_at AS source_row_updated_at
-    FROM staging.customers c
-    LEFT JOIN ng g
-           ON g.first_name_key = LOWER(SPLIT_PART(TRIM(c.customer_name), ' ', 1))
+    SELECT s.*
+    FROM staged s
+    LEFT JOIN analytics.dim_customer cur
+           ON cur.customer_id = s.customer_id
     WHERE p_force_full
        OR v_last_wm IS NULL
-       OR c.row_updated_at > v_last_wm;
+       OR s.source_row_updated_at > v_last_wm
+       -- age_band ages with time; re-pick rows whose stored band drifted
+       OR s.age_band IS DISTINCT FROM cur.age_band;
 
     SELECT count(*) INTO v_source_rows FROM _dim_customer_src;
 

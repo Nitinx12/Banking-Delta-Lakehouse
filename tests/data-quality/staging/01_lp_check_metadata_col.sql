@@ -8,7 +8,9 @@
 --               3. Both columns are declared NOT NULL
 --               4. No NULL or blank values in either column
 --               5. No source_loaded_at values in the future
---               6. Data is fresh (max source_loaded_at within window)
+--               6. Data is fresh (max source_loaded_at within window; for
+--                  incremental tables the last staging table run is used,
+--                  because source_loaded_at only advances when rows change)
 --               7. Optional: table has a PK or unique index
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
@@ -31,10 +33,14 @@ DECLARE
     v_notnull      BOOLEAN;
     v_batch_ok     BOOLEAN;
     v_loaded_ok    BOOLEAN;
-    v_null_loaded  BIGINT;
-    v_future       BIGINT;
-    v_max_loaded   TIMESTAMPTZ;
-    v_bad_batch    BIGINT;
+    v_null_loaded   BIGINT;
+    v_future        BIGINT;
+    v_max_loaded    TIMESTAMPTZ;
+    v_bad_batch     BIGINT;
+    v_load_strategy TEXT;
+    v_last_run_at   TIMESTAMPTZ;
+    v_fresh_ts      TIMESTAMPTZ;
+    v_fresh_label   TEXT;
 BEGIN
     INSERT INTO audit.dq_run (layer, script_name)
     VALUES ('staging', '01_lp_check_metadata_col.sql')
@@ -50,8 +56,10 @@ BEGIN
           AND c.relname <> ALL (v_exempt_tables)
         ORDER BY c.relname
     LOOP
-        v_batch_ok  := FALSE;
-        v_loaded_ok := FALSE;
+        v_batch_ok      := FALSE;
+        v_loaded_ok     := FALSE;
+        v_load_strategy := NULL;
+        v_last_run_at   := NULL;
 
         -- ---- source_batch_id: existence + NOT NULL ----
         SELECT format_type(a.atttypid, a.atttypmod), a.attnotnull
@@ -118,10 +126,34 @@ BEGIN
                     format('%I.%I: %s rows with source_loaded_at in the future',
                            v_schema, v_tbl.relname, v_future);
             END IF;
-            IF v_max_loaded IS NOT NULL AND v_max_loaded < now() - v_max_staleness THEN
+
+            -- Freshness: a full load rebuilds the table every run, so
+            -- source_loaded_at is a reliable "pipeline ran" signal. An incremental
+            -- load only touches changed rows, so source_loaded_at ages whenever the
+            -- source is quiet; for those tables use the last staging table run.
+            SELECT st.load_strategy INTO v_load_strategy
+            FROM audit.source_tables st
+            WHERE st.target_table = v_tbl.relname;
+
+            IF COALESCE(v_load_strategy, 'full') = 'incremental' THEN
+                SELECT max(tr.ended_at) INTO v_last_run_at
+                FROM audit.table_runs tr
+                WHERE tr.target_table     = v_schema || '.' || v_tbl.relname
+                  AND tr.processing_layer = 'staging'
+                  AND tr.ended_at IS NOT NULL;
+
+                v_fresh_ts    := COALESCE(v_last_run_at, v_max_loaded);
+                v_fresh_label := 'last staging run';
+            ELSE
+                v_fresh_ts    := v_max_loaded;
+                v_fresh_label := 'latest source_loaded_at';
+            END IF;
+
+            IF v_fresh_ts IS NOT NULL AND v_fresh_ts < now() - v_max_staleness THEN
                 v_violations := v_violations ||
-                    format('%I.%I: stale data, latest source_loaded_at is %s (limit %s)',
-                           v_schema, v_tbl.relname, v_max_loaded, v_max_staleness);
+                    format('%I.%I: stale data, %s is %s (limit %s)',
+                           v_schema, v_tbl.relname, v_fresh_label, v_fresh_ts,
+                           v_max_staleness);
             END IF;
         END IF;
 

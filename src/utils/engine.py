@@ -202,6 +202,30 @@ def _silence_windows_kill() -> None:
     gateway.Popen = _quiet_popen
 
 
+def _await_executor(spark, timeout_seconds: int = 60) -> None:
+    """A local executor that misses registration hangs every action; probe it so we fail fast."""
+    import threading
+
+    errors: list[Exception] = []
+
+    def probe() -> None:
+        try:
+            spark.range(1).count()
+        except Exception as exc:  # noqa: BLE001 - re-raised on the caller thread
+            errors.append(exc)
+
+    worker = threading.Thread(target=probe, daemon=True, name="spark-probe")
+    worker.start()
+    worker.join(timeout_seconds)
+    if worker.is_alive():
+        raise RuntimeError(
+            f"Spark executor not ready after {timeout_seconds}s "
+            "(local-mode registration race); re-run the job"
+        )
+    if errors:
+        raise errors[0]
+
+
 def get_spark(
     app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)
 ):
@@ -274,6 +298,7 @@ def get_spark(
 
     spark = builder.getOrCreate()
     spark.sparkContext.setLogLevel("WARN")
+    _await_executor(spark)
     logger.info(
         "Spark %s ready | master=%s | jars=%s",
         spark.version,
