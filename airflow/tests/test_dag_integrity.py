@@ -101,9 +101,14 @@ def test_finalize_audit_closes_the_run_before_summary(daily):
     }
     assert finalize.upstream_task_ids == expected
     assert finalize.execution_timeout < timedelta(hours=6)
+    # summary now depends on build_report, which depends on finalize_audit
+    build_report = daily.get_task("build_report")
+    assert build_report.trigger_rule == "all_done"
+    assert build_report.upstream_task_ids == {"finalize_audit"}
     summary_upstream = daily.get_task("send_pipeline_summary").upstream_task_ids
-    assert summary_upstream == {"finalize_audit"}
+    assert summary_upstream == {"build_report"}
     assert "publish" not in summary_upstream
+    assert "finalize_audit" not in summary_upstream
 
 
 def test_extract_tasks_size_their_own_driver_memory(daily):

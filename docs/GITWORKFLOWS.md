@@ -64,7 +64,7 @@ Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`, `build`, `ci`
 
 Scopes used here: `extract`, `audit`, `spark-io`, `engine`, `publish`, `main`, `airflow`,
 `dags`, `sql`, `staging`, `analytics`, `marts`, `dq`, `dashboard`, `make`, `batch`,
-`hooks`, `deps`, `tests`, `repo`.
+`hooks`, `deps`, `tests`, `repo`, `reports`.
 
 ```text
 fix(airflow): read task states via TaskInstance.get_task_states

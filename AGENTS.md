@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Rules for AI agents working in Banking-Delta-Lakehouse. Read `ARCHITECTURE.md` first. If this file and the architecture disagree on design, the architecture wins.
+Rules for AI agents working in Banking-Delta-Lakehouse. Read `ARCHITECTURE.md` first. If this file and the architecture disagree on design, the architecture wins. Report-specific rules live in `docs/REPORTING.md` §3 and §13 — they override this file for report code.
 
 ## Project in one line
 
@@ -105,7 +105,7 @@ $$;
 
 ## Scripts and automation
 
-- `Makefile` is the entry point. Targets: `help`, `lint`, `test`, `up`, `down`, `migrate`, `dag-test`
+- `Makefile` is the entry point. Targets: `help`, `lint`, `test`, `up`, `down`, `migrate`, `dag-test`, `report-fixture`, `report-pdf`, `report-tex`, `report-docker`, `report`, `report-incident`, `report-weekly`, `report-clean`
 - Every `.sh` starts with `set -euo pipefail`
 - Every `.bat` starts with `@echo off` and `setlocal`, and mirrors the matching `make` target for Windows
 - GitHub Actions: least-privilege `permissions:`, actions pinned by commit SHA, no `pull_request_target`, never echo secrets

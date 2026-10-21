@@ -130,10 +130,11 @@ def test_render_html_has_no_script_or_external_assets():
 def test_build_and_send_uses_current_context(monkeypatch):
     sent = {}
 
-    def fake_send(subject, html, text, to=None):
+    def fake_send(subject, html, text, to=None, attachments=None):
         sent["subject"] = subject
         sent["html"] = html
         sent["text"] = text
+        sent["attachments"] = attachments
 
     monkeypatch.setattr(notify, "send_email", fake_send)
     _stub_audit(monkeypatch)

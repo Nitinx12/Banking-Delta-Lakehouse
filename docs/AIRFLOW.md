@@ -24,7 +24,7 @@ flowchart TB
         SCH["airflow-scheduler"]
         DP["airflow-dag-processor"]
         TRG["airflow-triggerer"]
-        WRK["airflow-worker<br/>Celery, mem_limit 6g<br/>volume: spark_cache"]
+        WRK["airflow-worker<br/>Celery, mem_limit 6g<br/>volumes: spark_cache, report_output"]
     end
 
     subgraph PIPE["Pipeline containers run inside airflow-worker"]
@@ -33,6 +33,7 @@ flowchart TB
         LD["main.py load/test steps"]
         PB["publish_marts.py"]
         FIN["finalize_audit"]
+        BR["build_report"]
         SUM["send_pipeline_summary"]
     end
 
@@ -44,14 +45,14 @@ flowchart TB
     INIT --> TRG
     INIT --> WRK
     SCH -->|queue| WRK
-    WRK --> PRE --> EX --> LD --> PB --> FIN --> SUM
+    WRK --> PRE --> EX --> LD --> PB --> FIN --> BR --> SUM
 
     classDef infra fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
     classDef af fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
     classDef pipe fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
     class DB,RD infra
     class INIT,API,SCH,DP,TRG,WRK af
-    class PRE,EX,LD,PB,FIN,SUM pipe
+    class PRE,EX,LD,PB,FIN,BR,SUM pipe
 ```
 
 `airflow-init` runs `airflow db migrate`, creates the admin user and pool `spark_jvm`
@@ -101,6 +102,7 @@ flowchart LR
     MT["marts_tests"]
     PB["publish<br/>pool spark_jvm · retries=2 · 2h"]
     FIN["finalize_audit<br/>all_done"]
+    BR["build_report<br/>all_done · retries=1 · 15m"]
     SUM["send_pipeline_summary<br/>all_done · retries=3"]
     GATE["fail_if_any_failed<br/>one_failed · retries=0"]
 
@@ -111,7 +113,7 @@ flowchart LR
     ED --> RT
     EX --> RT
     RT --> SL --> ST --> AL --> AT --> ML --> MT --> PB
-    PB --> FIN --> SUM
+    PB --> FIN --> BR --> SUM
     RT -.-> GATE
     SL -.-> GATE
     ST -.-> GATE
@@ -132,6 +134,7 @@ flowchart LR
     classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
     classDef publish fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
     classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
     classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
 
     class PRE pre
@@ -140,7 +143,9 @@ flowchart LR
     class AL,AT analytics
     class ML,MT marts
     class PB publish
-    class FIN,SUM audit
+    class FIN audit
+    class BR report
+    class SUM audit
     class GATE gate
 ```
 
@@ -152,7 +157,8 @@ flowchart LR
 | `staging_load` … `marts_load` | `main.py --only <layer>-load` | 1 / 1h | `CALL <schema>.sp_load_all(...)` |
 | `publish` | `src/jobs/publish_marts.py … [--full]` | 2 / 2h | `--full` from the `publish_full` param |
 | `finalize_audit` | `python -m banking_airflow.finalize_audit` | 1 / 10m | `trigger_rule=all_done` |
-| `send_pipeline_summary` | `summary.build_and_send(context)` | 3 / 10m | `trigger_rule=all_done` |
+| `build_report` | `python -m reports.scripts.build --kind daily --dag-id … --dag-run-id …` | 1 / 15m | `trigger_rule=all_done`; also builds `incident.pdf` on MAJOR+ events |
+| `send_pipeline_summary` | `summary.build_and_send(context)` | 3 / 10m | `trigger_rule=all_done`; attaches PDFs |
 | `fail_if_any_failed` | Python task | 0 | `trigger_rule=one_failed` — makes the run red so Airflow state matches reality |
 
 Design rules: one task per `main.py` step name (UI, mail and `main.py` tell the same
@@ -162,7 +168,9 @@ story); `max_active_runs=1` queues duplicate triggers instead of overlapping;
 ## DAG `banking_watchdog`
 
 Runs every 3 hours; reads `audit.pipeline_runs` directly (independent of the scheduler)
-and stays **silent when healthy**.
+and stays **silent when healthy**. On `[MISSED]`, `[STUCK]` or `[WATCHDOG-ERROR]` it
+also triggers `python -m reports.scripts.build --kind incident` for the affected run
+so the alert mail carries the incident PDF.
 
 ```mermaid
 flowchart TB
@@ -176,15 +184,44 @@ flowchart TB
     STUCK -->|yes| STUCKMAIL["[STUCK]<br/>run stuck for N hours"]
     STUCK -->|no| SILENT["stay silent (healthy)"]
 
+    MISSED --> INC["build incident report"]
+    STUCKMAIL --> INC
+    ERR --> INC
+
     classDef tick fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
     classDef check fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
     classDef bad fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
     classDef ok fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
     class TICK tick
     class CONN,AGE,STUCK,RUN,LAST check
     class ERR,MISSED,STUCKMAIL bad
     class SILENT ok
+    class INC report
 ```
+
+## DAG `banking_report_weekly`
+
+`schedule=0 8 * * 1` Asia/Kolkata (Monday 08:00 IST), `catchup=False`,
+`max_active_runs=1`. Created **paused** — un-pause deliberately.
+
+```mermaid
+flowchart LR
+    BR["build_weekly_report<br/>retries=1 · 15m"]
+    SUM["send_weekly_summary<br/>all_done · retries=3"]
+
+    BR --> SUM
+
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    class BR report
+    class SUM audit
+```
+
+| Task | Command | Retries / timeout | Notes |
+|---|---|---|---|
+| `build_weekly_report` | `python -m reports.scripts.build --kind weekly --dag-id … --dag-run-id …` | 1 / 15m | `trigger_rule=all_done` |
+| `send_weekly_summary` | `summary.build_and_send(context)` | 3 / 10m | `trigger_rule=all_done`; attaches `weekly.pdf` |
 
 ## Summary, failure and audit flow
 
@@ -193,11 +230,12 @@ flowchart TB
     subgraph RUN["DAG run"]
         T1["preflight → extracts → loads → gates → publish"]
         FIN["finalize_audit<br/>all_done"]
+        BR["build_report<br/>all_done"]
         SUM["send_pipeline_summary<br/>all_done"]
         FAIL["fail_if_any_failed<br/>one_failed"]
         T1 --> FIN
         T1 -.->|any task failed| FAIL
-        FIN --> SUM
+        FIN --> BR --> SUM
     end
 
     subgraph AUD["audit schema (PostgreSQL)"]

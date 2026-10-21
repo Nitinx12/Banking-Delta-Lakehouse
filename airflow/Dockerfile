@@ -15,6 +15,12 @@ RUN apt-get update \
  && apt-get clean && rm -rf /var/lib/apt/lists/* \
  && java -version
 
+# TeX toolchain for the report builder (shared package list)
+COPY reports/apt-packages.txt /tmp/apt-packages.txt
+RUN apt-get update \
+ && xargs -a /tmp/apt-packages.txt apt-get install -y --no-install-recommends \
+ && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/apt-packages.txt
+
 RUN mkdir -p /opt/banking /opt/banking/.spark /opt/banking/logs /opt/banking-venv /opt/airflow/logs /opt/airflow/include /opt/airflow/dags /opt/airflow/scripts \
  && chown -R airflow:0 /opt/banking /opt/banking-venv /opt/airflow/logs /opt/airflow/include /opt/airflow/dags /opt/airflow/scripts
 
@@ -42,6 +48,10 @@ RUN (command -v uv >/dev/null || pip install --no-cache-dir uv) \
  && uv venv /opt/banking-venv --python "$(command -v python)" \
  && cd /opt/banking \
  && UV_PROJECT_ENVIRONMENT=/opt/banking-venv uv sync --frozen --no-dev --no-install-project 2>&1 | tail -20
+
+# Reports runtime (jinja2, jsonschema, pyyaml, matplotlib, psycopg2-binary, python-dotenv)
+COPY --chown=airflow:0 reports/ /opt/banking/reports/
+RUN cd /opt/banking && UV_PROJECT_ENVIRONMENT=/opt/banking-venv uv sync --frozen --group reports 2>&1 | tail -10
 
 # Project code
 COPY --chown=airflow:0 main.py /opt/banking/main.py

@@ -301,7 +301,34 @@ def build_and_send(context: dict[str, Any]) -> None:
     subject = subject_for(status, run_date)
     text = render_text(run_meta, steps, sections, notes, subject)
     html = render_html(run_meta, steps, sections, notes, subject)
-    notify.send_email(subject, html, text)
+
+    # Find report PDFs to attach
+    attachments = _find_report_attachments(run_id, status)
+
+    notify.send_email(subject, html, text, attachments=attachments)
+
+
+def _find_report_attachments(run_id: str, status: str) -> list:
+    """Locate the daily and incident PDFs for this run."""
+    import os
+    from pathlib import Path
+
+    output_root = Path(os.environ.get("REPORT_OUTPUT_DIR", "reports/output"))
+    run_key = "".join(c if c.isalnum() or c == "_" else "_" for c in run_id)
+
+    attachments = []
+
+    # Daily report (always built)
+    daily_path = output_root / "runs" / run_key / "report.pdf"
+    if daily_path.exists():
+        attachments.append(daily_path)
+
+    # Incident report (built when any event is MAJOR or CRITICAL)
+    incident_path = output_root / "runs" / run_key / "incident.pdf"
+    if incident_path.exists():
+        attachments.append(incident_path)
+
+    return attachments
 
 
 def section_notes(sections: dict[str, Section]) -> list[str]:

@@ -34,9 +34,9 @@ Watchdog mail (every 3 h, silent when healthy):
 
 | Subject marker | Meaning | Action |
 |---|---|---|
-| `[MISSED]` | no successful run in `WATCHDOG_MAX_AGE_HOURS` (30) | investigate last runs below |
-| `[STUCK]` | a run is `RUNNING`/`PARTIAL` older than `WATCHDOG_STUCK_HOURS` (5) | see "Recovery" |
-| `[WATCHDOG-ERROR]` | warehouse unreachable from the watchdog | check DB/network first |
+| `[MISSED]` | no successful run in `WATCHDOG_MAX_AGE_HOURS` (30) | investigate last runs below; incident PDF attached |
+| `[STUCK]` | a run is `RUNNING`/`PARTIAL` older than `WATCHDOG_STUCK_HOURS` (5) | see "Recovery"; incident PDF attached |
+| `[WATCHDOG-ERROR]` | warehouse unreachable from the watchdog | check DB/network first; incident PDF attached |
 
 ## A run failed — triage
 
@@ -144,6 +144,23 @@ The PDFs land in `reports/output/runs/<run key>/`, with a latest copy per kind i
 `context.json`, and the redacted compile log is in `reports/build/report.log` for the
 daily build, `incident.log` or `weekly.log` for the others. Design and rule
 reference: `docs/REPORTING.md`.
+
+**Regenerating a specific run's report** (e.g. for an incident review):
+
+```bash
+make report-incident RUN=scheduled__2026-10-20T20:30:00+00:00
+```
+
+This produces `incident.pdf` for that run and places it in `reports/output/runs/<run key>/`.
+
+**Weekly digest** — runs Monday 08:00 IST via `banking_report_weekly` DAG; can be
+regenerated manually:
+
+```bash
+make report-weekly
+```
+
+Produces `weekly.pdf` with trends, volumes, DQ and freshness over the last 14 runs.
 
 ## Recovery
 

@@ -50,7 +50,7 @@ default-groups = ["dev", "reports"]
 extend-exclude = ["notebooks"]
 
 [tool.setuptools.packages.find]
-include = ["contracts*"]
+include = ["contracts*", "src*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "airflow/tests"]

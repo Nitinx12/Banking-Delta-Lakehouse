@@ -60,21 +60,53 @@ def settings() -> SmtpSettings:
 
 
 def build_message(
-    cfg: SmtpSettings, subject: str, html: str, text: str, to: str | None
+    cfg: SmtpSettings,
+    subject: str,
+    html: str,
+    text: str,
+    to: str | None,
+    attachments: list[Path] | None = None,
 ) -> EmailMessage:
-    """Build a multipart/alternative message (text + HTML)."""
+    """Build a multipart/alternative message (text + HTML) with optional PDF attachments."""
     msg = EmailMessage()
     msg["Subject"] = f"{cfg.prefix} {subject}".strip()
     msg["From"] = cfg.mail_from
     msg["To"] = to or cfg.to
     msg.set_content(text)
     msg.add_alternative(html, subtype="html")
+    if attachments:
+        for path in attachments:
+            if not path.exists():
+                log.warning("Report attachment not found: %s", path)
+                continue
+            size_mb = path.stat().st_size / 1_048_576
+            max_mb = int(os.environ.get("REPORT_MAX_ATTACH_MB", "10"))
+            if size_mb > max_mb:
+                log.warning(
+                    "Skipping attachment %s: %.1f MB > %d MB limit",
+                    path.name,
+                    size_mb,
+                    max_mb,
+                )
+                continue
+            with path.open("rb") as f:
+                data = f.read()
+            msg.add_attachment(
+                data, maintype="application", subtype="pdf", filename=path.name
+            )
+            log.info("Attached report: %s (%.1f MB)", path.name, size_mb)
     return msg
 
 
-def send_email(subject: str, html: str, text: str, to: str | None = None) -> None:
+def send_email(
+    subject: str,
+    html: str,
+    text: str,
+    to: str | None = None,
+    attachments: list[Path] | None = None,
+) -> None:
     cfg = settings()
-    msg = build_message(cfg, subject, html, text, to)
+    msg = build_message(cfg, subject, html, text, to, attachments)
     ctx = ssl.create_default_context()
     if cfg.use_ssl:
         server = smtplib.SMTP_SSL(cfg.host, cfg.port, context=ctx, timeout=30)

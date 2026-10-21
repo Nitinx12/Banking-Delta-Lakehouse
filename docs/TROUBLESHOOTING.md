@@ -68,6 +68,8 @@ Colour legend: `docs/PIPELINE.md`.
 | A table cell sticks out past the margin (`Overfull \hbox` in the log) | a long identifier or a message that cannot wrap | use the `ident` or `breakable` filter in `reports/chapters/`, or a narrower column; the `tex` tier fails on any overfull box |
 | `Underfull \hbox (badness 10000)` in the log | an empty line inside a page, no content | harmless, the `tex` tier only fails on errors and overfull boxes |
 | Numbers look wrong in the PDF | the fixture was edited | regenerate from the fixture: `make report-fixture`, then `make report-pdf` |
+| Watchdog mail has no incident PDF | incident report build failed | check `build_report` logs in the watchdog DAG; `REPORT_MAX_ATTACH_MB` limit may have been exceeded |
+| Weekly DAG never runs | `banking_report_weekly` is paused | un-pause deliberately; schedule is `0 8 * * 1` Asia/Kolkata |
 
 ## Stuck DAG — quick flow
 

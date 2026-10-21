@@ -21,6 +21,7 @@ from banking_airflow.commands import (
     finalize_cmd,
     load_or_test_cmd,
     publish_cmd,
+    report_command,
 )
 
 DAG_ID = "banking_delta_daily"
@@ -129,6 +130,15 @@ with DAG(
         execution_timeout=timedelta(minutes=10),
     )
 
+    build_report = step(
+        "build_report",
+        report_command("daily"),
+        trigger_rule="all_done",
+        retries=1,
+        retry_delay=timedelta(minutes=2),
+        execution_timeout=timedelta(minutes=15),
+    )
+
     @task(
         task_id="send_pipeline_summary",
         trigger_rule="all_done",
@@ -174,5 +184,5 @@ with DAG(
     extracts >> raw_tests
     for upstream, downstream in zip(steps, steps[1:]):
         upstream >> downstream
-    [preflight, *extracts, *steps] >> finalize >> summary
+    [preflight, *extracts, *steps] >> finalize >> build_report >> summary
     [preflight, *extracts, *steps] >> gate

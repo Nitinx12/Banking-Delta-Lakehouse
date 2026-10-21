@@ -96,14 +96,15 @@ cp .env.airflow.example .env.airflow                    # real secrets per envir
 # airflow/.env must define AIRFLOW_VERSION (compose interpolation)
 docker compose --env-file .env.airflow up airflow-init  # must exit 0
 docker compose --env-file .env.airflow up -d
-# UI: http://127.0.0.1:8080 — un-pause banking_delta_daily deliberately
+# UI: http://127.0.0.1:8080 — un-pause banking_delta_daily and banking_report_weekly deliberately
 ```
 
-- Image bakes the project venv + code (`airflow/Dockerfile`); `docker-compose.dev.yml`
-  bind-mounts the repo for development.
+- Image bakes the project venv + code + TeX toolchain (`airflow/Dockerfile` reads
+  `reports/apt-packages.txt`); `docker-compose.dev.yml` bind-mounts the repo for development.
 - Environment per stage = `.env.airflow` content (`PG_*`, `MYSQL_*`, `MONGO_*`,
-  `DATABRICKS_*`, `SMTP_*`). Keep it out of git.
-- The worker needs the `spark_cache` volume (Ivy jars) and ~6 GB.
+  `DATABRICKS_*`, `SMTP_*`, `REPORT_*`). Keep it out of git.
+- The worker needs the `spark_cache` volume (Ivy jars), the `report_output` volume (PDF
+  artefacts for mail attachment) and ~6 GB.
 
 ## 4. Dashboard
 

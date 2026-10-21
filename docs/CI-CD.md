@@ -51,7 +51,7 @@ flowchart TB
 | `.github/workflows/ci.yml` | `ci` | PR, push to `main`, manual | `make lint`, `sql-lint`, `unit`, `smoke`, `cov`, `report-fixture` (ubuntu); `tasks.bat lint` + `test` + `report-fixture` (windows) | **yes** (`gate`, `windows-gate`) |
 | `.github/workflows/leaks.yml` | `leaks` | PR, push to `main`, weekly, manual | gitleaks over full history with `.gitleaks.toml` | recommended |
 | `.github/workflows/codeql.yml` | `codeql` | PR, push to `main`, weekly | CodeQL Python `security-and-quality` | recommended |
-| `.github/workflows/nightly.yml` | `nightly` | schedule 20:00 UTC, manual | `make sql-smoke` + `make integration` on a disposable Postgres; `spark-smoke` on manual dispatch | no |
+| `.github/workflows/nightly.yml` | `nightly` | schedule 20:00 UTC, manual | `make sql-smoke` + `make integration` on a disposable Postgres; `spark-smoke` on manual dispatch; **optional** `make report-pdf` via Docker (`report-docker` target) | no |
 | `.github/workflows/release.yml` | `release` | tag `v*.*.*` | re-runs the gate, checks tag == `pyproject` version, creates a GitHub release | n/a |
 
 `.github/dependabot.yml` opens weekly, grouped update PRs for `uv` (repo), `pip`
@@ -78,7 +78,7 @@ The PR gate must stay fast and need nothing external. Heavier tiers are schedule
 | windows parity | `ci` (windows-gate) | nothing |
 | sql-smoke, integration | `nightly` / manual | disposable Postgres (`ALLOW_SQL_SMOKE=1`) |
 | spark-smoke | `nightly` (manual dispatch) | Java 17 (`make spark-smoke`) |
-| report-pdf, report-docker | manual | TeX Live or Docker (`make report-pdf`) |
+| report-pdf, report-docker | manual / optional nightly | TeX Live or Docker (`make report-pdf`) |
 | smoke-live, daily, publish, DQ against real data, Airflow triggers | **never in CI** | real credentials + approval |
 
 ## Windows parity

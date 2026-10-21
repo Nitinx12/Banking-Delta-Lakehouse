@@ -58,3 +58,11 @@ def publish_cmd() -> str:
 def finalize_cmd() -> str:
     """Close this DAG run's audit.pipeline_runs row exactly once, at the end."""
     return "-m banking_airflow.finalize_audit"
+
+
+def report_command(kind: str = "daily") -> str:
+    """Build the report for a DAG run. Uses the same audit data as finalize_audit."""
+    return (
+        f"python -m reports.scripts.build --kind {kind} "
+        "--dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'"
+    )

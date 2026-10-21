@@ -112,7 +112,9 @@ services:
     environment:
       <<: *airflow-env
       DUMB_INIT_SETSID: "0"
-    volumes: [spark_cache:/opt/banking/.spark]
+    volumes:
+      - spark_cache:/opt/banking/.spark
+      - report_output:/opt/banking/reports/output
     healthcheck:
       test: ["CMD-SHELL", "celery --app airflow.providers.celery.executors.celery_executor.app inspect ping -d celery@$${HOSTNAME}"]
       interval: 30s
@@ -125,3 +127,4 @@ services:
 volumes:
   airflow_db_data:
   spark_cache:
+  report_output:

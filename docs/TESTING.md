@@ -23,6 +23,7 @@ Rules: never weaken a test to get green (`AGENTS.md`).
 | Live smoke | `live` | `smoke-live` | real configured env (read-only) | ask first |
 | DQ gate (data) | — | `dq-*`, `dq` | populated warehouse | ask first |
 | Report TeX | `tex` | `report-tex`, `report-pdf`, `report-docker` | TeX Live or Docker | yes |
+| Report TeX CI | `tex` | `report-tex` | Docker image (no host TeX) | CI only |
 | Gate | — | `ci` = lint + sql-lint + unit + smoke + report-fixture | — | yes |
 
 **Unit test:** one function/class in isolation; collaborators faked; deterministic; no I/O
@@ -110,6 +111,24 @@ Restricted (ask first): `make spark-smoke`, `ALLOW_SQL_SMOKE=1 make sql-smoke in
 | `MART_CONFIG` has keys + watermark column + kind for all 7 marts | publish misconfiguration |
 | DAG: `max_active_runs=1`, DQ gates `retries=0`, `trigger_rule=all_done` on finalize/summary | orchestration regressions |
 | watermark code never mixes `extract_watermarks` and `etl_watermarks` | cross-layer corruption |
+| `reports.scripts.tex_escape` covers all 10 LaTeX specials + `None` + unicode | broken compiles from error text |
+| `reports.scripts.tex_escape` neutralises `\input{...}`, `\write18`, `\immediate` in free text | LaTeX injection through audit messages |
+| `reports.scripts.RenderTeX` is the only escape bypass; `StrictUndefined` raises on missing key | silent blanks, accidental raw output |
+| severity rules R001–R017: one table-driven test per rule | wrong or downgraded severity |
+| verdict is maximum severity; `UNKNOWN` never renders as `ok` | false green report |
+| latest attempt per table decides the table status | a retry that succeeded reported as failed |
+| redaction applied to every free text field, 300 char cap | secrets in mail or PDF |
+| `context.json` validates against schema for every fixture | contract drift |
+| chapter selection per kind and `drop_when_empty` | wrong chapters appearing |
+| deterministic render: same context gives byte-identical `.tex` | flaky diffs |
+| palette in `charts.py` equals colours in `bankingreport.sty` | design drift |
+| chart functions return a figure for empty data | build failure on quiet days |
+| `build --fixture X --no-pdf` leaves no `\VAR{` or `\BLOCK{` in `build/` | unrendered template text |
+| `tex` tier: every fixture compiles, log has no `!` errors, pages within budget | broken LaTeX |
+| `tex` tier: safe mode compiles when figures directory is empty | degraded path rot |
+| mail: attachment added, oversize skipped, missing file still sends | lost summary mail |
+| DAG integrity for `build_report` and `banking_report_weekly` | orchestration regressions |
+| read-only guard: collector issues only `SELECT` statements | accidental writes |
 
 ## Known status (2026-10-20)
 

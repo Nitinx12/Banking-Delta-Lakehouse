@@ -276,6 +276,10 @@ def get_spark(
         .config("spark.driver.host", "127.0.0.1")
         .config("spark.network.timeout", "600s")
         .config("spark.executor.heartbeatInterval", "60s")
+        # --- fix Spark 3.5 local-mode BlockManager NPE (idWithoutTopologyInfo) -------
+        .config("spark.driver.blockManager.port", "0")
+        .config("spark.blockManager.port", "0")
+        .config("spark.executor.instances", "1")
         # --- keep junk inside the project, not in cwd / user profile ---------------
         .config("spark.local.dir", str(spark_dir / "tmp"))
         .config("spark.sql.warehouse.dir", str(spark_dir / "warehouse"))
