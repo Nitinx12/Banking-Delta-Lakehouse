@@ -1,4 +1,4 @@
-# sqlfluff configuration for Banking-Delta (postgres dialect).
+# sqlfluff configuration for Banking-Delta-Lakehouse (postgres dialect).
 #
 # sql/ and tests/ are linted by `make sql-lint` (Makefile). This file records the
 # project's SQL conventions and the lint baseline.

@@ -1,4 +1,4 @@
-# Pipeline — Banking-Delta
+# Pipeline — Banking-Delta-Lakehouse
 
 Daily pipeline: MySQL / MongoDB / Databricks `public` → PySpark → PostgreSQL
 (`raw → staging → analytics → marts`) → Databricks Delta marts. SQL stored procedures do

@@ -1,5 +1,5 @@
 # =============================================================================
-# Banking-Delta task runner (GNU Make >= 3.82, bash).
+# Banking-Delta-Lakehouse task runner (GNU Make >= 3.82, bash).
 # Windows / cmd.exe users: use make.bat (same target names).
 # CI calls these same targets, so `make ci` green locally == CI green.
 #

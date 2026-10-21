@@ -335,7 +335,7 @@ def main(argv: list[str] | None = None) -> int:
 
     console.print(
         Panel.fit(
-            f"[bold]Banking-Delta daily pipeline[/bold]\n"
+            f"[bold]Banking-Delta-Lakehouse daily pipeline[/bold]\n"
             f"[dim]{len(steps)} step(s)  ·  stop on first failure: "
             f"{'no' if args.keep_going else 'yes'}[/dim]",
             border_style="cyan",

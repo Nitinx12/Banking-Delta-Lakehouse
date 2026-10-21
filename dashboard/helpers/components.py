@@ -143,6 +143,6 @@ def footer() -> None:
         else datetime.now(UTC).astimezone().strftime("%d %b %Y %H:%M")
     )
     st.caption(
-        f"Banking Delta · Databricks `{db.setting('DATABRICKS_CATALOG', 'main')}.marts` · "
+        f"Banking Delta Lakehouse · Databricks `{db.setting('DATABRICKS_CATALOG', 'main')}.marts` · "
         f"rendered {stamp} · auto-refresh {st.session_state.get('refresh_seconds', REFRESH_CHOICES['Off'])}s"
     )

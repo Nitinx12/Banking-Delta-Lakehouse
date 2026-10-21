@@ -1,4 +1,4 @@
-# Airflow — Banking-Delta
+# Airflow — Banking-Delta-Lakehouse
 
 Airflow 3.3.2 (CeleryExecutor) in Docker Compose orchestrates the daily run. It contains
 **no pipeline logic**: every task calls the same scripts and SQL as `python main.py`

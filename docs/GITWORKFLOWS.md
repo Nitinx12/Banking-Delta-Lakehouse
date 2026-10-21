@@ -1,4 +1,4 @@
-# Git workflows — Banking-Delta
+# Git workflows — Banking-Delta-Lakehouse
 
 How this repository manages git: branches, commits, hooks, the change loop and PR rules.
 Rules for AI agents (`AGENTS.md`) always win on conflict.

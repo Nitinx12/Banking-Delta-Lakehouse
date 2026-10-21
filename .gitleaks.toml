@@ -1,6 +1,6 @@
-# gitleaks config for Banking-Delta (used by `make leaks` and the CI `leaks` job).
+# gitleaks config for Banking-Delta-Lakehouse (used by `make leaks` and the CI `leaks` job).
 # Docs: https://github.com/gitleaks/gitleaks/blob/master/README.md
-title = "Banking-Delta secret scan"
+title = "Banking-Delta-Lakehouse secret scan"
 
 [extend]
 useDefault = true

@@ -1,4 +1,4 @@
-"""Banking Delta executive overview: headline KPIs and monthly trends."""
+"""Banking Delta Lakehouse executive overview: headline KPIs and monthly trends."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from lib import charts
 from lib.filter import render_sidebar
 
 st.set_page_config(
-    page_title="Banking Delta · Overview",
+    page_title="Banking Delta Lakehouse · Overview",
     page_icon="🏦",
     layout="wide",
     initial_sidebar_state="expanded",

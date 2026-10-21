@@ -1,4 +1,4 @@
-# CI/CD and automation — Banking-Delta
+# CI/CD and automation — Banking-Delta-Lakehouse
 
 Everything is driven by the same `make` targets developers run locally, so **green locally
 means green in CI**. Workflow files live in `.github/workflows/`. Rules for restricted

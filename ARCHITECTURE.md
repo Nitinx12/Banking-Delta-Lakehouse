@@ -1,10 +1,10 @@
-# Architecture — Banking-Delta
+# Architecture — Banking-Delta-Lakehouse
 
 > The blueprint of the project. Read this first; `AGENTS.md` holds the rules for
 > working in the repo, and `docs/*.md` drill into each subsystem. If this file and
 > the code disagree, the code wins — then fix this file.
 
-Banking-Delta is a **daily lakehouse pipeline**: three source systems are landed
+Banking-Delta-Lakehouse is a **daily lakehouse pipeline**: three source systems are landed
 into PostgreSQL with PySpark, transformed by SQL stored procedures through four
 layers (`raw → staging → analytics → marts`), gated by data-quality suites at every
 step, and finally published to Databricks Delta where a read-only dashboard serves
@@ -103,7 +103,7 @@ cross-cutting, red = DQ gates and failures, indigo = read-only consumers.
 ## 3. Repository map
 
 ```text
-Banking-Delta/
+Banking-Delta-Lakehouse/
 ├── main.py                     # 9 gated steps; the manual entry point
 ├── Makefile / tasks.bat        # single source of truth for dev tasks (Linux / Windows)
 ├── pyproject.toml              # deps, pytest markers, coverage floor, ruff config

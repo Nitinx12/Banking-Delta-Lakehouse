@@ -21,7 +21,7 @@ from lib import charts
 from lib.filter import apply_month_range, month_range, render_sidebar
 
 st.set_page_config(
-    page_title="Banking Delta · KPI Explorer",
+    page_title="Banking Delta Lakehouse · KPI Explorer",
     page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded",
