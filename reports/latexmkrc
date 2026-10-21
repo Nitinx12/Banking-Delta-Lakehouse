@@ -1,5 +1,6 @@
 # Build settings for the pipeline report: no shell escape, output in build/.
-$pdf_mode = 1;
+$pdf_mode = 5;
+$xelatex = 'xelatex -interaction=nonstopmode -halt-on-error -no-shell-escape %O %S';
 $pdflatex = 'pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape %O %S';
 $out_dir = 'build';
 $aux_dir = 'build/aux';

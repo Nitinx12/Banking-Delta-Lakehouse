@@ -2,9 +2,28 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{bankingreport}[2026/10/21 Banking Delta Lakehouse report style]
 
-\RequirePackage[T1]{fontenc}
-\RequirePackage[utf8]{inputenc}
-\RequirePackage{lmodern}
+% Fonts: Inter for the text, JetBrains Mono for identifiers, with a fallback
+% chain so a missing file never breaks the build.
+\RequirePackage{iftex}
+\ifXeTeX
+  \RequirePackage{fontspec}
+  \IfFileExists{fonts/Inter-Regular.ttf}{%
+    \setmainfont{Inter-Regular.ttf}[Path=fonts/, BoldFont=Inter-SemiBold.ttf,
+      ItalicFont=Inter-Italic.ttf, BoldItalicFont=Inter-SemiBoldItalic.ttf,
+      Numbers=Monospaced]%
+  }{%
+    \IfFontExistsTF{TeX Gyre Heros}{\setmainfont{TeX Gyre Heros}}{\setmainfont{Latin Modern Roman}}%
+  }
+  \IfFileExists{fonts/JetBrainsMono-Regular.ttf}{%
+    \setmonofont{JetBrainsMono-Regular.ttf}[Path=fonts/, BoldFont=JetBrainsMono-Bold.ttf]%
+  }{%
+    \IfFontExistsTF{TeX Gyre Cursor}{\setmonofont{TeX Gyre Cursor}}{\setmonofont{Latin Modern Mono}}%
+  }
+\else
+  \RequirePackage[T1]{fontenc}
+  \RequirePackage[utf8]{inputenc}
+  \RequirePackage{lmodern}
+\fi
 \RequirePackage{geometry}
 \RequirePackage{xcolor}
 \RequirePackage{tikz}

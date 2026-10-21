@@ -597,9 +597,9 @@ gradients, shadows or decorative images.
 | Identifiers, SQL, ids | JetBrains Mono (Regular, Bold) | table names, run ids, error categories |
 | Cover title only | Inter SemiBold, large | no second display font |
 
-Both families are open licence. Put the `.ttf` files and licence texts in `reports/fonts/`
-and commit them, because CI and the Airflow image have no network to fetch fonts. If a
-file is missing the build must still succeed:
+Both families are open licence. The `.ttf` files and their licence texts are in
+`reports/fonts/` and committed, because CI and the Airflow image have no network to fetch
+fonts. If a file is missing the build must still succeed:
 
 ```tex
 % Font setup with a fallback so a missing file never breaks the build.
@@ -617,13 +617,14 @@ Do the same for the mono font with `TeX Gyre Cursor` as the fallback. Never ship
 without its licence. If the font files are absent, ask a human to add them; do not invent
 or download them from an unknown source.
 
-**Current state (pending decision 2 in section 16).** The font files are not in the
-repository, so the builder compiles with pdfLaTeX and the scalable Latin Modern family
-(`\usepackage{lmodern}`), which `microtype` needs to expand. Latin Modern is metric
-compatible with the layout, so switching to Inter later changes the glyphs, not the page
-structure. The `fontspec` block above is the target state, not the shipped state: it
-arrives with the font files, the XeLaTeX switch in `latexmkrc` (`$pdf_mode = 5`) and the
-`fonts-inter` package already listed in `reports/apt-packages.txt`.
+**Current state.** The font files are in the repository: Inter 4.1 and JetBrains Mono 2.304
+(SIL OFL 1.1), each next to its licence text in `reports/fonts/`. The style file loads them
+with `fontspec` and `reports/latexmkrc` sets `$pdf_mode = 5` (XeLaTeX) for that. A pdfLaTeX
+build (an old checkout, or a manual `pdflatex main.tex`) keeps the scalable Latin Modern
+family (`\usepackage{lmodern}`), which `microtype` needs to expand. Latin Modern is metric
+compatible with the layout, so the fallback changes the glyphs, not the page structure. The
+charts register the same files with matplotlib, so the document and the figures share one
+typeface. Provenance and the update procedure: `reports/fonts/README.md`.
 
 Scale: base 10.5 pt, line spacing 1.2, section titles 16 pt, subsection 12 pt, table text
 9 pt, captions 8.5 pt. A4, margins 20 mm left and right, 22 mm top and bottom, text width
@@ -881,8 +882,8 @@ Also copy `reports/` into the image and run `uv sync --frozen --group reports`. 
 starts with `latexmk`, `texlive-xetex`, `texlive-latex-recommended`,
 `texlive-latex-extra`, `texlive-pictures`, `texlive-fonts-recommended` and `fontconfig`;
 trim or extend it after the first clean compile. `texlive-fonts-recommended` provides
-Latin Modern, which the pdfLaTeX build needs for `microtype`; `fonts-inter` is there for
-the XeLaTeX switch that waits on decision 2 in section 16.
+Latin Modern, which the pdfLaTeX fallback needs for `microtype`; `fonts-inter` is the
+system copy of Inter for the XeLaTeX build, next to the bundled files in `reports/fonts/`.
 
 `reports/Dockerfile` is the standalone builder: it installs the same package list, adds
 the report runtime (`jinja2`, `jsonschema`, `pyyaml`, `matplotlib`, `psycopg2-binary`,
@@ -1008,11 +1009,11 @@ These block specific phases. Do not guess; list them in the PR and ask.
 
 1. TeX inside the Airflow worker image (recommended) against a separate builder service.
    Needs an image size and build time decision.
-2. Final font files (Inter and JetBrains Mono) committed to `reports/fonts/` with licences.
-   Until they exist the builder compiles with pdfLaTeX and Latin Modern; the XeLaTeX
-   switch (`$pdf_mode = 5`) and the `fontspec` block wait for this decision. The
-   `lastpage.sty` package is optional for the same reason: without it the footer shows
-   "Page x" instead of "Page x of y".
+2. Font files: resolved. Inter 4.1 and JetBrains Mono 2.304 are in `reports/fonts/` with
+   their OFL licence texts, the style file loads them with `fontspec` and
+   `reports/latexmkrc` sets `$pdf_mode = 5` (XeLaTeX). The `lastpage.sty` package is
+   still optional for the same reason as before: without it the footer shows "Page x"
+   instead of "Page x of y".
 3. Recipients and the weekly schedule, and whether incident PDFs go to a wider list.
 4. Retention of PDFs and whether archived reports should also go to a bucket or volume.
 5. Whether the report should include a short "known open issues" appendix read from
