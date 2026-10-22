@@ -20,7 +20,8 @@ def get_pg_connection(application_name: str = "banking-pipeline"):
     """PostgreSQL warehouse connection (banking_delta). Caller owns commit/close.
 
     Session timezone is forced to UTC so all TIMESTAMPTZ operations
-    are consistent regardless of server configuration.
+    are consistent regardless of server configuration. A lock timeout turns a
+    wait on another session's lock into a fast, readable error instead of a hang.
     """
     import psycopg2
 
@@ -32,8 +33,8 @@ def get_pg_connection(application_name: str = "banking-pipeline"):
         password=os.environ.get("PG_PASS", ""),
         connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", 10)),
         application_name=application_name,
+        options=f"-c timezone=UTC -c lock_timeout={os.environ.get('PG_LOCK_TIMEOUT', '60s')}",
     )
-    conn.set_session(timezone="UTC")
     return conn
 
 

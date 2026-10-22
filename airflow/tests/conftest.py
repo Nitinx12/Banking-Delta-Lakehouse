@@ -1,7 +1,8 @@
 """Shared test setup: no DB, no Spark, no network.
 
-Adds `airflow/include` to sys.path so `banking_airflow` imports, points the
-DagBag at `airflow/dags`, and keeps tests import-safe on Windows dev boxes.
+Adds `airflow/include` (so `banking_airflow` imports) and the repo root (so
+`reports.*` resolves), points the DagBag at `airflow/dags`, and keeps tests
+import-safe on Windows dev boxes.
 """
 
 from __future__ import annotations
@@ -13,8 +14,9 @@ from pathlib import Path
 AIRFLOW_DIR = Path(__file__).resolve().parent.parent
 INCLUDE_DIR = AIRFLOW_DIR / "include"
 DAGS_DIR = AIRFLOW_DIR / "dags"
+REPO_ROOT = AIRFLOW_DIR.parent
 
-for path in (str(INCLUDE_DIR), str(AIRFLOW_DIR)):
+for path in (str(INCLUDE_DIR), str(AIRFLOW_DIR), str(REPO_ROOT)):
     if path not in sys.path:
         sys.path.insert(0, path)
 

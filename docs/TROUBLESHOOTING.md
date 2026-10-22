@@ -19,6 +19,8 @@ Colour legend: `docs/PIPELINE.md`.
 | `#` comment text reaches Maven | raw `SPARK_JARS_PACKAGES` | already fixed: `engine._clean_packages` / `_COORD_RE` |
 | Raw DQ schema check trips on `_stg_%` | transient landing tables | excluded via `c.relname NOT LIKE '\_stg\_%'` — keep the exclusion |
 | `03_register_sources.sql` seems to do nothing | `ON CONFLICT DO NOTHING` cannot flip rows | use `05_switch_mongo_databricks_incremental.sql` |
+| Extract killed at 180 s, no `table_runs` row, or `canceling statement due to lock timeout` | a second `main.py`/job still holds the same table or lock — every psycopg session now fails after `PG_LOCK_TIMEOUT` (default 60 s) instead of waiting forever | stop the other run first (`audit.pipeline_runs` left `RUNNING` = a killed process); never run two pipelines side by side |
+| pgAdmin SELECTs crawl, planner seq-scans a tiny dimension | stock PostgreSQL on an NVMe (`random_page_cost=4`, `shared_buffers=128MB`) plus stale statistics | host `postgresql.conf` now sets `random_page_cost=1.1`, `shared_buffers=1GB`, `work_mem=32MB`, `jit=off`; `ANALYZE` after bulk loads |
 
 ## Airflow
 

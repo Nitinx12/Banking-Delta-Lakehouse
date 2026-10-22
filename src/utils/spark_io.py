@@ -815,9 +815,35 @@ def promote_staging(
             else sql.Identifier(c)
             for c, _ in stg_cols
         )
-        cur.execute(
-            sql.SQL("INSERT INTO {} ({}) SELECT {} FROM {}").format(T, cols, select, S)
-        )
+
+        if cfg["load_strategy"] == "incremental" and cfg.get("business_key"):
+            business_key = _pg_ident(cfg["business_key"])
+            incremental_col = _pg_ident(cfg["incremental_column"])
+            cur.execute(
+                sql.SQL("""
+                    INSERT INTO {target} ({cols})
+                    SELECT {select}
+                    FROM (
+                        SELECT {select},
+                               ROW_NUMBER() OVER (PARTITION BY {business_key} ORDER BY {incremental_col} DESC) AS rn
+                        FROM {staging}
+                    ) s
+                    WHERE s.rn = 1
+                """).format(
+                    target=T,
+                    cols=cols,
+                    select=select,
+                    business_key=sql.Identifier(business_key),
+                    incremental_col=sql.Identifier(incremental_col),
+                    staging=S,
+                )
+            )
+        else:
+            cur.execute(
+                sql.SQL("INSERT INTO {} ({}) SELECT {} FROM {}").format(
+                    T, cols, select, S
+                )
+            )
         return cur.rowcount
 
 
