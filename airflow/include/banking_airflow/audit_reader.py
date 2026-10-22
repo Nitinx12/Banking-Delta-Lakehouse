@@ -65,6 +65,18 @@ FROM audit.v_dq_latest
 ORDER BY layer, script_name
 """
 
+TASK_STATES_SQL = """
+SELECT airflow_task_id, status, started_at, ended_at, duration_seconds
+FROM audit.table_runs
+WHERE pipeline_run_id = (
+    SELECT pipeline_run_id
+    FROM audit.pipeline_runs
+    WHERE dag_id = %(dag_id)s AND dag_run_id = %(dag_run_id)s
+)
+  AND airflow_task_id IS NOT NULL
+ORDER BY airflow_task_id, attempt_number
+"""
+
 
 def _connect():
     """Read-only, autocommit connection to the warehouse (caller closes it)."""
@@ -119,3 +131,21 @@ def dq_results(dag_id: str, dag_run_id: str) -> list[dict[str, Any]]:
 def latest_dq() -> list[dict[str, Any]]:
     """Latest result per DQ script (audit.v_dq_latest), independent of the run."""
     return _query(LATEST_DQ_SQL)
+
+
+def task_states(dag_id: str, dag_run_id: str) -> dict[str, str]:
+    """Get task states from audit.table_runs for this DAG run.
+
+    Returns a dict mapping airflow_task_id to the latest terminal state
+    (SUCCESS, FAILED, SKIPPED) or RUNNING if still in progress.
+    """
+    rows = _query(TASK_STATES_SQL, {"dag_id": dag_id, "dag_run_id": dag_run_id})
+    states: dict[str, str] = {}
+    for row in rows:
+        task_id = row.get("airflow_task_id")
+        if not task_id:
+            continue
+        # Use the latest attempt's status for each task
+        status = row.get("status", "RUNNING")
+        states[task_id] = status
+    return states

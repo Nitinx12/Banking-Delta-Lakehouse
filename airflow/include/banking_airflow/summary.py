@@ -46,6 +46,12 @@ PENDING_STATES = {
     "DEFERRED",
     "RESTARTING",
 }
+TERMINAL_STATES = {"SUCCESS", "FAILED", "UPSTREAM_FAILED", "SKIPPED", "REMOVED"}
+NON_SUMMARY_CORE_STEPS = tuple(
+    s
+    for s in CORE_STEPS
+    if s not in ("finalize_audit", "build_report", "send_pipeline_summary")
+)
 
 
 def _state_name(value: Any) -> str:
@@ -114,11 +120,21 @@ def run_date_label(logical_date: Any, start: Any, now: datetime) -> str:
         return now.strftime("%d %b %Y")
 
 
-def decide_status(task_states: dict[str, str], dag_run_state: Any = "") -> str:
+def decide_status(
+    task_states: dict[str, str],
+    dag_run_state: Any = "",
+    audit_status: str | None = None,
+) -> str:
     """Single source of truth for the banner; never reports success over a failure.
 
-    FAILED when any tracked step is failed/upstream_failed, when the DAG run
-    itself failed, or when a tracked step never reached a terminal state.
+    Terminal states: success | failed | upstream_failed | skipped | removed.
+    Everything else, including a missing key, is non-terminal.
+
+    Returns:
+        FAILED  - any core step failed/upstream_failed, or dag_run_state=failed
+        UNKNOWN - any core step (excl. summary tasks) missing or non-terminal
+        PARTIAL - audit.pipeline_runs.status == PARTIAL
+        SUCCESS - all core steps success and audit SUCCESS
     """
     if str(_state_name(dag_run_state)).lower() == "failed":
         return "FAILED"
@@ -126,10 +142,16 @@ def decide_status(task_states: dict[str, str], dag_run_state: Any = "") -> str:
         state = task_states.get(task_id)
         if state in FAILED_STATES:
             return "FAILED"
-    for task_id in CORE_STEPS:
+    # Missing or non-terminal state on a core step (excl. the summary tasks)
+    for task_id in NON_SUMMARY_CORE_STEPS:
         state = task_states.get(task_id)
-        if state in PENDING_STATES:
-            return "FAILED"
+        if not state or state not in TERMINAL_STATES:
+            return "UNKNOWN"
+    # All core steps terminal - check audit status
+    if audit_status == "PARTIAL":
+        return "PARTIAL"
+    if audit_status == "FAILED":
+        return "FAILED"
     return "SUCCESS"
 
 
@@ -158,7 +180,9 @@ def step_rows(
                 "state": state,
                 "duration": meta.get("duration", "—"),
                 "try_number": meta.get("try_number"),
-                "bad": state in FAILED_STATES or state in {"SKIPPED", "NOT_RUN"},
+                "bad": state in FAILED_STATES
+                or state in {"SKIPPED", "NOT_RUN"}
+                or (state not in TERMINAL_STATES and state != ""),
             }
         )
     return rows
@@ -174,6 +198,19 @@ def build_notes(status: str, task_states: dict[str, str]) -> list[str]:
         notes.append("No new data past the watermark for every incremental source.")
     if status == "SUCCESS":
         notes.append("All steps completed successfully.")
+    elif status == "UNKNOWN":
+        missing = [
+            t
+            for t in NON_SUMMARY_CORE_STEPS
+            if not task_states.get(t) or task_states.get(t) not in TERMINAL_STATES
+        ]
+        notes.append(
+            "Task states unavailable ({} of {}): {}".format(
+                len(missing), len(NON_SUMMARY_CORE_STEPS), ", ".join(missing)
+            )
+        )
+    elif status == "PARTIAL":
+        notes.append("audit.pipeline_runs recorded this run as PARTIAL.")
     return notes
 
 
@@ -262,11 +299,19 @@ def collect_latest_dq() -> list[dict[str, Any]]:
 def build_and_send(context: dict[str, Any]) -> None:
     """Render and send the summary. Section failures degrade, never abort the mail."""
     from banking_airflow import notify
+    from banking_airflow import audit_reader
 
     dag_run = context.get("dag_run")
     dag_id = getattr(context.get("dag"), "dag_id", "banking_delta_daily")
     run_id = context.get("run_id") or getattr(dag_run, "run_id", "")
-    task_states = task_states_from_context(context)
+    # Get task states from audit (source of truth in Airflow 3)
+    task_states = audit_reader.task_states(dag_id, run_id)
+    # Fallback to context task_states for backward compatibility
+    context_states = task_states_from_context(context)
+    # Merge: audit states take precedence, context states fill gaps
+    for k, v in context_states.items():
+        if k not in task_states:
+            task_states[k] = v
     states_raw = context.get("task_states") or {}
     getter = getattr(states_raw, "get", lambda *_args: None)
     details = {t: _detail(getter(t)) for t in CORE_STEPS}
@@ -281,7 +326,10 @@ def build_and_send(context: dict[str, Any]) -> None:
 
     start = getattr(dag_run, "start_date", None)
     end = getattr(dag_run, "end_date", None)
-    status = decide_status(task_states, getattr(dag_run, "state", ""))
+    # Get audit run status for decision
+    audit_run = sections["run"].data
+    audit_status = audit_run.get("status") if audit_run else None
+    status = decide_status(task_states, getattr(dag_run, "state", ""), audit_status)
     run_date = run_date_label(
         getattr(dag_run, "logical_date", None), start, datetime.now(UTC)
     )
