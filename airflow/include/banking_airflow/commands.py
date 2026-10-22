@@ -42,7 +42,15 @@ def extract_cmd(source: str) -> str:
 
 
 def load_or_test_cmd(step: str) -> str:
-    """`main.py --only <step>` for a load or DQ step."""
+    """`main.py --only <step>` for a load or DQ step.
+
+    For DQ test steps, pass Airflow context so tests can correlate with pipeline_run_id.
+    """
+    if step.endswith("-tests"):
+        return (
+            f"main.py --only {step} "
+            "--dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'"
+        )
     return f"main.py --only {step}"
 
 

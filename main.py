@@ -9,6 +9,7 @@ step stops the run, so nothing downstream sees half-loaded data, unless
     python main.py --list                # show the steps in order
     python main.py --from staging-load   # start at a step
     python main.py --only marts-load --only marts-tests
+    python main.py --dag-id ... --dag-run-id ...  # Airflow integration
 """
 
 from __future__ import annotations
@@ -143,11 +144,14 @@ def select_steps(
     return list(steps)
 
 
-def run_script(script: Path) -> tuple[str, str]:
+def run_script(
+    script: Path, dag_id: str | None = None, dag_run_id: str | None = None
+) -> tuple[str, str]:
     """Run one child script to completion; return (status, detail)."""
-    code = subprocess.run(
-        [sys.executable, str(script)], cwd=PROJECT_ROOT, check=False
-    ).returncode
+    cmd = [sys.executable, str(script)]
+    if dag_id and dag_run_id:
+        cmd.extend(["--dag-id", dag_id, "--dag-run-id", dag_run_id])
+    code = subprocess.run(cmd, cwd=PROJECT_ROOT, check=False).returncode
     if code == 0:
         return SUCCESS, ""
     return FAILED, f"exit {code}"
@@ -204,13 +208,15 @@ def run_load(schema: str) -> tuple[str, str]:
     return SUCCESS, ""
 
 
-def run_step(step: Step) -> tuple[str, str]:
+def run_step(
+    step: Step, dag_id: str | None = None, dag_run_id: str | None = None
+) -> tuple[str, str]:
     """Run a single step, whichever kind it is."""
     if step.schema:
         return run_load(step.schema)
     if step.script is None:
         return FAILED, "step is not runnable"
-    return run_script(step.script)
+    return run_script(step.script, dag_id, dag_run_id)
 
 
 def fmt_duration(seconds: float) -> str:
@@ -322,6 +328,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--list", action="store_true", help="list the steps in order and exit"
     )
+    parser.add_argument("--dag-id", help="Airflow DAG ID for audit correlation")
+    parser.add_argument("--dag-run-id", help="Airflow DAG run ID for audit correlation")
     args = parser.parse_args(argv)
 
     try:
@@ -352,7 +360,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             step_started = time.monotonic()
             try:
-                status, detail = run_step(step)
+                status, detail = run_step(step, args.dag_id, args.dag_run_id)
             except KeyboardInterrupt:
                 results.append(
                     StepResult(

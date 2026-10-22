@@ -57,6 +57,19 @@ def test_finalize_cmd_targets_the_audit_module():
     assert commands.finalize_cmd() == "-m banking_airflow.finalize_audit"
 
 
-@pytest.mark.parametrize("step", ["raw-tests", "staging-load", "marts-tests"])
-def test_load_or_test_cmd(step):
-    assert commands.load_or_test_cmd(step) == f"main.py --only {step}"
+@pytest.mark.parametrize(
+    "step, expected",
+    [
+        (
+            "raw-tests",
+            "main.py --only raw-tests --dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'",
+        ),
+        ("staging-load", "main.py --only staging-load"),
+        (
+            "marts-tests",
+            "main.py --only marts-tests --dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'",
+        ),
+    ],
+)
+def test_load_or_test_cmd(step, expected):
+    assert commands.load_or_test_cmd(step) == expected

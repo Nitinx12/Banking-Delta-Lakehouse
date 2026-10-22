@@ -11,6 +11,7 @@ only if every test passed.
     python scripts/run_raw_tests.py --master        # run 00_master_raw_tests.sql only
     python scripts/run_raw_tests.py -v              # also print each test's NOTICE lines
     python scripts/run_raw_tests.py --list          # list discovered tests and exit
+    python scripts/run_raw_tests.py --dag-id ... --dag-run-id ...  # Airflow integration
 """
 
 from __future__ import annotations
@@ -19,6 +20,7 @@ import argparse
 import re
 import sys
 import time
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -66,7 +68,7 @@ def discover_tests(only: str | None, master: bool = False) -> list[Path]:
     return tests
 
 
-def run_test(conn, path: Path) -> TestResult:
+def run_test(conn, path: Path, pipeline_run_id: uuid.UUID | None) -> TestResult:
     """Execute one test file and capture timing, notices, and any violation error."""
     name = path.name
     sql = path.read_text()
@@ -77,7 +79,13 @@ def run_test(conn, path: Path) -> TestResult:
         with conn.cursor() as cur:
             if proc:
                 cur.execute(sql)  # CREATE OR REPLACE PROCEDURE (autocommit commits it)
-                cur.execute(f"CALL {proc.group(1)}()")
+                if pipeline_run_id:
+                    cur.execute(
+                        f"CALL {proc.group(1)}(p_pipeline_run_id => %s)",
+                        (pipeline_run_id,),
+                    )
+                else:
+                    cur.execute(f"CALL {proc.group(1)}()")
             else:
                 cur.execute(sql)
         passed = True
@@ -183,6 +191,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--list", action="store_true", help="list discovered tests and exit"
     )
+    parser.add_argument("--dag-id", help="Airflow DAG ID for audit correlation")
+    parser.add_argument("--dag-run-id", help="Airflow DAG run ID for audit correlation")
     args = parser.parse_args(argv)
 
     tests = discover_tests(args.only, master=args.master)
@@ -202,6 +212,16 @@ def main(argv: list[str] | None = None) -> int:
             border_style="cyan",
         )
     )
+
+    pipeline_run_id = None
+    if args.dag_id and args.dag_run_id:
+        from utils.audit import start_pipeline_run
+
+        pipeline_run_id = start_pipeline_run(
+            dag_id=args.dag_id,
+            dag_run_id=args.dag_run_id,
+            trigger_type="airflow",
+        )
 
     try:
         conn = get_pg_connection(application_name="run_raw_tests")
@@ -227,7 +247,7 @@ def main(argv: list[str] | None = None) -> int:
             task = progress.add_task("running", total=len(tests))
             for path in tests:
                 progress.update(task, description=f"[cyan]{path.name}[/cyan]")
-                result = run_test(conn, path)
+                result = run_test(conn, path, pipeline_run_id)
                 results.append(result)
                 if args.verbose and result.notices:
                     for notice in result.notices:
