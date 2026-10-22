@@ -91,8 +91,14 @@ def build_message(
                 continue
             with path.open("rb") as f:
                 data = f.read()
+            if path.suffix.lower() == ".tex":
+                maintype, subtype = "application", "x-tex"
+            elif path.suffix.lower() == ".pdf":
+                maintype, subtype = "application", "pdf"
+            else:
+                maintype, subtype = "application", "octet-stream"
             msg.add_attachment(
-                data, maintype="application", subtype="pdf", filename=path.name
+                data, maintype=maintype, subtype=subtype, filename=path.name
             )
             log.info("Attached report: %s (%.1f MB)", path.name, size_mb)
     return msg

@@ -123,10 +123,12 @@ def decide_status(task_states: dict[str, str], dag_run_state: Any = "") -> str:
     if str(_state_name(dag_run_state)).lower() == "failed":
         return "FAILED"
     for task_id in CORE_STEPS:
-        if task_states.get(task_id, "") in FAILED_STATES:
+        state = task_states.get(task_id)
+        if state in FAILED_STATES:
             return "FAILED"
     for task_id in CORE_STEPS:
-        if task_states.get(task_id, "") in PENDING_STATES:
+        state = task_states.get(task_id)
+        if state in PENDING_STATES:
             return "FAILED"
     return "SUCCESS"
 
@@ -311,10 +313,12 @@ def build_and_send(context: dict[str, Any]) -> None:
 def _find_report_attachments(run_id: str, status: str) -> list:
     """Locate the daily and incident PDFs for this run."""
     import os
+    import re
     from pathlib import Path
 
     output_root = Path(os.environ.get("REPORT_OUTPUT_DIR", "reports/output"))
-    run_key = "".join(c if c.isalnum() or c == "_" else "_" for c in run_id)
+    _UNSAFE = re.compile(r"[^A-Za-z0-9_]+")
+    run_key = _UNSAFE.sub("_", run_id or "").strip("_")
 
     attachments = []
 
@@ -327,6 +331,10 @@ def _find_report_attachments(run_id: str, status: str) -> list:
     incident_path = output_root / "runs" / run_key / "incident.pdf"
     if incident_path.exists():
         attachments.append(incident_path)
+
+    # LaTeX source files
+    for tex_file in (output_root / "runs" / run_key).glob("*.tex"):
+        attachments.append(tex_file)
 
     return attachments
 

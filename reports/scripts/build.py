@@ -285,6 +285,13 @@ def _build_kind(
         "flow": flow_data,
     }
     _render(env, variables, chapter_names, paths.BUILD_DIR)
+
+    # Copy .tex source files to run directory for attachment
+    run_dir = paths.run_dir(run_key, out_root)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    for tex_file in paths.BUILD_DIR.glob("*.tex"):
+        shutil.copy(tex_file, run_dir / tex_file.name)
+
     verdict = context["verdict"]["severity"]
     if args.no_pdf:
         return {
@@ -308,6 +315,11 @@ def _build_kind(
         }
     safe_vars = {**variables, "figures": {}, "flow": None, "degraded": True}
     _render(env, safe_vars, chapter_names, paths.BUILD_DIR)
+
+    # Copy .tex source files for degraded build too
+    for tex_file in paths.BUILD_DIR.glob("*.tex"):
+        shutil.copy(tex_file, run_dir / tex_file.name)
+
     ok, target, pages = _compile_kind(kind, out_root, run_key, epoch)
     return {
         "kind": kind,

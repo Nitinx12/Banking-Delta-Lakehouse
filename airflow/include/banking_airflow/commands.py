@@ -63,6 +63,6 @@ def finalize_cmd() -> str:
 def report_command(kind: str = "daily") -> str:
     """Build the report for a DAG run. Uses the same audit data as finalize_audit."""
     return (
-        f"python -m reports.scripts.build --kind {kind} "
+        f"-m reports.scripts.build --kind {kind} "
         "--dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'"
     )

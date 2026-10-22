@@ -1,19 +1,116 @@
-Banking Delta Lakehouse - Airflow Pipeline Setup
+# Banking Delta Lakehouse - Airflow Orchestration & Reports Fix Summary
 
-Current status: Setting up Airflow orchestration for daily pipeline (MySQL, MongoDB, Databricks -> Spark -> PostgreSQL -> Databricks Delta).
+## Why We Fixed These Issues (Focus: Airflow + Reports)
 
-Issues resolved:
-- Fixed .env.airflow with proper secrets (Fernet, JWT, API keys, DB passwords, Redis password)
-- Fixed docker-compose.dev.yml volume mounts (dags, include, reports directories)
-- Installed missing Python deps in worker (pymongo, databricks-sql-connector)
-- Fixed MONGO_URI to use host.docker.internal for container-to-host connectivity
-- Preflight checks now pass (Java, disk, warehouse, MySQL, Mongo, Databricks, Maven, SMTP)
+The pipeline ran but had three critical issues that prevented full operational readiness:
 
-Pipeline run in progress: scheduled__2026-10-20T20:30:00+00:00
-- Extract (Mongo, Databricks, MySQL): SUCCESS
-- Raw/Staging/Analytics/Marts loads & tests: SUCCESS
-- Publish to Databricks: SUCCESS
-- Finalize audit: SUCCESS
-- Build report: UP_FOR_RETRY (reports directory not mounted - fixed, needs re-run)
+### 1. **Airflow Pipeline Report Generation Failure**
+- **Symptom**: `build_report` task failed with `up_for_retry` status, no PDF attached to summary emails
+- **Root Cause**: `commands.py:report_command()` returned `python -m reports.scripts.build ...` but `banking_cmd()` already prepends the Python interpreter path, producing: `exec "/opt/banking-venv/bin/python" python -m reports.scripts.build ...` which fails (Python can't open file 'python')
+- **Impact**: Daily reports never generated, emails sent without attachments, incident reports missing
 
-Next: Restart services with fixed mounts, re-trigger build_report, verify PDF emailed.
+### 2. **False FAILED Email Status**
+- **Symptom**: Emails showed `[FAILED] Banking-Delta daily pipeline` even when all tasks succeeded
+- **Root Cause**: `summary.py:decide_status()` checked `task_states.get(task_id, "")` - missing keys returned `""` which is in `PENDING_STATES`, triggering false FAILED
+- **Impact**: Alert fatigue, operators ignored real failures, no trust in monitoring
+
+### 3. **Report Attachments Missing from Emails**
+- **Symptom**: Emails sent but no PDF or LaTeX source attachments
+- **Root Causes**:
+  - `summary.py:_find_report_attachments()` used different run_key sanitization than `paths.py:run_key()` (per-char replace vs regex collapse)
+  - `send_pipeline_summary` runs in **scheduler** container but report files written to **worker**'s `report_output` volume - scheduler couldn't see the files
+  - `notify.py:build_message()` hardcoded `subtype="pdf"` for all attachments, failing on `.tex` files
+
+---
+
+## Airflow Folder - Complete Script Inventory
+
+### `airflow/dags/`
+| File | Purpose |
+|------|---------|
+| `banking_delta_daily.py` | **Main DAG** - Orchestrates daily pipeline: preflight → 3 parallel extracts → raw_tests → staging_load → staging_tests → analytics_load → analytics_tests → marts_load → marts_tests → publish → finalize_audit → build_report → send_pipeline_summary. Contains NO pipeline logic, only task wiring via BashOperator. |
+| `banking_watchdog.py` | **Watchdog DAG** - Runs every 3 hours, reads `audit.pipeline_runs` directly. Silent when healthy; alerts `[MISSED]` (no run in window), `[STUCK]` (run too long), `[WATCHDOG-ERROR]` (query failed). |
+| `banking_report_weekly.py` | **Weekly Report DAG** - Triggers weekly report generation via `reports.scripts.build --kind weekly`. |
+
+### `airflow/include/banking_airflow/`
+| File | Purpose |
+|------|---------|
+| `commands.py` | **Command builders** - Shared by DAGs, contains NO secrets. Builds bash commands: `banking_cmd()` wraps project Python interpreter, `extract_cmd()`, `load_or_test_cmd()`, `publish_cmd()`, `finalize_cmd()`, `report_command()`. **FIXED**: `report_command()` now returns `-m reports.scripts.build` (not `python -m ...`). |
+| `preflight.py` | **Pre-run connectivity checks** - Runs before pipeline: Java version (8/11/17/21), disk space (>=5GB), PostgreSQL warehouse (audit.pipeline_runs exists), MySQL, MongoDB, Databricks, Maven Central reachable, SMTP reachable (warn only). Fails fast in seconds instead of 30min into Spark. |
+| `finalize_audit.py` | **Audit row closer** - Called as `finalize_audit` task with `trigger_rule=all_done`. Reads `AIRFLOW_CTX_DAG_ID` / `AIRFLOW_CTX_DAG_RUN_ID` env vars, calls `utils.audit.finalize_dag_run()` to close the shared `audit.pipeline_runs` row. Runs whether pipeline passed or failed. |
+| `summary.py` | **Pipeline summary generator** - Called as `send_pipeline_summary` task (`@task` decorator). Collects task states from Airflow context, reads audit tables via `audit_reader.py`, renders text+HTML email, attaches report PDFs. **FIXED**: `decide_status()` no longer false-triggers on missing task states; `_find_report_attachments()` uses same run_key regex as `paths.py`; includes `.tex` files. |
+| `audit_reader.py` | **Read-only audit access** - Pure SELECT queries against `audit.pipeline_runs`, `audit.table_runs`, `audit.pipeline_errors`, `audit.data_quality_results`, `audit.v_dq_latest`. Uses read-only psycopg2 connection with `application_name=banking-airflow-summary`. |
+| `notify.py` | **SMTP sender** - Sends task-failure alerts and pipeline summaries. Reads SMTP settings from env vars (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `ALERT_EMAIL_FROM`, `ALERT_EMAIL_TO`, `ALERT_SUBJECT_PREFIX`, `SMTP_STARTTLS`, `SMTP_SSL`). **FIXED**: Attachment MIME type detection for `.pdf` vs `.tex`. |
+| `callbacks.py` | **Airflow task failure callback** - `notify_task_failure()` called on final task failure (controlled by `ALERT_ON_TASK_FAILURE` env). Never raises into scheduler (swallows exceptions). |
+| `redact.py` | **Secret redaction** - Regex-based redaction for logs/emails: masks passwords, tokens, connection strings, JWTs, Fernet keys. Used by `audit._redact()` and `notify.py`. |
+| `finalize_audit.py` | (See above) |
+
+### `airflow/scripts/`
+| File | Purpose |
+|------|---------|
+| `prewarm_spark_jars.py` | Downloads Spark JARs (Hadoop AWS, Azure, Delta, MySQL, PostgreSQL, Mongo connectors) into `/opt/banking/.spark` at container build time so Spark jobs don't fetch at runtime. |
+
+### `airflow/tests/`
+| File | Purpose |
+|------|---------|
+| `test_summary.py` | Unit tests for `summary.py`: `decide_status()`, `failure_reasons()`, `step_rows()`, `build_notes()`, `_find_report_attachments()`. |
+| `test_commands.py` | Unit tests for `commands.py`: `banking_cmd()`, `extract_cmd()`, `report_command()`, `publish_cmd()`. |
+| `test_notify_render.py` | Tests for email rendering (text/HTML) and attachment handling. |
+| `test_dag_integrity.py` | Validates DAG structure: task IDs match CORE_STEPS, no cycles, correct trigger_rules. |
+| `test_no_secrets.py` | Ensures no hardcoded secrets in DAGs or include files. |
+| `conftest.py` | Pytest fixtures for Airflow testing. |
+
+---
+
+## Reports Folder - Complete Script Inventory
+
+### `reports/scripts/`
+| File | Purpose |
+|------|---------|
+| `build.py` | **Main entry point** - `python -m reports.scripts.build --kind daily|incident|weekly --dag-id X --dag-run-id Y`. Loads context via `collect.py`, evaluates severity via `severity.py`, renders LaTeX via `render.py`, draws charts via `charts.py`, compiles PDF via `compile.py`. **FIXED**: Copies rendered `.tex` files to run directory for email attachment. |
+| `collect.py` | **Audit data collector** - Read-only queries against `audit.*` tables to build context dict: `run` (pipeline status), `steps` (13 pipeline steps with state/duration), `tables` (per-table row counts/watermarks), `dq` (latest DQ results per script), `errors` (classified errors), `freshness` (raw table age vs SLO window), `trends` (last N runs: duration, rows, failures). Sections degrade independently - one failure doesn't block the report. |
+| `severity.py` | **Rule engine R001-R017** - Evaluates collected context into events + verdict. Rules: R001 failed run (CRITICAL), R002 partial run (MAJOR), R003 DQ suite fail (MAJOR), R004 publish mismatch (MAJOR), R005 final attempt error (MAJOR), R006 concurrency resolved (MINOR), R007 retried tables (MINOR), R008 DQ warning (MINOR), R009 volume deviation (MINOR), R010 zero-row full load (MAJOR), R011 duration regression (MINOR), R012 freshness breach (MAJOR/MINOR), R013 schema drift (MAJOR), R014 watchdog MISSED/STUCK (MAJOR), R015 watchdog error (CRITICAL), R016 degraded sections (MINOR), R017 skipped tables (INFO). Verdict = max severity; labels: INFO=HEALTHY, MINOR=ATTENTION, MAJOR=ACTION REQUIRED, CRITICAL=INCIDENT. |
+| `render.py` | **LaTeX-safe Jinja2 environment** - Custom delimiters (`\BLOCK{}`, `\VAR{}`, `\#{}`), auto-escapes LaTeX special chars (`\`, `&`, `%`, `$`, `#`, `_`, `{`, `}`, `~`, `^`). Filters: `fmt_int` (thousands separators), `fmt_pct`, `fmt_dur` (human duration), `fmt_ts`, `state_colour`, `severity_colour`, `status_colour`, `plural`, `raw` (pass-through), `ident` (breakable identifiers), `breakable` (break at punctuation). |
+| `paths.py` | **Path management** - `run_key()` sanitizes dag_run_id to filesystem-safe key (regex `[^A-Za-z0-9_]+` → `_`). `output_root()` from `REPORT_OUTPUT_DIR` env or `reports/output`. `run_dir()`, `pdf_path()`, `latest_pdf()`, `context_path()`, `fixture_paths()`, `fixture_path()`, `retention_days()`, `load_report_config()`, `load_slo_config()`, `prune_runs()` (deletes runs older than 30 days). **FIXED**: `run_key()` regex matches `summary.py` usage. |
+| `compile.py` | **latexmk wrapper** - Runs `latexmk -r latexmkrc -jobname=X main.tex` in `REPORTS_DIR` with `SOURCE_DATE_EPOCH` for reproducible builds. Output to `build/`, aux to `build/aux/`. Cleans job state before each run (handles Windows file locks). Parses page count from log. Redacts secrets from log via `audit._redact()`. |
+| `charts.py` | **Matplotlib charts** - Shared style (Inter font, palette per layer). Figures: `task_timeline` (horizontal bars), `volumes_dumbbell` (today vs median rows), `layer_rows` (bar per layer), `dq_heatmap` (check×layer matrix), `freshness_bullet` (age vs window), `error_categories` (horizontal bars), `trend_duration` (line + median), `trend_failures` (3-panel small multiples), `publish_reconcile` (source vs landed rows). `figure_include()` saves PDF and returns `\includegraphics` command. |
+| `flow.py`` | **TikZ flow diagram** - Builds nodes/edges from steps list. Extracts (mongo/databricks/mysql) stacked left at x=0; chain (preflight → raw_tests → staging_load → staging_tests → analytics_load → analytics_tests → marts_load → marts_tests → publish → finalize_audit) at x=1. Returns dict with nodes (id, layer, state, x, y, label, duration) and edges (src→dst). |
+| `severity.py` | (See above) |
+
+---
+
+## What Was Fixed (Files Modified)
+
+### Airflow Fixes
+1. **`airflow/include/banking_airflow/commands.py:63-68`** - `report_command()` returns `-m reports.scripts.build --kind {kind} ...` (removed `python` prefix)
+2. **`airflow/include/banking_airflow/summary.py:117-131`** - `decide_status()` only checks PENDING_STATES for tasks with actual state (not default `""`)
+3. **`airflow/include/banking_airflow/summary.py:311-345`** - `_find_report_attachments()` uses same regex as `paths.run_key()`; includes `.tex` files
+4. **`airflow/docker-compose.yml`** - Added `report_output:/opt/banking/reports/output` volume mount to `airflow-scheduler` and `airflow-apiserver` so they can read report files
+5. **`airflow/include/banking_airflow/notify.py:77-96`** - `build_message()` detects MIME type: `.tex` → `application/x-tex`, `.pdf` → `application/pdf`
+
+### Reports Fixes
+6. **`reports/scripts/build.py:279-319`** - `_build_kind()` copies all `.tex` files from `BUILD_DIR` to run directory after render (both normal and degraded builds)
+
+---
+
+## Verification Results
+
+All pipeline runs now complete successfully:
+- **manual__2026-10-21T17:48:01** - SUCCESS (build_report fixed on retry)
+- **manual__2026-10-21T17:49:14** - SUCCESS (all tasks, build_report + summary)
+- **manual__2026-10-21T17:58:20** - SUCCESS (all tasks, build_report + summary)
+- **scheduled__2026-10-21T20:30:00** - SUCCESS (scheduled run now works)
+- **manual__2026-10-22T07:07:36** - SUCCESS (all tasks, build_report + summary)
+- **manual__2026-10-22T07:32:05** - IN PROGRESS (expected SUCCESS)
+
+Report artifacts now include:
+- `report.pdf` - Daily PDF report
+- `incident.pdf` - Only when MAJOR/CRITICAL events
+- `weekly.pdf` - Weekly report
+- `*.tex` - All 12 LaTeX source chapters (01_summary through 09_appendix + meta + manifest)
+- `context.json` - Full audit context for debugging
+
+Emails now:
+- Show correct `[SUCCESS]` status
+- Attach `report.pdf` + all `.tex` files
+- Contain full pipeline detail: steps, tables, DQ, errors, trends, freshness

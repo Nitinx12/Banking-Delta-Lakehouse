@@ -13,14 +13,15 @@ x-airflow-common: &airflow-common
   extra_hosts:
     - "host.docker.internal:host-gateway"
   volumes:
-    - ../dags:/opt/airflow/dags
+    - ./dags:/opt/airflow/dags
     - ../scripts:/opt/airflow/scripts
     - ../main.py:/opt/banking/main.py
     - ../src:/opt/banking/src
     - ../scripts:/opt/banking/scripts
     - ../sql:/opt/banking/sql
     - ../tests/data-quality:/opt/banking/tests/data-quality
-    - ../include:/opt/airflow/include
+    - ../reports:/opt/banking/reports
+    - ./include:/opt/airflow/include
 
 services:
   airflow-apiserver:

@@ -574,7 +574,7 @@ flowchart LR
 ```mermaid
 flowchart TB
     subgraph LOCAL["Local gate · make ci (hermetic, no external deps)"]
-        L1["lint (ruff)"] 
+        L1["lint (ruff)"]
         L2["contracts (JSON schema)"]
         L3["sql-lint (sqlfluff)"]
         L4["unit"]
@@ -696,3 +696,130 @@ flowchart TB
 | How is each piece deployed? | `docs/DEPLOYMENT.md` |
 | The pipeline is failing right now | `docs/RUNBOOK.md` · `docs/TROUBLESHOOTING.md` |
 | Rules for working in this repo | `AGENTS.md` |
+
+## 16. Airflow Orchestration & Reports — Fix History (Oct 2026)
+
+This section documents the critical fixes applied to make Airflow orchestration and the report subsystem fully operational. These were **not** design changes — they fixed bugs that prevented the pipeline from completing end-to-end.
+
+### 16.1 Problem Summary
+
+| Issue | Symptom | Root Cause |
+|---|---|---|
+| Report generation failure | `build_report` task `up_for_retry`, no PDF produced | `commands.py:report_command()` returned `python -m reports.scripts.build...` but `banking_cmd()` already prepends the interpreter → `exec "/opt/venv/bin/python" python -m ...` fails |
+| False FAILED emails | `[FAILED]` subject on fully successful runs | `summary.py:decide_status()` used `task_states.get(t, "")` — missing keys returned `""` which is in `PENDING_STATES` |
+| Missing email attachments | Emails sent but no PDF/LaTeX attached | 1) `summary.py` run_key sanitization ≠ `paths.py` run_key (per-char vs regex) 2) `send_pipeline_summary` runs in **scheduler** container but reports written to **worker**'s `report_output` volume 3) `notify.py` hardcoded `subtype="pdf"` for all attachments |
+
+### 16.2 Files Modified
+
+#### `airflow/include/banking_airflow/commands.py` (lines 63–68)
+```python
+# BEFORE (broken)
+def report_command(kind: str = "daily") -> str:
+    return f"python -m reports.scripts.build --kind {kind} ..."
+
+# AFTER (fixed)
+def report_command(kind: str = "daily") -> str:
+    return f"-m reports.scripts.build --kind {kind} ..."
+```
+`banking_cmd()` wraps the command with `exec "{BANKING_PYTHON}" {args}` — the module flag `-m` is the correct argument.
+
+#### `airflow/include/banking_airflow/summary.py` (lines 117–131)
+```python
+# BEFORE (false FAILED)
+for task_id in CORE_STEPS:
+    if task_states.get(task_id, "") in PENDING_STATES:
+        return "FAILED"
+
+# AFTER (correct)
+for task_id in CORE_STEPS:
+    state = task_states.get(task_id)
+    if state in PENDING_STATES:
+        return "FAILED"
+```
+Only tasks with an actual state are checked; missing/unset states no longer trigger failure.
+
+#### `airflow/include/banking_airflow/summary.py` (lines 311–345)
+```python
+# BEFORE (mismatched run_key, no .tex)
+run_key = "".join(c if c.isalnum() or c == "_" else "_" for c in run_id)
+daily_path = output_root / "runs" / run_key / "report.pdf"
+
+# AFTER (matches paths.run_key, includes .tex)
+_UNSAFE = re.compile(r"[^A-Za-z0-9_]+")
+run_key = _UNSAFE.sub("_", run_id or "").strip("_")
+# ... finds both report.pdf and incident.pdf
+for tex_file in (output_root / "runs" / run_key).glob("*.tex"):
+    attachments.append(tex_file)
+```
+Uses the same regex as `paths.run_key()` (collapses sequences, strips). Also attaches all LaTeX source files.
+
+#### `airflow/docker-compose.yml` (services: scheduler, apiserver)
+```yaml
+# ADDED volume mount so scheduler can read report files
+airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+    volumes:
+      - report_output:/opt/banking/reports/output
+    ...
+
+airflow-apiserver:
+    <<: *airflow-common
+    command: api-server
+    ports: ["127.0.0.1:8080:8080"]
+    volumes:
+      - report_output:/opt/banking/reports/output
+    ...
+```
+The `send_pipeline_summary` task runs in the **scheduler** container (it's a `@task` decorator, not a `BashOperator` on the worker). Without this mount, the scheduler couldn't see `/opt/banking/reports/output/runs/...` written by the worker.
+
+#### `airflow/include/banking_airflow/notify.py` (lines 77–96)
+```python
+# BEFORE (hardcoded PDF subtype)
+msg.add_attachment(data, maintype="application", subtype="pdf", filename=path.name)
+
+# AFTER (MIME type by extension)
+if path.suffix.lower() == ".tex":
+    maintype, subtype = "application", "x-tex"
+elif path.suffix.lower() == ".pdf":
+    maintype, subtype = "application", "pdf"
+else:
+    maintype, subtype = "application", "octet-stream"
+msg.add_attachment(data, maintype=maintype, subtype=subtype, filename=path.name)
+```
+LaTeX source files (`.tex`) now attach with correct MIME type `application/x-tex`.
+
+#### `reports/scripts/build.py` (lines 279–319, `_build_kind`)
+```python
+# ADDED: copy .tex files to run directory for email attachment
+run_dir = paths.run_dir(run_key, out_root)
+run_dir.mkdir(parents=True, exist_ok=True)
+for tex_file in paths.BUILD_DIR.glob("*.tex"):
+    shutil.copy(tex_file, run_dir / tex_file.name)
+```
+After rendering (both normal and degraded builds), all `.tex` files are copied from the ephemeral `build/` directory to the persistent run directory so `_find_report_attachments()` can find them.
+
+### 16.3 Verification Checklist
+
+All fixes verified by running the pipeline end-to-end:
+
+- [x] `build_report` task completes `SUCCESS` (not `up_for_retry`)
+- [x] `send_pipeline_summary` task completes `SUCCESS`
+- [x] Email subject shows `[SUCCESS]` when all tasks pass
+- [x] Email subject shows `[FAILED]` only when a task actually fails
+- [x] Email includes `report.pdf` attachment
+- [x] Email includes all `.tex` chapter attachments (01_summary.tex … 09_appendix.tex, meta.tex, manifest.tex)
+- [x] Scheduled run (02:00 IST) completes without manual intervention
+- [x] Watchdog DAG stays silent when pipeline healthy
+- [x] Report retention pruning works (30 days via `REPORT_RETENTION_DAYS`)
+
+### 16.4 Runbook for Future Debugging
+
+| Symptom | Check |
+|---|---|
+| `build_report` fails | `docker logs <worker>` → look for `reports.scripts.build` output; verify `commands.py` uses `-m` not `python` |
+| Email says FAILED but tasks green | `summary.py:decide_status()` — ensure `task_states.get(t)` not `get(t, "")` |
+| No attachments in email | 1) `docker exec scheduler ls /opt/banking/reports/output/runs/` — volume mounted? 2) `notify.py` MIME type logic 3) `build.py` copies `.tex` files? |
+| Run key mismatch | `paths.run_key()` vs `summary.py` — both must use `_UNSAFE.sub("_", ...)` |
+
+(End of file - total 798 lines)

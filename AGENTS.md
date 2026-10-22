@@ -28,6 +28,7 @@ Daily pipeline: MySQL, MongoDB and Databricks `public` → PySpark → PostgreSQ
 - Edit a migration that has been merged (add a new one)
 - Use `float` for money
 - Force-push, or skip or weaken a test or check to get CI green
+- Modify any `.env*` file without explicit user permission
 
 ## Git
 
