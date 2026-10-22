@@ -57,6 +57,66 @@ def test_finalize_cmd_targets_the_audit_module():
     assert commands.finalize_cmd() == "-m banking_airflow.finalize_audit"
 
 
-@pytest.mark.parametrize("step", ["raw-tests", "staging-load", "marts-tests"])
-def test_load_or_test_cmd(step):
-    assert commands.load_or_test_cmd(step) == f"main.py --only {step}"
+@pytest.mark.parametrize(
+    "step, expected",
+    [
+        (
+            "raw-tests",
+            "main.py --only raw-tests --dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'",
+        ),
+        ("staging-load", "main.py --only staging-load"),
+        (
+            "marts-tests",
+            "main.py --only marts-tests --dag-id {{ dag.dag_id }} --dag-run-id '{{ run_id }}'",
+        ),
+    ],
+)
+def test_load_or_test_cmd(step, expected):
+    assert commands.load_or_test_cmd(step) == expected
+
+
+@pytest.mark.parametrize(
+    "kind, expected_parts",
+    [
+        (
+            "daily",
+            [
+                "-m reports.scripts.build",
+                "--kind daily",
+                "--dag-id {{ dag.dag_id }}",
+                "--dag-run-id '{{ run_id }}'",
+            ],
+        ),
+        (
+            "incident",
+            [
+                "-m reports.scripts.build",
+                "--kind incident",
+                "--dag-id {{ dag.dag_id }}",
+                "--dag-run-id '{{ run_id }}'",
+            ],
+        ),
+        (
+            "weekly",
+            [
+                "-m reports.scripts.build",
+                "--kind weekly",
+                "--dag-id {{ dag.dag_id }}",
+                "--dag-run-id '{{ run_id }}'",
+            ],
+        ),
+    ],
+)
+def test_report_command_composed(kind, expected_parts):
+    """Regression test for I-05: report_command() composes correctly without
+    a leading 'python' and with -m module syntax."""
+    import shlex
+
+    cmd = commands.report_command(kind)
+    tokens = shlex.split(cmd)
+    # Should use -m module syntax, not bare 'python'
+    assert tokens[0] == "-m"
+    assert tokens[1] == "reports.scripts.build"
+    # All expected parts should be present
+    for part in expected_parts:
+        assert part in cmd

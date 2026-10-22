@@ -10,10 +10,18 @@ names and statuses only, never row values.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from typing import Any
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 log = logging.getLogger("banking.airflow.summary")
+
+REPORT_TZ = ZoneInfo(os.environ.get("REPORT_TIMEZONE", "Asia/Kolkata"))
 
 CORE_STEPS: tuple[str, ...] = (
     "preflight",
@@ -46,6 +54,12 @@ PENDING_STATES = {
     "DEFERRED",
     "RESTARTING",
 }
+TERMINAL_STATES = {"SUCCESS", "FAILED", "UPSTREAM_FAILED", "SKIPPED", "REMOVED"}
+NON_SUMMARY_CORE_STEPS = tuple(
+    s
+    for s in CORE_STEPS
+    if s not in ("finalize_audit", "build_report", "send_pipeline_summary")
+)
 
 
 def _state_name(value: Any) -> str:
@@ -90,6 +104,26 @@ def _duration(start: Any, end: Any) -> str:
     return f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
 
 
+def _watermark_to_display_tz(value: str | None) -> str | None:
+    """Convert a canonical UTC watermark string to the report timezone for display.
+
+    Input: 'YYYY-MM-DD HH:MM:SS[.ffffff]+00:00' (canonical UTC)
+    Output: 'YYYY-MM-DD HH:MM:SS[.ffffff] IST' (or configured timezone)
+    """
+    if not value:
+        return None
+    try:
+        # Parse as UTC
+        dt = datetime.fromisoformat(value.replace("+00:00", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        # Convert to display timezone
+        dt_local = dt.astimezone(REPORT_TZ)
+        return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
+    except (ValueError, AttributeError):
+        return value  # return as-is if parsing fails
+
+
 class Section:
     """One collector result: data, or the error that stopped it."""
 
@@ -114,11 +148,21 @@ def run_date_label(logical_date: Any, start: Any, now: datetime) -> str:
         return now.strftime("%d %b %Y")
 
 
-def decide_status(task_states: dict[str, str], dag_run_state: Any = "") -> str:
+def decide_status(
+    task_states: dict[str, str],
+    dag_run_state: Any = "",
+    audit_status: str | None = None,
+) -> str:
     """Single source of truth for the banner; never reports success over a failure.
 
-    FAILED when any tracked step is failed/upstream_failed, when the DAG run
-    itself failed, or when a tracked step never reached a terminal state.
+    Terminal states: success | failed | upstream_failed | skipped | removed.
+    Everything else, including a missing key, is non-terminal.
+
+    Returns:
+        FAILED  - any core step failed/upstream_failed, or dag_run_state=failed
+        UNKNOWN - any core step (excl. summary tasks) missing or non-terminal
+        PARTIAL - audit.pipeline_runs.status == PARTIAL
+        SUCCESS - all core steps success and audit SUCCESS
     """
     if str(_state_name(dag_run_state)).lower() == "failed":
         return "FAILED"
@@ -126,10 +170,16 @@ def decide_status(task_states: dict[str, str], dag_run_state: Any = "") -> str:
         state = task_states.get(task_id)
         if state in FAILED_STATES:
             return "FAILED"
-    for task_id in CORE_STEPS:
+    # Missing or non-terminal state on a core step (excl. the summary tasks)
+    for task_id in NON_SUMMARY_CORE_STEPS:
         state = task_states.get(task_id)
-        if state in PENDING_STATES:
-            return "FAILED"
+        if not state or state not in TERMINAL_STATES:
+            return "UNKNOWN"
+    # All core steps terminal - check audit status
+    if audit_status == "PARTIAL":
+        return "PARTIAL"
+    if audit_status == "FAILED":
+        return "FAILED"
     return "SUCCESS"
 
 
@@ -158,7 +208,9 @@ def step_rows(
                 "state": state,
                 "duration": meta.get("duration", "—"),
                 "try_number": meta.get("try_number"),
-                "bad": state in FAILED_STATES or state in {"SKIPPED", "NOT_RUN"},
+                "bad": state in FAILED_STATES
+                or state in {"SKIPPED", "NOT_RUN"}
+                or (state not in TERMINAL_STATES and state != ""),
             }
         )
     return rows
@@ -174,6 +226,19 @@ def build_notes(status: str, task_states: dict[str, str]) -> list[str]:
         notes.append("No new data past the watermark for every incremental source.")
     if status == "SUCCESS":
         notes.append("All steps completed successfully.")
+    elif status == "UNKNOWN":
+        missing = [
+            t
+            for t in NON_SUMMARY_CORE_STEPS
+            if not task_states.get(t) or task_states.get(t) not in TERMINAL_STATES
+        ]
+        notes.append(
+            "Task states unavailable ({} of {}): {}".format(
+                len(missing), len(NON_SUMMARY_CORE_STEPS), ", ".join(missing)
+            )
+        )
+    elif status == "PARTIAL":
+        notes.append("audit.pipeline_runs recorded this run as PARTIAL.")
     return notes
 
 
@@ -262,11 +327,19 @@ def collect_latest_dq() -> list[dict[str, Any]]:
 def build_and_send(context: dict[str, Any]) -> None:
     """Render and send the summary. Section failures degrade, never abort the mail."""
     from banking_airflow import notify
+    from banking_airflow import audit_reader
 
     dag_run = context.get("dag_run")
     dag_id = getattr(context.get("dag"), "dag_id", "banking_delta_daily")
     run_id = context.get("run_id") or getattr(dag_run, "run_id", "")
-    task_states = task_states_from_context(context)
+    # Get task states from audit (source of truth in Airflow 3)
+    task_states = audit_reader.task_states(dag_id, run_id)
+    # Fallback to context task_states for backward compatibility
+    context_states = task_states_from_context(context)
+    # Merge: audit states take precedence, context states fill gaps
+    for k, v in context_states.items():
+        if k not in task_states:
+            task_states[k] = v
     states_raw = context.get("task_states") or {}
     getter = getattr(states_raw, "get", lambda *_args: None)
     details = {t: _detail(getter(t)) for t in CORE_STEPS}
@@ -281,7 +354,10 @@ def build_and_send(context: dict[str, Any]) -> None:
 
     start = getattr(dag_run, "start_date", None)
     end = getattr(dag_run, "end_date", None)
-    status = decide_status(task_states, getattr(dag_run, "state", ""))
+    # Get audit run status for decision
+    audit_run = sections["run"].data
+    audit_status = audit_run.get("status") if audit_run else None
+    status = decide_status(task_states, getattr(dag_run, "state", ""), audit_status)
     run_date = run_date_label(
         getattr(dag_run, "logical_date", None), start, datetime.now(UTC)
     )
@@ -292,8 +368,8 @@ def build_and_send(context: dict[str, Any]) -> None:
         "run_date": run_date,
         "duration": _duration(start, end),
         "trigger_type": str(_state_name(getattr(dag_run, "run_type", "manual"))),
-        "env": context.get("env", "unknown"),
-        "git_sha": context.get("git_sha", "unknown"),
+        "env": os.environ.get("ENVIRONMENT", "unknown"),
+        "git_sha": os.environ.get("GIT_SHA", "unknown")[:12],
         "base_url": str(context.get("base_url", "")).rstrip("/"),
     }
 
@@ -311,30 +387,54 @@ def build_and_send(context: dict[str, Any]) -> None:
 
 
 def _find_report_attachments(run_id: str, status: str) -> list:
-    """Locate the daily and incident PDFs for this run."""
+    """Locate the daily and incident PDFs for this run.
+
+    Attachments: report.pdf (+ incident.pdf for MAJOR/CRITICAL), and a single
+    report_sources.zip containing all .tex files (instead of 12 loose files).
+    Total size capped by REPORT_MAX_ATTACH_MB (default 10 MB).
+    """
     import os
-    import re
+    import zipfile
     from pathlib import Path
 
-    output_root = Path(os.environ.get("REPORT_OUTPUT_DIR", "reports/output"))
-    _UNSAFE = re.compile(r"[^A-Za-z0-9_]+")
-    run_key = _UNSAFE.sub("_", run_id or "").strip("_")
+    from reports.scripts.paths import output_root as report_output_root, run_key
+
+    out_root = report_output_root()
+    key = run_key(run_id)
+    run_dir = out_root / "runs" / key
 
     attachments = []
+    max_mb = int(os.environ.get("REPORT_MAX_ATTACH_MB", "10"))
+    total_bytes = 0
+
+    def _maybe_add(path: Path) -> bool:
+        nonlocal total_bytes
+        if not path.exists():
+            return False
+        size = path.stat().st_size
+        if total_bytes + size > max_mb * 1_048_576:
+            return False
+        attachments.append(path)
+        total_bytes += size
+        return True
 
     # Daily report (always built)
-    daily_path = output_root / "runs" / run_key / "report.pdf"
-    if daily_path.exists():
-        attachments.append(daily_path)
+    daily_path = run_dir / "report.pdf"
+    _maybe_add(daily_path)
 
     # Incident report (built when any event is MAJOR or CRITICAL)
-    incident_path = output_root / "runs" / run_key / "incident.pdf"
-    if incident_path.exists():
-        attachments.append(incident_path)
+    incident_path = run_dir / "incident.pdf"
+    if status in ("MAJOR", "CRITICAL", "PARTIAL", "FAILED"):
+        _maybe_add(incident_path)
 
-    # LaTeX source files
-    for tex_file in (output_root / "runs" / run_key).glob("*.tex"):
-        attachments.append(tex_file)
+    # LaTeX source files: bundle into a single zip
+    tex_files = list(run_dir.glob("*.tex"))
+    if tex_files:
+        zip_path = run_dir / "report_sources.zip"
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for tex_file in tex_files:
+                zf.write(tex_file, arcname=tex_file.name)
+        _maybe_add(zip_path)
 
     return attachments
 
@@ -401,26 +501,54 @@ def render_text(
     lines += ["", f"TABLES (audit.table_runs, {len(tables)} attempt(s))"]
     for t in tables:
         mark = "!" if t["bad"] else " "
-        lines.append(
-            _row_text(
-                mark,
-                [
-                    ("layer", t["layer"]),
-                    ("source", t["source_table"]),
-                    ("target", t["target_table"]),
-                    ("status", t["status"]),
-                    ("try", t["attempt"]),
-                    ("extracted", t["rows_extracted"]),
-                    ("landed", t["rows_landed"]),
-                    (
-                        "watermark",
-                        f"{t['watermark_start']} -> {t['watermark_end']}"
-                        if t["watermark_start"] or t["watermark_end"]
-                        else None,
-                    ),
-                ],
-            )
-        )
+        layer = t["layer"]
+        wm_start = _watermark_to_display_tz(t["watermark_start"])
+        wm_end = _watermark_to_display_tz(t["watermark_end"])
+
+        # Label columns appropriately per layer
+        if layer == "marts":
+            # Marts are full refresh; show rows written, not watermark
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("read", t["rows_extracted"]),
+                ("written", t["rows_landed"]),
+            ]
+        elif layer in ("staging", "analytics"):
+            # Staging/analytics: read/changed (landed=0 is OK for no-op)
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("read", t["rows_extracted"]),
+                ("changed", t["rows_landed"]),
+                (
+                    "watermark",
+                    f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
+                ),
+            ]
+        else:
+            # Raw: extracted/landed with watermark
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("extracted", t["rows_extracted"]),
+                ("landed", t["rows_landed"]),
+                (
+                    "watermark",
+                    f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
+                ),
+            ]
+
+        lines.append(_row_text(mark, cols))
 
     dq = sections["dq"].data or []
     lines += ["", f"DQ RESULTS this run (audit.data_quality_results, {len(dq)})"]
@@ -534,34 +662,63 @@ def render_html(
         )
 
     tables = sections["tables"].data or []
+
+    # Build table rows with layer-appropriate columns
+    def _table_row(t: dict[str, Any]) -> list[str]:
+        layer = t["layer"]
+        wm_start = _watermark_to_display_tz(t["watermark_start"])
+        wm_end = _watermark_to_display_tz(t["watermark_end"])
+        wm = f"{wm_start} -> {wm_end}" if wm_start or wm_end else "—"
+
+        if layer == "marts":
+            return [
+                layer,
+                t["source_table"],
+                t["target_table"],
+                t["status"],
+                str(t["attempt"] or "—"),
+                str(t["rows_extracted"] or "—"),
+                str(t["rows_landed"] or "—"),
+                "—",
+            ]
+        if layer in ("staging", "analytics"):
+            return [
+                layer,
+                t["source_table"],
+                t["target_table"],
+                t["status"],
+                str(t["attempt"] or "—"),
+                str(t["rows_extracted"] or "—"),
+                str(t["rows_landed"] or "—"),
+                wm,
+            ]
+        return [
+            layer,
+            t["source_table"],
+            t["target_table"],
+            t["status"],
+            str(t["attempt"] or "—"),
+            str(t["rows_extracted"] or "—"),
+            str(t["rows_landed"] or "—"),
+            wm,
+        ]
+
+    # Headers vary by layer; use superset for HTML
+    table_headers = [
+        "Layer",
+        "Source",
+        "Target",
+        "Status",
+        "Try",
+        "Read",
+        "Written/Changed",
+        "Watermark",
+    ]
     blocks.append(
         table(
             f"Tables (audit.table_runs, {len(tables)})",
-            [
-                "Layer",
-                "Source",
-                "Target",
-                "Status",
-                "Try",
-                "Extracted",
-                "Landed",
-                "Watermark",
-            ],
-            [
-                [
-                    t["layer"],
-                    t["source_table"],
-                    t["target_table"],
-                    t["status"],
-                    t["attempt"],
-                    t["rows_extracted"],
-                    t["rows_landed"],
-                    f"{t['watermark_start']} -> {t['watermark_end']}"
-                    if t["watermark_start"] or t["watermark_end"]
-                    else "—",
-                ]
-                for t in tables
-            ],
+            table_headers,
+            [_table_row(t) for t in tables],
         )
     )
 

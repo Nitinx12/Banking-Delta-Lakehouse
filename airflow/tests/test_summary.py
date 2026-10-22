@@ -40,23 +40,26 @@ def _meta():
 
 
 @pytest.mark.parametrize(
-    ("states", "dag_state", "expected"),
+    ("states", "dag_state", "audit_status", "expected"),
     [
-        (ALL_OK, "success", "SUCCESS"),
-        ({**ALL_OK, "raw_tests": "FAILED"}, "failed", "FAILED"),
-        ({**ALL_OK, "marts_tests": "UPSTREAM_FAILED"}, "failed", "FAILED"),
-        ({**ALL_OK, "publish": "UPSTREAM_FAILED"}, "failed", "FAILED"),
-        ({**ALL_OK, "publish": "RUNNING"}, "running", "FAILED"),
-        ({}, "", "FAILED"),
+        (ALL_OK, "success", None, "SUCCESS"),
+        (ALL_OK, "success", "SUCCESS", "SUCCESS"),
+        (ALL_OK, "success", "PARTIAL", "PARTIAL"),
+        (ALL_OK, "success", "FAILED", "FAILED"),
+        ({**ALL_OK, "raw_tests": "FAILED"}, "failed", None, "FAILED"),
+        ({**ALL_OK, "marts_tests": "UPSTREAM_FAILED"}, "failed", None, "FAILED"),
+        ({**ALL_OK, "publish": "UPSTREAM_FAILED"}, "failed", None, "FAILED"),
+        ({**ALL_OK, "publish": "RUNNING"}, "running", None, "UNKNOWN"),
+        ({}, "", None, "UNKNOWN"),
     ],
 )
-def test_decide_status_truth_table(states, dag_state, expected):
-    assert summary.decide_status(states, dag_state) == expected
+def test_decide_status_truth_table(states, dag_state, audit_status, expected):
+    assert summary.decide_status(states, dag_state, audit_status) == expected
 
 
 def test_decide_status_never_reports_success_over_a_missing_step():
     partial = {k: "SUCCESS" for k in ALL_OK if k != "analytics_tests"}
-    assert summary.decide_status(partial, "running") == "FAILED"
+    assert summary.decide_status(partial, "running") == "UNKNOWN"
 
 
 def test_run_date_label_handles_none_logical_date():
@@ -137,7 +140,7 @@ def test_build_and_send_uses_current_context(monkeypatch):
         sent["attachments"] = attachments
 
     monkeypatch.setattr(notify, "send_email", fake_send)
-    _stub_audit(monkeypatch)
+    _stub_audit(monkeypatch, task_states=dict(ALL_OK))
 
     class DagRun:
         run_id = "r1"
@@ -164,7 +167,15 @@ def test_build_and_send_uses_current_context(monkeypatch):
     assert "banking_delta_daily" in sent["html"]
 
 
-def _stub_audit(monkeypatch, run=None, tables=None, errors=None, dq=None, latest=None):
+def _stub_audit(
+    monkeypatch,
+    run=None,
+    tables=None,
+    errors=None,
+    dq=None,
+    latest=None,
+    task_states=None,
+):
     from banking_airflow import audit_reader
 
     monkeypatch.setattr(audit_reader, "pipeline_run", lambda *_a: run)
@@ -172,6 +183,7 @@ def _stub_audit(monkeypatch, run=None, tables=None, errors=None, dq=None, latest
     monkeypatch.setattr(audit_reader, "errors", lambda *_a: errors or [])
     monkeypatch.setattr(audit_reader, "dq_results", lambda *_a: dq or [])
     monkeypatch.setattr(audit_reader, "latest_dq", lambda *_a: latest or [])
+    monkeypatch.setattr(audit_reader, "task_states", lambda *_a: task_states or {})
 
 
 def test_collect_tables_maps_audit_columns(monkeypatch):

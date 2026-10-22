@@ -82,9 +82,15 @@ airflow/tests/             # Airflow wiring: DAG integrity, commands, summary, r
 ```bash
 uv run pytest tests/smoke/test_imports.py -q    # one file
 uv run pytest -m unit -k redact -x              # keyword, stop on first failure
+pwsh scripts/run_tests.ps1                      # every test file + all 4 DQ suites, report at the end
 make format                                      # auto-fix style
 make ci                                          # lint + sql-lint + unit + smoke
 ```
+
+`scripts/run_tests.ps1` runs each pytest file on its own, then the raw/staging/analytics/marts
+DQ runners, and prints a per-file report with totals (saved to `logs/test-report-<stamp>.txt`,
+exit 1 on any failure). `-SkipDq` drops the DQ suites, `-Filter <text>` picks files, `-Marker all`
+runs every marker (`spark`, `tex`, ...) instead of the default `unit or smoke`.
 
 Restricted (ask first): `make spark-smoke`, `ALLOW_SQL_SMOKE=1 make sql-smoke integration`
 (disposable PG only), `make smoke-live`.

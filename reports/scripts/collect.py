@@ -290,7 +290,7 @@ def collect(
         registry = _fetch(
             own,
             """
-            SELECT target_table
+            SELECT target_table, load_strategy, incremental_column, source_id
             FROM audit.source_tables
             WHERE target_schema = 'raw' AND is_enabled
             ORDER BY target_table
@@ -300,22 +300,84 @@ def collect(
         now = datetime.now(timezone.utc)
         for entry in registry:
             table = str(entry["target_table"])
-            query = sql.SQL("SELECT max(_loaded_at) AS loaded FROM raw.{}").format(
-                sql.Identifier(table)
-            )
-            loaded = _fetch(own, query.as_string(own))[0]["loaded"]
-            slo = windows.get("tables", {}).get(table, {})
-            window = str(slo.get("window", default_window))
-            age_s = None if loaded is None else (now - loaded).total_seconds()
-            rows.append(
-                {
-                    "table": table,
-                    "age_s": age_s,
-                    "window": window,
-                    "breached": age_s is not None and age_s > _window_seconds(window),
-                    "severity": slo.get("severity", "WARNING"),
-                }
-            )
+            load_strategy = entry["load_strategy"]
+
+            # For full-load tables, freshness is not applicable (refreshed every run)
+            # For incremental tables, use extract watermark (source freshness)
+            if load_strategy == "full":
+                # Full-load tables are refreshed every run; measure source business timestamp if available
+                # For now, mark as N/A since _loaded_at reflects run time, not source freshness
+                query = sql.SQL("SELECT max(_loaded_at) AS loaded FROM raw.{}").format(
+                    sql.Identifier(table)
+                )
+                loaded = _fetch(own, query.as_string(own))[0]["loaded"]
+                age_s = None if loaded is None else (now - loaded).total_seconds()
+                rows.append(
+                    {
+                        "table": table,
+                        "age_s": age_s,
+                        "window": "N/A (full reload)",
+                        "breached": False,
+                        "severity": "INFO",
+                        "note": "Full reload; _loaded_at reflects run time",
+                    }
+                )
+            else:
+                # Incremental tables: use extract watermark for source freshness
+                # Get the last successful extract watermark
+                wm = _fetch(
+                    own,
+                    """
+                    SELECT last_watermark_value
+                    FROM audit.extract_watermarks
+                    WHERE config_id = (
+                        SELECT config_id FROM audit.source_tables
+                        WHERE target_table = %s AND target_schema = 'raw'
+                    )
+                    """,
+                    (table,),
+                )
+                watermark_value = wm[0]["last_watermark_value"] if wm else None
+
+                if watermark_value is None:
+                    # No watermark yet; fall back to _loaded_at
+                    query = sql.SQL(
+                        "SELECT max(_loaded_at) AS loaded FROM raw.{}"
+                    ).format(sql.Identifier(table))
+                    loaded = _fetch(own, query.as_string(own))[0]["loaded"]
+                    age_s = None if loaded is None else (now - loaded).total_seconds()
+                else:
+                    # Parse watermark as UTC and compute age
+                    try:
+                        # Watermark is stored in canonical UTC format (+00:00)
+                        from datetime import datetime as dt
+
+                        wm_dt = dt.fromisoformat(watermark_value.replace("Z", "+00:00"))
+                        if wm_dt.tzinfo is None:
+                            wm_dt = wm_dt.replace(tzinfo=timezone.utc)
+                        age_s = (now - wm_dt).total_seconds()
+                    except (ValueError, AttributeError):
+                        # Fallback
+                        query = sql.SQL(
+                            "SELECT max(_loaded_at) AS loaded FROM raw.{}"
+                        ).format(sql.Identifier(table))
+                        loaded = _fetch(own, query.as_string(own))[0]["loaded"]
+                        age_s = (
+                            None if loaded is None else (now - loaded).total_seconds()
+                        )
+
+                slo = windows.get("tables", {}).get(table, {})
+                window = str(slo.get("window", default_window))
+                breached = age_s is not None and age_s > _window_seconds(window)
+                rows.append(
+                    {
+                        "table": table,
+                        "age_s": age_s,
+                        "window": window,
+                        "breached": breached,
+                        "severity": slo.get("severity", "WARNING"),
+                    }
+                )
         return rows
 
     def _trends():

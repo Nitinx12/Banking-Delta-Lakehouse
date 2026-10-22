@@ -17,10 +17,15 @@ from .config import require
 
 
 def get_pg_connection(application_name: str = "banking-pipeline"):
-    """PostgreSQL warehouse connection (banking_delta). Caller owns commit/close."""
+    """PostgreSQL warehouse connection (banking_delta). Caller owns commit/close.
+
+    Session timezone is forced to UTC so all TIMESTAMPTZ operations
+    are consistent regardless of server configuration. A lock timeout turns a
+    wait on another session's lock into a fast, readable error instead of a hang.
+    """
     import psycopg2
 
-    return psycopg2.connect(
+    conn = psycopg2.connect(
         host=require("PG_HOST"),
         port=int(os.environ.get("PG_PORT", 5432)),
         dbname=require("PG_DB"),
@@ -28,14 +33,20 @@ def get_pg_connection(application_name: str = "banking-pipeline"):
         password=os.environ.get("PG_PASS", ""),
         connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", 10)),
         application_name=application_name,
+        options=f"-c timezone=UTC -c lock_timeout={os.environ.get('PG_LOCK_TIMEOUT', '60s')}",
     )
+    return conn
 
 
 def get_mysql_connection():
-    """MySQL source connection (read-mostly). Caller owns close."""
+    """MySQL source connection (read-mostly). Caller owns close.
+
+    Session timezone is forced to UTC so datetime operations
+    are consistent regardless of server configuration.
+    """
     import pymysql
 
-    return pymysql.connect(
+    conn = pymysql.connect(
         host=require("MYSQL_HOST"),
         port=int(os.environ.get("MYSQL_PORT", 3306)),
         user=require("MYSQL_USER"),
@@ -45,6 +56,9 @@ def get_mysql_connection():
         autocommit=True,  # we only run SELECTs here
         connect_timeout=int(os.environ.get("MYSQL_CONNECT_TIMEOUT", 15)),
     )
+    with conn.cursor() as cur:
+        cur.execute("SET time_zone = '+00:00'")
+    return conn
 
 
 def get_mongo_client():
