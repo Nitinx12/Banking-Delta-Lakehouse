@@ -44,7 +44,9 @@ logger = get_logger(__name__)
 _MYSQL_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_$]*$")
 _DBX_IDENT = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _PG_IDENT = re.compile(r"^[a-z_][a-z0-9_]*$")
-_TS = re.compile(r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(\.\d{1,6})?Z?$")
+_TS = re.compile(
+    r"^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$"
+)
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _NUM = re.compile(r"^-?\d+(\.\d+)?$")
 _OID = re.compile(r"^[0-9a-fA-F]{24}$")
@@ -65,10 +67,14 @@ def _pg_ident(name: str) -> str:
 
 
 def _norm_ts(value: str) -> str:
-    """'2024-05-01 10:00:00.123' / '...T...Z' -> 'YYYY-MM-DD HH:MM:SS[.ffffff]'."""
+    """'2024-05-01 10:00:00.123' / '...T...Z' -> 'YYYY-MM-DD HH:MM:SS[.ffffff]+00:00' (canonical UTC)."""
     if not _TS.match(value):
         raise ValueError(f"Bad timestamp watermark: {value!r}")
-    return value.rstrip("Z").replace("T", " ")
+    # Ensure canonical UTC format with explicit +00:00 offset
+    normalized = value.rstrip("Z").replace("T", " ")
+    if not normalized.endswith("+00:00"):
+        normalized = normalized + "+00:00"
+    return normalized
 
 
 def _mysql_literal(strategy: str, value: str) -> str:
@@ -124,7 +130,10 @@ def _dbx_literal(strategy: str, value: str) -> str:
 
 # ------------------------------------------------------- batch window (source)
 def mysql_max_watermark(cfg: dict) -> Optional[str]:
-    """MAX(incremental_column) straight from MySQL, in MySQL's own format (index it!)."""
+    """MAX(incremental_column) straight from MySQL, in MySQL's own format (index it!).
+
+    Returns canonical UTC timestamp string with +00:00 offset for timestamp columns.
+    """
     col, schema, table = (
         _ident(cfg["incremental_column"]),
         _ident(cfg["source_schema"]),
@@ -133,11 +142,18 @@ def mysql_max_watermark(cfg: dict) -> Optional[str]:
     with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
         cur.execute(f"SELECT MAX(`{col}`) FROM `{schema}`.`{table}`")
         (value,) = cur.fetchone()
-    return None if value is None else str(value)
+    if value is None:
+        return None
+    if hasattr(value, "isoformat"):  # datetime
+        return value.isoformat(sep=" ", timespec="microseconds") + "+00:00"
+    return str(value)
 
 
 def mongo_max_watermark(cfg: dict) -> Optional[str]:
-    """Highest value of incremental_column in the collection (needs an index on it)."""
+    """Highest value of incremental_column in the collection (needs an index on it).
+
+    Returns canonical UTC timestamp string with +00:00 offset.
+    """
     col = cfg["incremental_column"]
     with closing(get_mongo_client()) as client:
         doc = client[cfg["source_schema"]][cfg["source_table"]].find_one(
@@ -147,12 +163,16 @@ def mongo_max_watermark(cfg: dict) -> Optional[str]:
         return None
     value = doc[col]
     if hasattr(value, "isoformat"):  # datetime (pymongo returns naive UTC)
-        return value.isoformat(sep=" ", timespec="microseconds")
+        # pymongo returns naive UTC; make it explicit
+        return value.isoformat(sep=" ", timespec="microseconds") + "+00:00"
     return str(value)
 
 
 def databricks_max_watermark(cfg: dict) -> Optional[str]:
-    """MAX(incremental_column) straight from Databricks, in a normalised text form."""
+    """MAX(incremental_column) straight from Databricks, in a normalised text form.
+
+    Returns canonical UTC timestamp string with +00:00 offset.
+    """
     col = _dbx_ident(cfg["incremental_column"])
     with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
         cur.execute(f"SELECT MAX(`{col}`) FROM {_dbx_qualified(cfg)}")
@@ -164,7 +184,7 @@ def databricks_max_watermark(cfg: dict) -> Optional[str]:
             return value.isoformat()
         if value.tzinfo is not None:  # watermark text is naive UTC (see _norm_ts)
             value = value.astimezone(timezone.utc).replace(tzinfo=None)
-        return value.isoformat(sep=" ", timespec="microseconds")
+        return value.isoformat(sep=" ", timespec="microseconds") + "+00:00"
     return str(value)
 
 

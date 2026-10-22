@@ -10,10 +10,18 @@ names and statuses only, never row values.
 from __future__ import annotations
 
 import logging
+import os
 from datetime import UTC, datetime
 from typing import Any
 
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
 log = logging.getLogger("banking.airflow.summary")
+
+REPORT_TZ = ZoneInfo(os.environ.get("REPORT_TIMEZONE", "Asia/Kolkata"))
 
 CORE_STEPS: tuple[str, ...] = (
     "preflight",
@@ -94,6 +102,26 @@ def _duration(start: Any, end: Any) -> str:
         return "—"
     minutes, seconds = divmod(total, 60)
     return f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
+
+
+def _watermark_to_display_tz(value: str | None) -> str | None:
+    """Convert a canonical UTC watermark string to the report timezone for display.
+
+    Input: 'YYYY-MM-DD HH:MM:SS[.ffffff]+00:00' (canonical UTC)
+    Output: 'YYYY-MM-DD HH:MM:SS[.ffffff] IST' (or configured timezone)
+    """
+    if not value:
+        return None
+    try:
+        # Parse as UTC
+        dt = datetime.fromisoformat(value.replace("+00:00", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        # Convert to display timezone
+        dt_local = dt.astimezone(REPORT_TZ)
+        return dt_local.strftime("%Y-%m-%d %H:%M:%S %Z")
+    except (ValueError, AttributeError):
+        return value  # return as-is if parsing fails
 
 
 class Section:
@@ -449,6 +477,8 @@ def render_text(
     lines += ["", f"TABLES (audit.table_runs, {len(tables)} attempt(s))"]
     for t in tables:
         mark = "!" if t["bad"] else " "
+        wm_start = _watermark_to_display_tz(t["watermark_start"])
+        wm_end = _watermark_to_display_tz(t["watermark_end"])
         lines.append(
             _row_text(
                 mark,
@@ -462,9 +492,7 @@ def render_text(
                     ("landed", t["rows_landed"]),
                     (
                         "watermark",
-                        f"{t['watermark_start']} -> {t['watermark_end']}"
-                        if t["watermark_start"] or t["watermark_end"]
-                        else None,
+                        f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
                     ),
                 ],
             )
@@ -604,7 +632,7 @@ def render_html(
                     t["attempt"],
                     t["rows_extracted"],
                     t["rows_landed"],
-                    f"{t['watermark_start']} -> {t['watermark_end']}"
+                    f"{_watermark_to_display_tz(t['watermark_start'])} -> {_watermark_to_display_tz(t['watermark_end'])}"
                     if t["watermark_start"] or t["watermark_end"]
                     else "—",
                 ]
