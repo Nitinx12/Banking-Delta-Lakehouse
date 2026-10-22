@@ -388,28 +388,26 @@ def build_and_send(context: dict[str, Any]) -> None:
 
 def _find_report_attachments(run_id: str, status: str) -> list:
     """Locate the daily and incident PDFs for this run."""
-    import os
-    import re
-    from pathlib import Path
 
-    output_root = Path(os.environ.get("REPORT_OUTPUT_DIR", "reports/output"))
-    _UNSAFE = re.compile(r"[^A-Za-z0-9_]+")
-    run_key = _UNSAFE.sub("_", run_id or "").strip("_")
+    from reports.scripts.paths import output_root as report_output_root, run_key
+
+    out_root = report_output_root()
+    key = run_key(run_id)
 
     attachments = []
 
     # Daily report (always built)
-    daily_path = output_root / "runs" / run_key / "report.pdf"
+    daily_path = out_root / "runs" / key / "report.pdf"
     if daily_path.exists():
         attachments.append(daily_path)
 
     # Incident report (built when any event is MAJOR or CRITICAL)
-    incident_path = output_root / "runs" / run_key / "incident.pdf"
+    incident_path = out_root / "runs" / key / "incident.pdf"
     if incident_path.exists():
         attachments.append(incident_path)
 
     # LaTeX source files
-    for tex_file in (output_root / "runs" / run_key).glob("*.tex"):
+    for tex_file in (out_root / "runs" / key).glob("*.tex"):
         attachments.append(tex_file)
 
     return attachments
