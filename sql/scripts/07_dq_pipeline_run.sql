@@ -21,11 +21,12 @@ ALTER TABLE audit.dq_run
 CREATE INDEX IF NOT EXISTS ix_dq_run_pipeline_run
     ON audit.dq_run (pipeline_run_id);
 
--- Update v_dq_latest to include pipeline_run_id and is_this_run flag
--- Note: is_this_run requires a context parameter; we'll use a session variable
+-- Recreate view: column set changes, so CREATE OR REPLACE alone cannot swap it
+DROP VIEW IF EXISTS audit.v_dq_latest;
+
 CREATE OR REPLACE VIEW audit.v_dq_latest AS
 SELECT DISTINCT ON (layer, script_name)
        layer, script_name, run_id, pipeline_run_id,
-       started_at, status, violation_count
+       started_at, finished_at, status, violation_count
 FROM audit.dq_run
 ORDER BY layer, script_name, started_at DESC;

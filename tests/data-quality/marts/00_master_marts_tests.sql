@@ -17,27 +17,27 @@
 --               pg_cron, or the runner above)
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_master_marts_tests()
+CREATE OR REPLACE PROCEDURE audit.dq_master_marts_tests(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_run_id BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('marts', '00_master_marts_tests.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('marts', '00_master_marts_tests.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
-    CALL audit.dq_marts_metadata_col();
-    CALL audit.dq_marts_primary_key_check();
-    CALL audit.dq_marts_date_check();
-    CALL audit.dq_marts_orphan_rows_check();
-    CALL audit.dq_marts_business_rules();
-    CALL audit.dq_marts_numeric_ranges();
-    CALL audit.dq_marts_schema_contract();
-    CALL audit.dq_marts_completeness();
-    CALL audit.dq_marts_duplicate_rows();
-    CALL audit.dq_marts_value_domains();
-    CALL audit.dq_marts_reconciliation();
+    CALL audit.dq_marts_metadata_col(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_primary_key_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_date_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_orphan_rows_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_business_rules(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_numeric_ranges(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_schema_contract(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_completeness(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_duplicate_rows(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_value_domains(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_marts_reconciliation(p_pipeline_run_id => p_pipeline_run_id);
 
     UPDATE audit.dq_run
     SET finished_at     = now(),

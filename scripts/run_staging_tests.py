@@ -72,7 +72,7 @@ def run_test(conn, path: Path, pipeline_run_id: uuid.UUID | None) -> TestResult:
     """Execute one test file and capture timing, notices, and any violation error."""
     name = path.name
     sql = path.read_text()
-    proc = re.search(r"PROCEDURE\s+([\w.]+)\s*\(\s*\)", sql)
+    proc = re.search(r"PROCEDURE\s+([\w.]+)\s*\(", sql)
     del conn.notices[:]
     start = time.perf_counter()
     try:

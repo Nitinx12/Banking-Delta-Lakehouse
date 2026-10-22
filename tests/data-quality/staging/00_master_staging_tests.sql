@@ -17,26 +17,26 @@
 --               pg_cron, or the runner above)
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_master_staging_tests()
+CREATE OR REPLACE PROCEDURE audit.dq_master_staging_tests(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_run_id BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('staging', '00_master_staging_tests.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('staging', '00_master_staging_tests.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
-    CALL audit.dq_staging_metadata_col();
-    CALL audit.dq_staging_primary_key_check();
-    CALL audit.dq_staging_date_check();
-    CALL audit.dq_staging_orphan_rows_check();
-    CALL audit.dq_staging_business_rules();
-    CALL audit.dq_staging_numeric_ranges();
-    CALL audit.dq_staging_schema_contract();
-    CALL audit.dq_staging_completeness();
-    CALL audit.dq_staging_duplicate_rows();
-    CALL audit.dq_staging_value_domains();
+    CALL audit.dq_staging_metadata_col(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_primary_key_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_date_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_orphan_rows_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_business_rules(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_numeric_ranges(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_schema_contract(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_completeness(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_duplicate_rows(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_staging_value_domains(p_pipeline_run_id => p_pipeline_run_id);
 
     UPDATE audit.dq_run
     SET finished_at     = now(),

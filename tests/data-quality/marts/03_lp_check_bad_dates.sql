@@ -18,7 +18,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_marts_date_check()
+CREATE OR REPLACE PROCEDURE audit.dq_marts_date_check(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -69,8 +69,8 @@ DECLARE
     v_max_future  TIMESTAMP;
     v_run_id      BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('marts', '03_lp_check_bad_dates.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('marts', '03_lp_check_bad_dates.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     -- Safe parser for text columns. Returns NULL for anything that is not a

@@ -17,7 +17,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_staging_completeness()
+CREATE OR REPLACE PROCEDURE audit.dq_staging_completeness(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -53,8 +53,8 @@ DECLARE
     v_checked    INT := 0;
     v_run_id     BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('staging', '08_lp_check_completeness.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('staging', '08_lp_check_completeness.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     FOR v_tbl IN

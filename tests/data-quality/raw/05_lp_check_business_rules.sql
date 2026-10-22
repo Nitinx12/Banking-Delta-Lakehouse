@@ -11,7 +11,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_raw_business_rules()
+CREATE OR REPLACE PROCEDURE audit.dq_raw_business_rules(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -44,8 +44,8 @@ DECLARE
     v_checked    INT := 0;
     v_run_id     BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('raw', '05_lp_check_business_rules.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('raw', '05_lp_check_business_rules.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     -- casts a text value to timestamp when it looks like an ISO date

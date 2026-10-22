@@ -18,29 +18,29 @@
 --               pg_cron, or the runner above)
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_master_analytics_tests()
+CREATE OR REPLACE PROCEDURE audit.dq_master_analytics_tests(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
     v_run_id BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('analytics', '00_master_analytics_tests.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('analytics', '00_master_analytics_tests.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
-    CALL audit.dq_analytics_metadata_col();
-    CALL audit.dq_analytics_primary_key_check();
-    CALL audit.dq_analytics_date_check();
-    CALL audit.dq_analytics_orphan_rows_check();
-    CALL audit.dq_analytics_business_rules();
-    CALL audit.dq_analytics_numeric_ranges();
-    CALL audit.dq_analytics_schema_contract();
-    CALL audit.dq_analytics_completeness();
-    CALL audit.dq_analytics_duplicate_rows();
-    CALL audit.dq_analytics_value_domains();
-    CALL audit.dq_analytics_date_key_check();
-    CALL audit.dq_analytics_derived_attributes();
-    CALL audit.dq_analytics_reconciliation();
+    CALL audit.dq_analytics_metadata_col(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_primary_key_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_date_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_orphan_rows_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_business_rules(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_numeric_ranges(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_schema_contract(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_completeness(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_duplicate_rows(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_value_domains(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_date_key_check(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_derived_attributes(p_pipeline_run_id => p_pipeline_run_id);
+    CALL audit.dq_analytics_reconciliation(p_pipeline_run_id => p_pipeline_run_id);
 
     UPDATE audit.dq_run
     SET finished_at     = now(),

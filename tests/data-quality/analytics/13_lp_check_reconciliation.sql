@@ -14,7 +14,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_analytics_reconciliation()
+CREATE OR REPLACE PROCEDURE audit.dq_analytics_reconciliation(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -84,8 +84,8 @@ DECLARE
     v_checked    INT := 0;
     v_run_id     BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('analytics', '13_lp_check_reconciliation.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('analytics', '13_lp_check_reconciliation.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     -- ---- 1-2. row counts and key coverage ----

@@ -15,7 +15,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_analytics_schema_contract()
+CREATE OR REPLACE PROCEDURE audit.dq_analytics_schema_contract(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -51,8 +51,8 @@ DECLARE
     v_checked    INT := 0;
     v_run_id     BIGINT;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('analytics', '07_lp_check_schema_contract.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('analytics', '07_lp_check_schema_contract.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     FOR v_tbl IN

@@ -16,7 +16,7 @@
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
 -- ============================================================
 
-CREATE OR REPLACE PROCEDURE audit.dq_marts_metadata_col()
+CREATE OR REPLACE PROCEDURE audit.dq_marts_metadata_col(p_pipeline_run_id UUID DEFAULT NULL)
 LANGUAGE plpgsql
 AS $$
 DECLARE
@@ -33,8 +33,8 @@ DECLARE
     v_future     BIGINT;
     v_max_ts     TIMESTAMPTZ;
 BEGIN
-    INSERT INTO audit.dq_run (layer, script_name)
-    VALUES ('marts', '01_lp_check_metadata_col.sql')
+    INSERT INTO audit.dq_run (layer, script_name, pipeline_run_id)
+    VALUES ('marts', '01_lp_check_metadata_col.sql', p_pipeline_run_id)
     RETURNING run_id INTO v_run_id;
 
     FOR v_tbl IN
