@@ -368,8 +368,8 @@ def build_and_send(context: dict[str, Any]) -> None:
         "run_date": run_date,
         "duration": _duration(start, end),
         "trigger_type": str(_state_name(getattr(dag_run, "run_type", "manual"))),
-        "env": context.get("env", "unknown"),
-        "git_sha": context.get("git_sha", "unknown"),
+        "env": os.environ.get("ENVIRONMENT", "unknown"),
+        "git_sha": os.environ.get("GIT_SHA", "unknown")[:12],
         "base_url": str(context.get("base_url", "")).rstrip("/"),
     }
 
