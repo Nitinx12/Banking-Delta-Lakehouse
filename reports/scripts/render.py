@@ -27,6 +27,8 @@ _SEVERITY_COLOURS = {
     "MAJOR": "bad",
     "CRITICAL": "crit",
     "UNKNOWN": "idle",
+    "WARNING": "warn",
+    "ERROR": "bad",
 }
 
 
