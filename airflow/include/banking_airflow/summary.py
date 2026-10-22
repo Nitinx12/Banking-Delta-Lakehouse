@@ -475,26 +475,54 @@ def render_text(
     lines += ["", f"TABLES (audit.table_runs, {len(tables)} attempt(s))"]
     for t in tables:
         mark = "!" if t["bad"] else " "
+        layer = t["layer"]
         wm_start = _watermark_to_display_tz(t["watermark_start"])
         wm_end = _watermark_to_display_tz(t["watermark_end"])
-        lines.append(
-            _row_text(
-                mark,
-                [
-                    ("layer", t["layer"]),
-                    ("source", t["source_table"]),
-                    ("target", t["target_table"]),
-                    ("status", t["status"]),
-                    ("try", t["attempt"]),
-                    ("extracted", t["rows_extracted"]),
-                    ("landed", t["rows_landed"]),
-                    (
-                        "watermark",
-                        f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
-                    ),
-                ],
-            )
-        )
+
+        # Label columns appropriately per layer
+        if layer == "marts":
+            # Marts are full refresh; show rows written, not watermark
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("read", t["rows_extracted"]),
+                ("written", t["rows_landed"]),
+            ]
+        elif layer in ("staging", "analytics"):
+            # Staging/analytics: read/changed (landed=0 is OK for no-op)
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("read", t["rows_extracted"]),
+                ("changed", t["rows_landed"]),
+                (
+                    "watermark",
+                    f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
+                ),
+            ]
+        else:
+            # Raw: extracted/landed with watermark
+            cols = [
+                ("layer", layer),
+                ("source", t["source_table"]),
+                ("target", t["target_table"]),
+                ("status", t["status"]),
+                ("try", t["attempt"]),
+                ("extracted", t["rows_extracted"]),
+                ("landed", t["rows_landed"]),
+                (
+                    "watermark",
+                    f"{wm_start} -> {wm_end}" if wm_start or wm_end else None,
+                ),
+            ]
+
+        lines.append(_row_text(mark, cols))
 
     dq = sections["dq"].data or []
     lines += ["", f"DQ RESULTS this run (audit.data_quality_results, {len(dq)})"]
@@ -608,34 +636,63 @@ def render_html(
         )
 
     tables = sections["tables"].data or []
+
+    # Build table rows with layer-appropriate columns
+    def _table_row(t: dict[str, Any]) -> list[str]:
+        layer = t["layer"]
+        wm_start = _watermark_to_display_tz(t["watermark_start"])
+        wm_end = _watermark_to_display_tz(t["watermark_end"])
+        wm = f"{wm_start} -> {wm_end}" if wm_start or wm_end else "—"
+
+        if layer == "marts":
+            return [
+                layer,
+                t["source_table"],
+                t["target_table"],
+                t["status"],
+                str(t["attempt"] or "—"),
+                str(t["rows_extracted"] or "—"),
+                str(t["rows_landed"] or "—"),
+                "—",
+            ]
+        if layer in ("staging", "analytics"):
+            return [
+                layer,
+                t["source_table"],
+                t["target_table"],
+                t["status"],
+                str(t["attempt"] or "—"),
+                str(t["rows_extracted"] or "—"),
+                str(t["rows_landed"] or "—"),
+                wm,
+            ]
+        return [
+            layer,
+            t["source_table"],
+            t["target_table"],
+            t["status"],
+            str(t["attempt"] or "—"),
+            str(t["rows_extracted"] or "—"),
+            str(t["rows_landed"] or "—"),
+            wm,
+        ]
+
+    # Headers vary by layer; use superset for HTML
+    table_headers = [
+        "Layer",
+        "Source",
+        "Target",
+        "Status",
+        "Try",
+        "Read",
+        "Written/Changed",
+        "Watermark",
+    ]
     blocks.append(
         table(
             f"Tables (audit.table_runs, {len(tables)})",
-            [
-                "Layer",
-                "Source",
-                "Target",
-                "Status",
-                "Try",
-                "Extracted",
-                "Landed",
-                "Watermark",
-            ],
-            [
-                [
-                    t["layer"],
-                    t["source_table"],
-                    t["target_table"],
-                    t["status"],
-                    t["attempt"],
-                    t["rows_extracted"],
-                    t["rows_landed"],
-                    f"{_watermark_to_display_tz(t['watermark_start'])} -> {_watermark_to_display_tz(t['watermark_end'])}"
-                    if t["watermark_start"] or t["watermark_end"]
-                    else "—",
-                ]
-                for t in tables
-            ],
+            table_headers,
+            [_table_row(t) for t in tables],
         )
     )
 
