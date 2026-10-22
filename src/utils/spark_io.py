@@ -479,9 +479,27 @@ def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
     col, strat = _dbx_ident(cfg["incremental_column"]), cfg["watermark_strategy"]
     clauses = [f"`{col}` <= {_dbx_literal(strat, end)}"]
     if start is not None:
-        # strict > : created_at is often shared by a whole batch, so >= would
-        # re-read every row already loaded at the watermark and duplicate raw
-        clauses.append(f"`{col}` > {_dbx_literal(strat, start)}")
+        # Use >= with a small look-back overlap to avoid losing rows that share
+        # the watermark timestamp. The staging layer dedupes by business key.
+        # Look-back window defaults to 1 minute (configurable via DATABRICKS_LOOKBACK_MINUTES).
+        lookback_minutes = int(os.environ.get("DATABRICKS_LOOKBACK_MINUTES", "1"))
+        from datetime import datetime, timedelta
+
+        try:
+            # Parse the start watermark and subtract lookback
+            start_dt = datetime.fromisoformat(
+                start.replace("Z", "+00:00").replace(" ", "T")
+            )
+            if start_dt.tzinfo is None:
+                start_dt = start_dt.replace(tzinfo=timezone.utc)
+            lookback_start = start_dt - timedelta(minutes=lookback_minutes)
+            lookback_str = lookback_str = (
+                lookback_start.strftime("%Y-%m-%d %H:%M:%S") + "+00:00"
+            )
+            clauses.append(f"`{col}` >= {_dbx_literal(strat, lookback_str)}")
+        except (ValueError, AttributeError):
+            # Fallback to strict > if parsing fails
+            clauses.append(f"`{col}` > {_dbx_literal(strat, start)}")
     return " WHERE " + " AND ".join(clauses)
 
 
