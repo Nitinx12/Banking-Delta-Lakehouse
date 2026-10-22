@@ -387,28 +387,54 @@ def build_and_send(context: dict[str, Any]) -> None:
 
 
 def _find_report_attachments(run_id: str, status: str) -> list:
-    """Locate the daily and incident PDFs for this run."""
+    """Locate the daily and incident PDFs for this run.
+
+    Attachments: report.pdf (+ incident.pdf for MAJOR/CRITICAL), and a single
+    report_sources.zip containing all .tex files (instead of 12 loose files).
+    Total size capped by REPORT_MAX_ATTACH_MB (default 10 MB).
+    """
+    import os
+    import zipfile
+    from pathlib import Path
 
     from reports.scripts.paths import output_root as report_output_root, run_key
 
     out_root = report_output_root()
     key = run_key(run_id)
+    run_dir = out_root / "runs" / key
 
     attachments = []
+    max_mb = int(os.environ.get("REPORT_MAX_ATTACH_MB", "10"))
+    total_bytes = 0
+
+    def _maybe_add(path: Path) -> bool:
+        nonlocal total_bytes
+        if not path.exists():
+            return False
+        size = path.stat().st_size
+        if total_bytes + size > max_mb * 1_048_576:
+            return False
+        attachments.append(path)
+        total_bytes += size
+        return True
 
     # Daily report (always built)
-    daily_path = out_root / "runs" / key / "report.pdf"
-    if daily_path.exists():
-        attachments.append(daily_path)
+    daily_path = run_dir / "report.pdf"
+    _maybe_add(daily_path)
 
     # Incident report (built when any event is MAJOR or CRITICAL)
-    incident_path = out_root / "runs" / key / "incident.pdf"
-    if incident_path.exists():
-        attachments.append(incident_path)
+    incident_path = run_dir / "incident.pdf"
+    if status in ("MAJOR", "CRITICAL", "PARTIAL", "FAILED"):
+        _maybe_add(incident_path)
 
-    # LaTeX source files
-    for tex_file in (out_root / "runs" / key).glob("*.tex"):
-        attachments.append(tex_file)
+    # LaTeX source files: bundle into a single zip
+    tex_files = list(run_dir.glob("*.tex"))
+    if tex_files:
+        zip_path = run_dir / "report_sources.zip"
+        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for tex_file in tex_files:
+                zf.write(tex_file, arcname=tex_file.name)
+        _maybe_add(zip_path)
 
     return attachments
 
