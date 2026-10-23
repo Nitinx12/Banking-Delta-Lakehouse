@@ -79,13 +79,11 @@ def run_test(conn, path: Path, pipeline_run_id: uuid.UUID | None) -> TestResult:
         with conn.cursor() as cur:
             if proc:
                 cur.execute(sql)  # CREATE OR REPLACE PROCEDURE (autocommit commits it)
-                if pipeline_run_id:
-                    cur.execute(
-                        f"CALL {proc.group(1)}(p_pipeline_run_id => %s)",
-                        (pipeline_run_id,),
-                    )
-                else:
-                    cur.execute(f"CALL {proc.group(1)}()")
+                # named arg picks the p_pipeline_run_id overload, never the stale no-arg one
+                cur.execute(
+                    f"CALL {proc.group(1)}(p_pipeline_run_id => %s)",
+                    (pipeline_run_id,),
+                )
             else:
                 cur.execute(sql)
         passed = True
