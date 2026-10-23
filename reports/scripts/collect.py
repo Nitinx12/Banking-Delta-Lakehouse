@@ -520,17 +520,20 @@ def _meta(kind: str, dag_id: str | None, dag_run_id: str | None) -> dict[str, An
 
     from src.utils.config import PROJECT_ROOT
 
-    git_sha = "unknown"
-    head = PROJECT_ROOT / ".git" / "HEAD"
-    if head.is_file():
-        text = head.read_text(encoding="utf-8").strip()
-        if text.startswith("ref:"):
-            ref = PROJECT_ROOT / ".git" / text.split(" ", 1)[1]
-            git_sha = (
-                ref.read_text(encoding="utf-8").strip() if ref.is_file() else "unknown"
-            )
-        else:
-            git_sha = text
+    git_sha = os.environ.get("GIT_SHA", "").strip() or "unknown"
+    if git_sha == "unknown":  # containers carry GIT_SHA; host runs carry .git
+        head = PROJECT_ROOT / ".git" / "HEAD"
+        if head.is_file():
+            text = head.read_text(encoding="utf-8").strip()
+            if text.startswith("ref:"):
+                ref = PROJECT_ROOT / ".git" / text.split(" ", 1)[1]
+                git_sha = (
+                    ref.read_text(encoding="utf-8").strip()
+                    if ref.is_file()
+                    else "unknown"
+                )
+            else:
+                git_sha = text
     try:
         airflow_version = metadata.version("apache-airflow")
     except metadata.PackageNotFoundError:

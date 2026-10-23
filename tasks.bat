@@ -16,7 +16,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly) do (
+for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -31,6 +31,7 @@ echo Static    : lint format contracts sql-lint
 echo Tests     : unit cov smoke test spark-smoke sql-smoke integration smoke-live
 echo Security  : leaks
 echo Gate      : ci   (lint + sql-lint + unit + smoke)
+echo Airflow   : up down
 echo Reports   : report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly
 echo Pipeline  : run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
 echo Housekeep : clean
@@ -116,6 +117,16 @@ call :t_cov || exit /b 1
 call :t_smoke || exit /b 1
 call :t_report-fixture || exit /b 1
 echo ci OK
+exit /b 0
+
+:t_up
+for /f "delims=" %%G in ('git rev-parse --short HEAD') do set "GIT_SHA=%%G"
+git diff --quiet || set "GIT_SHA=%GIT_SHA%-dirty"
+docker compose -f airflow/docker-compose.yml -f airflow/docker-compose.dev.yml --env-file airflow/.env.airflow up -d || exit /b 1
+exit /b 0
+
+:t_down
+docker compose -f airflow/docker-compose.yml -f airflow/docker-compose.dev.yml --env-file airflow/.env.airflow down || exit /b 1
 exit /b 0
 
 :t_run-jobs

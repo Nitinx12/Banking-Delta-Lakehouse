@@ -29,7 +29,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
 .PHONY: help install hooks lint format contracts sql-lint unit cov smoke spark-smoke \
-        sql-smoke integration smoke-live test leaks ci run-jobs staging analytics \
+        sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
         report-fixture report-pdf report-tex report-docker report-clean report \
         report-incident report-weekly
@@ -118,6 +118,17 @@ ci: ## Fast local gate == CI: lint + contracts + sql-lint + coverage + smoke + r
 	$(MAKE) smoke
 	$(MAKE) report-fixture
 	@echo "ci OK"
+
+##@ Airflow stack (base + dev override, as the local stack runs)
+DC := docker compose -f airflow/docker-compose.yml -f airflow/docker-compose.dev.yml \
+	--env-file airflow/.env.airflow
+
+up: ## Start the local Airflow stack (GIT_SHA = local HEAD, -dirty if uncommitted)
+	GIT_SHA=$$(git rev-parse --short HEAD)$$(git diff --quiet || echo -dirty) \
+		$(DC) up -d
+
+down: ## Stop the local Airflow stack
+	$(DC) down
 
 ##@ Pipeline (acts on the environment .env points at!)
 run-jobs: ## [1] Extract: mongo -> databricks -> mysql (ARGS="--sources mongo")

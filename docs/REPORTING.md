@@ -98,9 +98,10 @@ failed runs are reported too), watchdog alerts for runs that never reach their e
 6. A missing or unknown state is never rendered as success. Same principle as
    `summary.decide_status`. Use `UNKNOWN` (grey) when a step has no audit evidence.
 7. The report derives status from `audit.pipeline_runs`, `audit.table_runs`,
-   `audit.dq_run` and `audit.pipeline_errors`. It does not read `context["task_states"]`
-   from Airflow, because that is the open false `[FAILED]` banner bug (`docs/AIRFLOW.md`).
-   Do not fix that bug as part of this work.
+   `audit.dq_run` and `audit.pipeline_errors`, never from Airflow task instances.
+   The summary mail layers live Airflow states on top of the same audit rows
+   (`summary.collect_task_states`, `docs/AIRFLOW.md`); the report stays audit only
+   so both sides agree on pipeline facts.
 8. Do not "correct" timestamps. Times are shown as stored with their zone label, and the
    appendix links the open timezone offset issue (`docs/TROUBLESHOOTING.md`, open issue 3).
 9. Thresholds and severity mappings live in `reports/config/report.yaml`. Lowering a

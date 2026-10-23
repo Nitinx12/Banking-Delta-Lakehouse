@@ -93,15 +93,22 @@ def _as_int(value: Any) -> int | None:
         return None
 
 
+def _fmt_seconds(total: Any) -> str:
+    """Format a seconds count as 'Ns' or 'Nm SSs'."""
+    try:
+        minutes, seconds = divmod(int(total), 60)
+    except (TypeError, ValueError):
+        return "—"
+    return f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
+
+
 def _duration(start: Any, end: Any) -> str:
     try:
         if not start or not end:
             return "—"
-        total = int((end - start).total_seconds())
+        return _fmt_seconds((end - start).total_seconds())
     except (TypeError, AttributeError, ValueError):
         return "—"
-    minutes, seconds = divmod(total, 60)
-    return f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
 
 
 def _watermark_to_display_tz(value: str | None) -> str | None:
@@ -195,12 +202,71 @@ def task_states_from_context(context: dict[str, Any]) -> dict[str, str]:
     return _as_state_map(context.get("task_states"))
 
 
+def sdk_task_states(
+    context: dict[str, Any], dag_id: str, run_id: str
+) -> dict[str, str]:
+    """Live Airflow TI states for this run via the Airflow 3 Task SDK.
+
+    Best effort: a missing SDK or a failed call degrades to {} so the mail
+    still goes out with audit-only (possibly UNKNOWN) states.
+    """
+    ti = context.get("ti")
+    getter = getattr(ti, "get_task_states", None)
+    if not callable(getter) or not run_id:
+        return {}
+    try:
+        raw = getter(dag_id=dag_id, run_ids=[run_id])
+    except Exception as exc:  # noqa: BLE001 - degrade to audit-only states
+        log.warning("Task SDK get_task_states unavailable: %s", exc)
+        return {}
+    nested = raw.get(run_id, {}) if hasattr(raw, "get") else {}
+    return _as_state_map(nested)
+
+
+def sdk_task_durations(
+    context: dict[str, Any], dag_id: str, run_id: str
+) -> dict[str, str]:
+    """Per-task runtimes from SDK breadcrumbs; only terminal tasks have them."""
+    ti = context.get("ti")
+    getter = getattr(ti, "get_task_breadcrumbs", None)
+    if not callable(getter) or not run_id:
+        return {}
+    try:
+        crumbs = getter(dag_id=dag_id, run_id=run_id)
+    except Exception as exc:  # noqa: BLE001 - durations are cosmetic
+        log.warning("Task SDK get_task_breadcrumbs unavailable: %s", exc)
+        return {}
+    durations: dict[str, str] = {}
+    for crumb in crumbs or ():
+        task_id = str(crumb.get("task_id") or "") if hasattr(crumb, "get") else ""
+        if task_id:
+            durations[task_id] = _fmt_seconds(crumb.get("duration"))
+    return durations
+
+
+def collect_task_states(
+    context: dict[str, Any], dag_id: str, run_id: str
+) -> dict[str, str]:
+    """Audit pipeline statuses first; live Airflow states fill every gap."""
+    from banking_airflow import audit_reader
+
+    states = audit_reader.task_states(dag_id, run_id)
+    for source in (
+        task_states_from_context(context),
+        sdk_task_states(context, dag_id, run_id),
+    ):
+        for task_id, state in source.items():
+            if task_id not in states:
+                states[task_id] = state
+    return states
+
+
 def step_rows(
     task_states: dict[str, str], details: dict[str, Any]
 ) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for task_id in CORE_STEPS:
-        state = task_states.get(task_id, "NOT_RUN")
+        state = task_states.get(task_id) or "UNKNOWN"
         meta = details.get(task_id) or {}
         rows.append(
             {
@@ -209,8 +275,8 @@ def step_rows(
                 "duration": meta.get("duration", "—"),
                 "try_number": meta.get("try_number"),
                 "bad": state in FAILED_STATES
-                or state in {"SKIPPED", "NOT_RUN"}
-                or (state not in TERMINAL_STATES and state != ""),
+                or state in {"SKIPPED", "UNKNOWN"}
+                or state not in TERMINAL_STATES,
             }
         )
     return rows
@@ -327,22 +393,16 @@ def collect_latest_dq() -> list[dict[str, Any]]:
 def build_and_send(context: dict[str, Any]) -> None:
     """Render and send the summary. Section failures degrade, never abort the mail."""
     from banking_airflow import notify
-    from banking_airflow import audit_reader
 
     dag_run = context.get("dag_run")
     dag_id = getattr(context.get("dag"), "dag_id", "banking_delta_daily")
     run_id = context.get("run_id") or getattr(dag_run, "run_id", "")
-    # Get task states from audit (source of truth in Airflow 3)
-    task_states = audit_reader.task_states(dag_id, run_id)
-    # Fallback to context task_states for backward compatibility
-    context_states = task_states_from_context(context)
-    # Merge: audit states take precedence, context states fill gaps
-    for k, v in context_states.items():
-        if k not in task_states:
-            task_states[k] = v
+    task_states = collect_task_states(context, dag_id, run_id)
     states_raw = context.get("task_states") or {}
     getter = getattr(states_raw, "get", lambda *_args: None)
     details = {t: _detail(getter(t)) for t in CORE_STEPS}
+    for task_id, duration in sdk_task_durations(context, dag_id, run_id).items():
+        details[task_id] = {**details.get(task_id, {}), "duration": duration}
 
     sections = {
         "run": Section(collect_run, dag_id, run_id),
@@ -394,9 +454,14 @@ def _find_report_attachments(run_id: str, status: str) -> list:
     Total size capped by REPORT_MAX_ATTACH_MB (default 10 MB).
     """
     import os
+    import sys
     import zipfile
     from pathlib import Path
 
+    from banking_airflow.commands import BANKING_HOME
+
+    if BANKING_HOME not in sys.path:  # worker PYTHONPATH lacks the project root
+        sys.path.insert(0, BANKING_HOME)
     from reports.scripts.paths import output_root as report_output_root, run_key
 
     out_root = report_output_root()

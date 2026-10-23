@@ -28,9 +28,9 @@ Colour legend: `docs/PIPELINE.md`.
 |---|---|---|
 | DAG not scheduled at all | created **paused** | un-pause deliberately (UI toggle or `airflow dags unpause banking_delta_daily`) |
 | Manual trigger seems to do nothing | `max_active_runs=1` — it queued behind a running run | check `airflow dags list-runs`; wait or clear the running one deliberately |
-| `docker compose config` fails | `airflow/.env` missing `AIRFLOW_VERSION` | add it (`.env.airflow.example` documents `.env.airflow`; interpolation uses `.env`) |
-| Green run mails `[FAILED]` | **known bug**: summary reads `context["task_states"]`, Airflow 3 does not provide it | verify against `audit.pipeline_runs.status`; fix needs approval (`docs/AIRFLOW.md`) |
-| Mail says `env=unknown \| build=unknown` | DAG never passes `env`/`git_sha` into the context | same open item as above |
+| `docker compose config` fails | `--env-file airflow/.env.airflow` not passed (it holds `AIRFLOW_VERSION`) | add `--env-file airflow/.env.airflow`, or use `make up`/`make down` |
+| Summary mail shows `UNKNOWN` for steps | Task SDK call failed or audit rows missing — the mail degrades instead of guessing | notes list how many states were missing; read `send_pipeline_summary` log for `Task SDK` warnings, audit rows are the fallback |
+| Mail says `env=unknown \| build=unknown` | container env lacks `ENVIRONMENT`/`GIT_SHA` (stack started without compose `environment:`) | `make up` exports both; verify with the env grep in `docs/AIRFLOW.md` §Summary task states, env and build |
 | Watchdog `[STUCK]` | run older than `WATCHDOG_STUCK_HOURS=5` (or scheduler dead) | inspect the run; `finalize_audit` reaps orphans after a kill |
 | Worker OOM / killed | Spark inside the 6 GB `mem_limit` | raise `WORKER_MEM_LIMIT`, lower `EXTRACT_SPARK_DRIVER_MEMORY` |
 | Jars re-download every start | `spark_cache` volume missing | ensure the compose `spark_cache:/opt/banking/.spark` mount |
@@ -81,7 +81,7 @@ flowchart TB
     Q --> A{"in 'paused' state?"}
     A -->|yes| A2["un-pause deliberately<br/>(created paused on purpose)"]
     A -->|no| B{"scheduler / containers<br/>healthy?"}
-    B -->|no| B2["docker compose ps,<br/>restart, check .env AIRFLOW_VERSION"]
+    B -->|no| B2["docker compose ps,<br/>restart, check .env.airflow AIRFLOW_VERSION"]
     B -->|yes| C{"a run already active?"}
     C -->|yes| C2["queued by max_active_runs=1<br/>— wait; it re-runs fully after"]
     C -->|no| D{"DAG import errors?<br/>dags list-import-errors"}
@@ -98,8 +98,9 @@ flowchart TB
 
 ## Known open issues (do not "silently fix")
 
-1. Summary banner false `[FAILED]` + `env/build=unknown` — needs approval
-   (`docs/AIRFLOW.md`).
+1. Summary banner false `[FAILED]` + `env/build=unknown` — **resolved**: states merge
+   audit rows with the Airflow 3 Task SDK, compose passes `ENVIRONMENT`/`GIT_SHA`
+   (`docs/AIRFLOW.md`). Numbering kept so cross references stay valid.
 2. Publish lookback gap for late/old rows — `PUBLISH_LOOKBACK_MONTHS` / periodic `--full`.
 3. Timezone off-by-offset on stored timestamps — needs approval + backfill decision.
 4. Analytics band drift from `CURRENT_DATE` — design decision pending.

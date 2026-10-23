@@ -93,9 +93,11 @@ Full detail: `docs/AIRFLOW.md`. Short version:
 ```bash
 cd airflow
 cp .env.airflow.example .env.airflow                    # real secrets per environment
-# airflow/.env must define AIRFLOW_VERSION (compose interpolation)
+# .env.airflow also holds AIRFLOW_VERSION (passed via --env-file for compose interpolation)
 docker compose --env-file .env.airflow up airflow-init  # must exit 0
 docker compose --env-file .env.airflow up -d
+# local dev from the repo root instead: make up / make down
+#   (adds docker-compose.dev.yml bind mounts and exports GIT_SHA from git)
 # UI: http://127.0.0.1:8080 — un-pause banking_delta_daily and banking_report_weekly deliberately
 ```
 
@@ -103,6 +105,9 @@ docker compose --env-file .env.airflow up -d
   `reports/apt-packages.txt`); `docker-compose.dev.yml` bind-mounts the repo for development.
 - Environment per stage = `.env.airflow` content (`PG_*`, `MYSQL_*`, `MONGO_*`,
   `DATABRICKS_*`, `SMTP_*`, `REPORT_*`). Keep it out of git.
+- Compose passes `ENVIRONMENT` (defaults to `development`) and `GIT_SHA` into every
+  container. Set `ENVIRONMENT` explicitly for staging/production — the default would
+  otherwise label a non-development run as `development` in the mail and the PDF.
 - The worker needs the `spark_cache` volume (Ivy jars), the `report_output` volume (PDF
   artefacts for mail attachment) and ~6 GB.
 

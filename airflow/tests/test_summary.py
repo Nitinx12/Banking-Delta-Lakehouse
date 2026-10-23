@@ -272,3 +272,119 @@ def test_section_notes_report_unavailable_audit():
     }
     notes = summary.section_notes(sections)
     assert any("unavailable" in n for n in notes)
+
+
+class _FakeTI:
+    """Stand-in for the Airflow 3 Task SDK's RuntimeTaskInstance."""
+
+    def __init__(self, states=None, crumbs=None, fail=False):
+        self._states = states or {}
+        self._crumbs = crumbs or []
+        self._fail = fail
+
+    def get_task_states(self, dag_id, run_ids):
+        if self._fail:
+            raise RuntimeError("supervisor unreachable")
+        return {run_id: dict(self._states) for run_id in run_ids}
+
+    def get_task_breadcrumbs(self, dag_id, run_id):
+        if self._fail:
+            raise RuntimeError("supervisor unreachable")
+        return list(self._crumbs)
+
+
+def test_sdk_task_states_reads_run_map_and_normalises():
+    ti = _FakeTI(states={"raw_tests": "success", "publish": None})
+    assert summary.sdk_task_states({"ti": ti}, "d", "r1") == {
+        "raw_tests": "SUCCESS",
+        "publish": "",
+    }
+
+
+def test_sdk_task_states_degrades_to_empty():
+    assert summary.sdk_task_states({"ti": _FakeTI(fail=True)}, "d", "r1") == {}
+    assert summary.sdk_task_states({}, "d", "r1") == {}
+
+
+def test_sdk_task_durations_formats_seconds():
+    ti = _FakeTI(
+        crumbs=[
+            {"task_id": "extract_mongo", "state": "success", "duration": 2.4},
+            {"task_id": "publish", "state": "success", "duration": 144.0},
+            {"task_id": None, "duration": 5},
+        ]
+    )
+    assert summary.sdk_task_durations({"ti": ti}, "d", "r1") == {
+        "extract_mongo": "2s",
+        "publish": "2m 24s",
+    }
+
+
+def test_collect_task_states_prefers_audit_and_fills_gaps(monkeypatch):
+    _stub_audit(monkeypatch, task_states={"extract_mongo": "SKIPPED"})
+    ti = _FakeTI(states=dict(ALL_OK))
+    context = {"ti": ti, "task_states": {"extract_mysql": "SUCCESS"}}
+    states = summary.collect_task_states(context, "banking_delta_daily", "r1")
+    assert states["extract_mongo"] == "SKIPPED"
+    assert set(states) == set(ALL_OK)
+
+
+def test_step_rows_labels_missing_step_unknown():
+    steps = summary.step_rows({"preflight": "SUCCESS"}, {})
+    by_id = {s["task_id"]: s for s in steps}
+    assert by_id["preflight"]["state"] == "SUCCESS"
+    assert by_id["publish"]["state"] == "UNKNOWN"
+    assert by_id["publish"]["bad"] is True
+
+
+def _summary_context(monkeypatch, **extra):
+    class DagRun:
+        run_id = "r1"
+        start_date = datetime(2026, 10, 20, 2, tzinfo=UTC)
+        end_date = datetime(2026, 10, 20, 2, 41, tzinfo=UTC)
+        logical_date = None
+        state = "success"
+        run_type = "scheduled"
+
+    class Dag:
+        dag_id = "banking_delta_daily"
+
+    sent = {}
+
+    def fake_send(subject, html, text, to=None, attachments=None):
+        sent["subject"] = subject
+        sent["text"] = text
+
+    monkeypatch.setattr(notify, "send_email", fake_send)
+    context = {
+        "dag": Dag(),
+        "dag_run": DagRun(),
+        "run_id": "r1",
+        "base_url": "https://airflow.example.com",
+        **extra,
+    }
+    return context, sent
+
+
+def test_build_and_send_success_with_live_sdk_states(monkeypatch):
+    _stub_audit(
+        monkeypatch,
+        task_states={
+            "extract_mongo": "SKIPPED",
+            "extract_databricks": "SKIPPED",
+            "extract_mysql": "SUCCESS",
+        },
+    )
+    ti = _FakeTI(states=dict(ALL_OK))
+    context, sent = _summary_context(monkeypatch, ti=ti)
+    summary.build_and_send(context)
+    assert sent["subject"].startswith("[SUCCESS]")
+    assert "extract_mongo" in sent["text"]
+
+
+def test_build_and_send_reports_unknown_when_states_missing(monkeypatch):
+    _stub_audit(monkeypatch, task_states={"extract_mysql": "SUCCESS"})
+    context, sent = _summary_context(monkeypatch)
+    summary.build_and_send(context)
+    assert sent["subject"].startswith("[UNKNOWN]")
+    assert "Task states unavailable" in sent["text"]

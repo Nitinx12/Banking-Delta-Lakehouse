@@ -18,9 +18,9 @@ whole pipeline again — it does not run concurrently.
 
 ```bash
 # Airflow side
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
-  airflow dags list-runs -o table
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
+DC="docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow"
+$DC exec airflow-scheduler airflow dags list-runs -o table
+$DC exec airflow-scheduler \
   airflow tasks states-for-dag-run banking_delta_daily "<run_id>"
 
 # Audit side (source of truth for the summary mail)
@@ -175,8 +175,8 @@ Produces `weekly.pdf` with trends, volumes, DQ and freshness over the last 14 ru
 Mail path check (read-only, safe):
 
 ```bash
-docker compose -f airflow/docker-compose.yml exec airflow-worker \
-  python -m banking_airflow.notify --test
+docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow \
+  exec airflow-worker python -m banking_airflow.notify --test
 ```
 
 ## Escalation

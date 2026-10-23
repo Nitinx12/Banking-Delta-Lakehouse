@@ -63,19 +63,27 @@ flowchart TB
 
 | File | Loaded by | Holds |
 |---|---|---|
-| `airflow/.env` | Compose interpolation | `AIRFLOW_VERSION`, `PYTHON_VERSION`, image tag, DB/Redis settings |
-| `airflow/.env.airflow` | every container (`env_file:`) | real pipeline secrets: `PG_*`, `MYSQL_*`, `MONGO_*`, `DATABRICKS_*`, `SMTP_*` |
+| `airflow/.env.airflow` | `docker compose --env-file .env.airflow` (interpolation) and every container (`env_file:`) | `AIRFLOW_VERSION`, `PYTHON_VERSION`, image tag, DB/Redis settings, pipeline secrets (`PG_*`, `MYSQL_*`, `MONGO_*`, `DATABRICKS_*`, `SMTP_*`) |
 
-Copy `.env.airflow.example` → `.env.airflow` and fill it in. Missing `AIRFLOW_VERSION` in
-`.env` makes `docker compose config` fail immediately. `docker-compose.dev.yml` bind-mounts
-code, sets `DAGS_ARE_PAUSED_AT_CREATION=false` and adds `host.docker.internal` so
-containers can reach services on the host.
+`environment:` in `docker-compose.yml` beats `env_file:` for the same key, so
+`ENVIRONMENT` (default `development`) and `GIT_SHA` (set by `make up` to the local
+HEAD, `-dirty` when uncommitted) always come from the compose file; shell or CI
+exports win over both. Copy `.env.airflow.example` → `.env.airflow` and fill it in.
+Missing `AIRFLOW_VERSION` makes `docker compose config` fail immediately.
+`docker-compose.dev.yml` bind-mounts code, sets `DAGS_ARE_PAUSED_AT_CREATION=false`
+and adds `host.docker.internal` so containers can reach services on the host.
 
 ```bash
+# from the repo root (GIT_SHA = local HEAD, ENVIRONMENT defaults to development)
+make up
+make down
+# or from airflow/ with the explicit env file (always include the dev override):
 cd airflow
 cp .env.airflow.example .env.airflow          # fill secrets
-docker compose --env-file .env.airflow up airflow-init   # must exit 0
-docker compose --env-file .env.airflow up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+  --env-file .env.airflow up airflow-init     # must exit 0
+docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+  --env-file .env.airflow up -d
 # UI: http://127.0.0.1:8080 (login from .env.airflow)
 ```
 
@@ -257,7 +265,7 @@ flowchart TB
     T1 -->|extract/publish write| ER
     T1 -->|extract/publish + SQL DQ suites write| DQ
 
-    SUM --> MAIL["SMTP: multipart summary<br/>[SUCCESS|WARNING|FAILED]"]
+    SUM --> MAIL["SMTP: multipart summary<br/>[SUCCESS|PARTIAL|FAILED|UNKNOWN]"]
     FAIL --> CBM["on_failure_callback → notify<br/>[FAILED] dag.task (try n/m)"]
 
     classDef run fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
@@ -278,31 +286,30 @@ Mail modules: `include/banking_airflow/notify.py` (SMTP, `python -m banking_airf
 ## Operating commands
 
 ```bash
-# bring up / tear down (from the repo root)
-docker compose -f airflow/docker-compose.yml up -d
-docker compose -f airflow/docker-compose.yml down        # keep data
-docker compose -f airflow/docker-compose.yml down -v     # drop metadata + logs
+# bring up / tear down (from the repo root; make up exports GIT_SHA from git)
+make up
+make down
+DC="docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow"
+$DC down -v                                            # drop metadata + logs
 
 # trigger
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
-  airflow dags trigger banking_delta_daily
+$DC exec airflow-scheduler airflow dags trigger banking_delta_daily
 # full republish:
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
+$DC exec airflow-scheduler \
   airflow dags trigger banking_delta_daily --conf '{"publish_full": true}'
 
 # inspect
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler airflow dags list-runs -o table
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
+$DC exec airflow-scheduler airflow dags list-runs -o table
+$DC exec airflow-scheduler \
   airflow tasks states-for-dag-run banking_delta_daily "<run_id>"
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler \
+$DC exec airflow-scheduler \
   airflow tasks logs banking_delta_daily "<run_id>" preflight
-docker compose -f airflow/docker-compose.yml exec airflow-scheduler airflow dags list-import-errors
+$DC exec airflow-scheduler airflow dags list-import-errors
 
 # smoke tests
-docker compose -f airflow/docker-compose.yml exec airflow-worker \
-  /opt/banking-venv/bin/python -m banking_airflow.preflight
-docker compose -f airflow/docker-compose.yml exec airflow-worker \
-  python -m banking_airflow.notify --test
+DC="docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow"
+$DC exec airflow-worker /opt/banking-venv/bin/python -m banking_airflow.preflight
+$DC exec airflow-worker python -m banking_airflow.notify --test
 ```
 
 Day-to-day operations: `docs/RUNBOOK.md`. Problems: `docs/TROUBLESHOOTING.md`.
@@ -313,15 +320,28 @@ Day-to-day operations: `docs/RUNBOOK.md`. Problems: `docs/TROUBLESHOOTING.md`.
 loads both DAGs; graph, retries, pools, `max_active_runs=1`, `dagrun_timeout < 6h`),
 `test_commands.py` (no secrets in command builders, `exec`/`cd`/ctx ids),
 `test_no_secrets.py`, `test_notify_render.py` (template redaction),
-`test_summary.py` (`decide_status` never SUCCESS on a missing state).
+`test_summary.py` (`decide_status` never SUCCESS on a missing state; audit rows plus
+Task SDK states, `UNKNOWN` rendered on a gap).
 `conftest.py` stubs POSIX-only hooks so tests import on Windows.
 
-## Known issue (open, needs approval to fix)
+## Summary task states, env and build
 
-**False `[FAILED]` summary banner.** `summary.task_states_from_context()` reads
-`context["task_states"]`, which Airflow 3 does not provide — every step renders
-`NOT_RUN`, so a green run emails `[FAILED]` (and `env=unknown | build=unknown`).
-The audit sections in the same mail are correct. Fix: use
-`TaskInstance.get_task_states(dag_id=…, run_ids=[run_id])` and pass `env`/`git_sha` from
-the DAG. A regression test for this exists as a known gap — see `docs/TESTING.md`.
-Do not "fix" it silently.
+`summary.collect_task_states()` merges three sources in order: `audit.table_runs`
+(pipeline truth — `SKIPPED` means no data past the watermark, and it wins),
+`context["task_states"]` (Airflow 2 only, absent in Airflow 3) and the Airflow 3
+Task SDK (`ti.get_task_states(dag_id=…, run_ids=[run_id])` through the supervisor,
+never the metadata DB). Step durations come from `ti.get_task_breadcrumbs`. A core
+step with no state renders `UNKNOWN` and banners `[UNKNOWN]`, never `NOT_RUN` and
+never a false green; the notes then list how many states were unavailable.
+
+`env=` and `build=` in the mail and the report come from the container environment:
+compose passes `ENVIRONMENT` (default `development`, set it explicitly outside
+development) and `GIT_SHA`. `make up` exports the local HEAD (`-dirty` when
+uncommitted); CI should export `GIT_SHA=$GITHUB_SHA`. The report prefers the
+`GIT_SHA` environment variable and falls back to `.git/HEAD` on the host. Check a
+running stack with:
+
+```bash
+docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow \
+  exec airflow-scheduler env | grep -E 'ENVIRONMENT|GIT_SHA'
+```

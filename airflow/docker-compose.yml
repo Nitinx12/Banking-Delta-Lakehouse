@@ -22,6 +22,8 @@ x-airflow-common: &airflow-common
     AIRFLOW__CELERY__WORKER_CONCURRENCY: "${WORKER_CONCURRENCY:-4}"
     AIRFLOW__API__BASE_URL: ${AIRFLOW_BASE_URL}
     AIRFLOW__API__EXPOSE_CONFIG: "false"
+    ENVIRONMENT: ${ENVIRONMENT:-development}
+    GIT_SHA: ${GIT_SHA:-unknown}
     PYTHONPATH: /opt/airflow/include
   restart: unless-stopped
   logging:

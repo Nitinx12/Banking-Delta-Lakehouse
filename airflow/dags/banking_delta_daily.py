@@ -159,21 +159,15 @@ with DAG(
         on_failure_callback=None,
     )
     def fail_if_any_failed(**context) -> None:
-        from banking_airflow.summary import failure_reasons
-        from banking_airflow import audit_reader
+        from banking_airflow.summary import (
+            collect_task_states,
+            failure_reasons,
+        )
 
         dag_run = context.get("dag_run")
         dag_id = getattr(context.get("dag"), "dag_id", "banking_delta_daily")
         run_id = context.get("run_id") or getattr(dag_run, "run_id", "")
-        # Get task states from audit (source of truth in Airflow 3)
-        task_states = audit_reader.task_states(dag_id, run_id)
-        # Fallback to context task_states for backward compatibility
-        from banking_airflow.summary import task_states_from_context
-
-        context_states = task_states_from_context(context)
-        for k, v in context_states.items():
-            if k not in task_states:
-                task_states[k] = v
+        task_states = collect_task_states(context, dag_id, run_id)
 
         failed = failure_reasons(task_states)
         detail = ", ".join(failed) if failed else "a pipeline step did not complete"
