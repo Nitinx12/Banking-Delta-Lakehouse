@@ -1,0 +1,69 @@
+name: docker
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # build-context is relative to the repo root.
+        images:
+          - name: airflow
+            build-context: .
+            file: airflow/Dockerfile
+            build-args: |
+              AIRFLOW_VERSION=3.3.2
+          - name: dashboard
+            build-context: .
+            file: dashboard/Dockerfile
+            build-args: ''
+          - name: reports
+            build-context: .
+            file: reports/Dockerfile
+            build-args: ''
+          - name: pipeline
+            build-context: .
+            file: Dockerfile.pipeline
+            build-args: ''
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.images.name }}
+          tags: |
+            type=ref,event=tag
+            type=sha
+
+      - name: Build and push
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        with:
+          context: ${{ matrix.images.build-context }}
+          file: ${{ matrix.images.file }}
+          build-args: ${{ matrix.images.build-args }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # One cache scope per image so the four matrix jobs don't overwrite each other.
+          cache-from: type=gha,scope=${{ matrix.images.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.images.name }}
