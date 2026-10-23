@@ -27,7 +27,7 @@ jobs:
         image: postgres:16
         env:
           POSTGRES_PASSWORD: test-only
-          POSTGRES_DB: banking_delta_test
+          POSTGRES_DB: banking_delta
           POSTGRES_USER: postgres
         ports:
           - 5432:5432
@@ -40,12 +40,12 @@ jobs:
       ALLOW_SQL_SMOKE: "1"
       PG_HOST: localhost
       PG_PORT: "5432"
-      PG_DB: banking_delta_test
+      PG_DB: banking_delta
       PG_USER: postgres
       PG_PASS: test-only
       PGHOST: localhost
       PGPORT: "5432"
-      PGDATABASE: banking_delta_test
+      PGDATABASE: banking_delta
       PGUSER: postgres
       PGPASSWORD: test-only
     steps:
