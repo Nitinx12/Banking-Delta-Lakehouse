@@ -264,9 +264,10 @@ severity, a place and an impact.
 | `MAJOR` | a gate or step failed, data late or partial | ACTION REQUIRED | red |
 | `CRITICAL` | run failed, nothing published, or status unknown | INCIDENT | dark red |
 
-The run verdict is the maximum event severity. Mail subjects keep the existing
-`[SUCCESS|WARNING|FAILED]` marker from `summary.py`; the report verdict appears in the body
-and in the attachment file name, for example
+The run verdict is the maximum event severity, and its one-line headline and consequence
+come from `wording:` in `report.yaml`, one entry per severity. Mail subjects keep the
+existing `[SUCCESS|WARNING|FAILED]` marker from `summary.py`; the report verdict appears in
+the body and in the attachment file name, for example
 `Banking-Delta_daily_20261021_ATTENTION.pdf`.
 
 ### Rule catalogue
@@ -292,6 +293,7 @@ Rules live in `reports/scripts/severity.py`, one function per rule, each with a 
 | R015 | watchdog `[WATCHDOG-ERROR]` or a step with no audit evidence | status unknown | CRITICAL |
 | R016 | collector section raised an error | the section degraded | MINOR |
 | R017 | `table_runs.status` | `SKIPPED` because no new data | INFO |
+| R018 | `pipeline_runs` counts vs the collected `table_runs` list | any count disagrees with the tables | MINOR |
 
 Event shape inside `context.json`:
 
@@ -373,7 +375,7 @@ rendering. Breaking changes bump `schema_version` and update every fixture in th
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "meta": {
     "kind": "daily",
     "generated_at": "2026-10-21T02:58:12+05:30",
@@ -388,19 +390,30 @@ rendering. Breaking changes bump `schema_version` and update every fixture in th
     "duration_s": 3412,
     "total_tables": 10,
     "successful_tables": 9,
-    "failed_tables": 1
+    "failed_tables": 1,
+    "skipped_tables": 0
   },
   "steps": [
-    {"id": "n04", "name": "staging_load", "layer": "staging", "state": "ok", "duration_s": 212, "attempts": 1}
+    {"id": "n04", "name": "staging_load", "layer": "staging", "state": "ok", "duration_s": 212, "attempts": 1, "evidence": true, "start_offset_s": 180.0, "end_offset_s": 392.0}
   ],
   "tables": [
-    {"layer": "raw", "table": "card_transactions", "status": "SUCCESS", "rows_landed": 1840, "attempts": 1}
+    {"layer": "raw", "table": "card_transactions", "status": "SUCCESS", "rows_landed": 1840, "attempts": 1, "label": "raw.card_transactions", "median_rows": 1900}
   ],
-  "events": [],
-  "verdict": {"severity": "MAJOR", "label": "ACTION REQUIRED"},
+  "events": [
+    {"event_id": "R002:pipeline:banking_delta_daily", "rule": "R002", "severity": "MAJOR", "layer": null, "subject": "banking_delta_daily", "category": "DATA", "message": "run status PARTIAL, 1 of 10 tables failed", "impact": "marts_load published a partial day", "runbook": "RUNBOOK.md#a-run-failed-triage"}
+  ],
+  "verdict": {"severity": "MAJOR", "label": "ACTION REQUIRED", "headline": "One table failed.", "consequence": "Yesterday's marts stand until the run is retried."},
+  "kpis": {"tables": {"total": 10, "ok": 9, "failed": 1, "skipped": 0}, "rows": {"raw": 1840, "published": null}, "dq": {"passed": 0, "warnings": 0, "failed": 0, "total": 0}},
+  "next_actions": [
+    {"rule": "R002", "severity": "MAJOR", "runbook": "RUNBOOK.md#a-run-failed-triage", "subjects": ["banking_delta_daily"], "text": "MAJOR R002: banking_delta_daily; see RUNBOOK.md#a-run-failed-triage"}
+  ],
   "sections_failed": []
 }
 ```
+
+`kpis` groups the numbers the summary cards print; `next_actions` groups events by
+runbook and rule, capped at four lines, and `steps` carry `evidence` plus offsets from the
+run start so the timeline draws even when per-task timestamps are missing.
 
 ### Fixtures
 
@@ -958,7 +971,7 @@ marker registered in `pyproject.toml`), otherwise it silently never runs.
 | `tex_escape` handles all ten special characters, `None`, unicode | broken compiles from error text |
 | escape neutralises `\input{...}`, `\write18`, `\immediate` in free text | LaTeX injection through audit messages |
 | `RawTeX` is the only escape bypass, `StrictUndefined` raises on a missing key | silent blanks, accidental raw output |
-| severity rules, one table driven test per rule R001 to R017 | wrong or downgraded severity |
+| severity rules, one table driven test per rule R001 to R018 | wrong or downgraded severity |
 | verdict is the maximum severity, UNKNOWN never renders as ok | false green report |
 | latest attempt per table decides the table status | a retry that succeeded reported as failed |
 | redaction applied to every free text field, 300 character cap | secrets in mail or PDF |

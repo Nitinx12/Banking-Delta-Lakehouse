@@ -43,6 +43,8 @@ class FakeConn:
         return FakeCursor(self)
 
     def respond(self, sql: str) -> list[dict[str, Any]]:
+        if "percentile_cont" in sql:
+            return []
         if "SELECT status, total_tables" in sql:
             return [
                 {
@@ -130,6 +132,7 @@ class FakeConn:
 def test_collect_is_read_only_and_redacts() -> None:
     conn = FakeConn()
     context = collect.collect(kind="daily", dag_id="d", dag_run_id="r", conn=conn)
+    assert context["schema_version"] == 2
     assert context["run"]["status"] == "SUCCESS"
     assert context["sections_failed"] == []
     assert context["errors"][0]["message"].startswith("login failed password=***")
@@ -137,7 +140,16 @@ def test_collect_is_read_only_and_redacts() -> None:
     assert context["steps"][1]["name"] == "extract_mongo"
     assert context["steps"][1]["state"] == "ok"
     assert context["steps"][1]["duration_s"] == 3600.0
+    assert context["steps"][1]["evidence"] is True
+    assert context["steps"][1]["start_offset_s"] == 0.0
+    assert context["steps"][1]["end_offset_s"] == 3600.0
+    assert context["steps"][0]["evidence"] is False
+    assert context["steps"][0]["start_offset_s"] is None
+    assert context["tables"][0]["label"] == "raw.customers"
+    assert context["tables"][0]["median_rows"] is None
     assert context["trends"][0]["rows_landed"] == 10
+    assert any("processing_layer = 'raw'" in sql for sql, _ in conn.calls)
+    assert any("percentile_cont" in sql for sql, _ in conn.calls)
     assert all("INSERT" not in sql.upper() for sql, _ in conn.calls)
     assert all("UPDATE" not in sql.upper() for sql, _ in conn.calls)
     assert all("DELETE" not in sql.upper() for sql, _ in conn.calls)

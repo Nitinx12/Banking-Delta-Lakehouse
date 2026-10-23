@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://banking-delta/reports/data/context.schema.json",
   "title": "Report context",
-  "description": "Versioned contract for reports/data/context.json. The collector writes it, fixtures emulate it, the renderer consumes it. Breaking changes bump schema_version and update every fixture in the same PR (docs/REPORTING.md section 7).",
+  "description": "Versioned contract for reports/data/context.json. The collector writes it, fixtures emulate it, the renderer consumes it. Version 2 adds kpis, next_actions, verdict sentences, step offsets and table labels. Breaking changes bump schema_version and update every fixture in the same PR (docs/REPORTING.md section 7).",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -17,10 +17,12 @@
     "trends",
     "events",
     "verdict",
-    "sections_failed"
+    "sections_failed",
+    "kpis",
+    "next_actions"
   ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "meta": {
       "type": "object",
       "additionalProperties": false,
@@ -67,14 +69,27 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "name", "layer", "state", "duration_s", "attempts"],
+        "required": [
+          "id",
+          "name",
+          "layer",
+          "state",
+          "duration_s",
+          "attempts",
+          "evidence",
+          "start_offset_s",
+          "end_offset_s"
+        ],
         "properties": {
           "id": {"type": "string"},
           "name": {"type": "string"},
           "layer": {"type": ["string", "null"]},
           "state": {"enum": ["ok", "warn", "bad", "idle"]},
           "duration_s": {"type": ["number", "null"], "minimum": 0},
-          "attempts": {"type": ["integer", "null"], "minimum": 1}
+          "attempts": {"type": ["integer", "null"], "minimum": 1},
+          "evidence": {"type": "boolean"},
+          "start_offset_s": {"type": ["number", "null"], "minimum": 0},
+          "end_offset_s": {"type": ["number", "null"], "minimum": 0}
         }
       }
     },
@@ -82,10 +97,12 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["layer", "table", "status", "rows_landed", "attempts"],
+        "required": ["layer", "table", "status", "rows_landed", "attempts", "label", "median_rows"],
         "properties": {
           "layer": {"type": "string"},
           "table": {"type": "string"},
+          "label": {"type": "string"},
+          "median_rows": {"type": ["integer", "null"], "minimum": 0},
           "status": {
             "enum": ["RUNNING", "SUCCESS", "FAILED", "SKIPPED", "UNKNOWN"]
           },
@@ -198,11 +215,87 @@
     "verdict": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["severity", "label"],
+      "required": ["severity", "label", "headline", "consequence"],
       "properties": {
         "severity": {"enum": ["INFO", "MINOR", "MAJOR", "CRITICAL", "UNKNOWN"]},
         "label": {
           "enum": ["HEALTHY", "ATTENTION", "ACTION REQUIRED", "INCIDENT", "UNKNOWN"]
+        },
+        "headline": {"type": "string", "maxLength": 200},
+        "consequence": {"type": "string", "maxLength": 300}
+      }
+    },
+    "kpis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tables", "rows", "dq", "duration", "freshest", "retries"],
+      "properties": {
+        "tables": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "ok", "failed", "skipped"],
+          "properties": {
+            "total": {"type": ["integer", "null"], "minimum": 0},
+            "ok": {"type": ["integer", "null"], "minimum": 0},
+            "failed": {"type": ["integer", "null"], "minimum": 0},
+            "skipped": {"type": ["integer", "null"], "minimum": 0}
+          }
+        },
+        "rows": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["raw", "published"],
+          "properties": {
+            "raw": {"type": ["integer", "null"], "minimum": 0},
+            "published": {"type": ["integer", "null"], "minimum": 0}
+          }
+        },
+        "dq": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["passed", "warnings", "failed", "total"],
+          "properties": {
+            "passed": {"type": "integer", "minimum": 0},
+            "warnings": {"type": "integer", "minimum": 0},
+            "failed": {"type": "integer", "minimum": 0},
+            "total": {"type": "integer", "minimum": 0}
+          }
+        },
+        "duration": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["duration_s", "median_s", "delta_pct"],
+          "properties": {
+            "duration_s": {"type": ["number", "null"], "minimum": 0},
+            "median_s": {"type": ["number", "null"], "minimum": 0},
+            "delta_pct": {"type": ["integer", "null"]}
+          }
+        },
+        "freshest": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["worst_age_share", "breaches"],
+          "properties": {
+            "worst_age_share": {"type": ["number", "null"], "minimum": 0},
+            "breaches": {"type": "integer", "minimum": 0}
+          }
+        },
+        "retries": {"type": "integer", "minimum": 0}
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["rule", "severity", "runbook", "subjects", "text"],
+        "properties": {
+          "rule": {"type": "string", "pattern": "^R[0-9]{3}$"},
+          "severity": {"enum": ["INFO", "MINOR", "MAJOR", "CRITICAL"]},
+          "runbook": {"type": "string"},
+          "subjects": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+          "text": {"type": "string", "maxLength": 300}
         }
       }
     },

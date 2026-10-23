@@ -4,8 +4,8 @@
 \toprule
 Run status & \textbf{\VAR{run.status or 'unknown'}} \\
 Run duration & \VAR{run.duration_s | fmt_dur} \\
-Tables & \VAR{run.successful_tables | fmt_int} succeeded, \VAR{run.failed_tables | fmt_int} failed,
-  \VAR{run.skipped_tables | fmt_int} skipped \\
+Tables & \VAR{kpis.tables.ok | fmt_int} succeeded, \VAR{kpis.tables.failed | fmt_int} failed,
+  \VAR{kpis.tables.skipped | fmt_int} skipped \\
 Started & \VAR{run.started_at | fmt_ts} \\
 Ended & \VAR{run.ended_at | fmt_ts} \\
 \midrule

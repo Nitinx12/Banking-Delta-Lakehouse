@@ -1,4 +1,4 @@
-"""Rules R001-R017: every fixture keeps its verdict, every rule fires and stays quiet."""
+"""Rules R001-R018: every fixture keeps its verdict, every rule fires and stays quiet."""
 
 from __future__ import annotations
 
@@ -314,7 +314,43 @@ def test_r017_skipped_tables_are_info() -> None:
     assert result["verdict"]["severity"] == "INFO"
 
 
+def test_r018_run_row_drift_never_fires_on_an_aligned_run_row() -> None:
+    table = {"layer": "raw", "table": "branches", "status": "SUCCESS"}
+    drifted = severity.evaluate(
+        _context(
+            run={
+                "status": "SUCCESS",
+                "total_tables": 9,
+                "successful_tables": 9,
+                "failed_tables": 0,
+                "skipped_tables": 0,
+            },
+            tables=[table],
+        )
+    )
+    assert "R018" in _rules(drifted)
+    assert drifted["verdict"]["severity"] == "MINOR"
+    assert len(drifted["events"][0]["message"]) <= 300
+    aligned = severity.evaluate(
+        _context(
+            run={
+                "status": "SUCCESS",
+                "total_tables": 1,
+                "successful_tables": 1,
+                "failed_tables": 0,
+                "skipped_tables": 0,
+            },
+            tables=[table],
+        )
+    )
+    assert "R018" not in _rules(aligned)
+
+
 def test_healthy_context_without_events_is_healthy() -> None:
     result = severity.evaluate(_context())
     assert result["events"] == []
-    assert result["verdict"] == {"severity": "INFO", "label": "HEALTHY"}
+    assert result["verdict"]["severity"] == "INFO"
+    assert result["verdict"]["label"] == "HEALTHY"
+    assert result["verdict"]["headline"]
+    assert result["verdict"]["consequence"]
+    assert result["next_actions"] == []

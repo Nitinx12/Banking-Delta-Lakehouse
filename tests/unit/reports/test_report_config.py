@@ -64,6 +64,15 @@ def test_thresholds_are_the_documented_defaults() -> None:
     assert thresholds["max_message_chars"] == 300
 
 
+def test_wording_covers_every_severity_and_points_at_the_runbook() -> None:
+    severities = {"INFO", "MINOR", "MAJOR", "CRITICAL", "UNKNOWN"}
+    verdict = _REPORT["wording"]["verdict"]
+    assert set(verdict["headline"]) == severities
+    assert set(verdict["consequence"]) == severities
+    assert all(verdict["headline"][severity] for severity in severities)
+    assert "{runbook}" in _REPORT["wording"]["next_action"]
+
+
 def test_slo_yaml_covers_tables_without_a_contract() -> None:
     assert _SLO["schema_version"] == 1
     assert _SLO["default_window"] == "PT24H"

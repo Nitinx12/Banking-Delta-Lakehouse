@@ -1,9 +1,11 @@
-# Rule engine R001-R017: turns collected context sections into events and a verdict.
+# Rule engine R001-R018: turns collected context sections into events and a verdict.
 from __future__ import annotations
 
 import statistics
+from collections import defaultdict
 from typing import Any, Callable
 
+from . import kpis, paths
 from .render import fmt_dur
 
 LABELS = {
@@ -50,6 +52,7 @@ def r001_failed_run(context: dict[str, Any]) -> list[dict[str, Any]]:
     run = context.get("run") or {}
     if run.get("status") != "FAILED":
         return []
+    counts = kpis.table_counts(context)
     return [
         _event(
             "R001",
@@ -58,8 +61,7 @@ def r001_failed_run(context: dict[str, Any]) -> list[dict[str, Any]]:
             str(context["meta"]["dag_id"]),
             "UNKNOWN",
             _ended(context),
-            f"run status FAILED, {run.get('failed_tables')} of "
-            f"{run.get('total_tables')} tables failed",
+            f"run status FAILED, {counts['failed']} of {counts['total']} tables failed",
             "nothing was published, yesterday's marts stand",
         )
     ]
@@ -69,6 +71,7 @@ def r002_partial_run(context: dict[str, Any]) -> list[dict[str, Any]]:
     run = context.get("run") or {}
     if run.get("status") != "PARTIAL":
         return []
+    counts = kpis.table_counts(context)
     return [
         _event(
             "R002",
@@ -77,8 +80,8 @@ def r002_partial_run(context: dict[str, Any]) -> list[dict[str, Any]]:
             str(context["meta"]["dag_id"]),
             "DATA",
             _ended(context),
-            f"run status PARTIAL, {run.get('failed_tables')} of "
-            f"{run.get('total_tables')} tables failed",
+            f"run status PARTIAL, {counts['failed']} of "
+            f"{counts['total']} tables failed",
             "some layers did not load; check the failed tables",
         )
     ]
@@ -218,7 +221,9 @@ def r009_volume_deviation(
     trends = [t for t in context.get("trends", []) if t.get("rows_landed") is not None]
     if len(trends) < 3:
         return []
-    current = int(trends[-1]["rows_landed"])
+    current = kpis.raw_rows(context)
+    if current is None:
+        current = int(trends[-1]["rows_landed"])
     history = [int(t["rows_landed"]) for t in trends[:-1]]
     median = statistics.median(history)
     if not median:
@@ -397,6 +402,42 @@ def r017_skipped_tables(context: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def r018_run_row_drift(context: dict[str, Any]) -> list[dict[str, Any]]:
+    """Run row counters that disagree with the table list; report counts use the list."""
+    run = context.get("run") or {}
+    if not context.get("tables") or run.get("total_tables") is None:
+        return []
+    counts = kpis.table_counts(context)
+    pairs = (
+        ("total_tables", "total"),
+        ("successful_tables", "ok"),
+        ("failed_tables", "failed"),
+        ("skipped_tables", "skipped"),
+    )
+    drift = [
+        f"{key} {run.get(key)}!={counts[alias]}"
+        for key, alias in pairs
+        if run.get(key) is not None
+        and counts[alias] is not None
+        and run.get(key) != counts[alias]
+    ]
+    if not drift:
+        return []
+    return [
+        _event(
+            "R018",
+            "MINOR",
+            None,
+            str(context["meta"]["dag_id"]),
+            "REPORT",
+            _ended(context),
+            "run row disagrees with the table list: " + ", ".join(drift),
+            "printed counts follow the table list, audit.pipeline_runs is stale",
+            runbook=None,
+        )
+    ]
+
+
 RULES: list[Callable[[dict[str, Any]], list[dict[str, Any]]]] = [
     r001_failed_run,
     r002_partial_run,
@@ -411,7 +452,70 @@ RULES: list[Callable[[dict[str, Any]], list[dict[str, Any]]]] = [
     r013_schema_drift,
     r016_degraded_sections,
     r017_skipped_tables,
+    r018_run_row_drift,
 ]
+
+
+def _fill(template: str, fields: dict[str, str]) -> str:
+    """Fill one wording template; unknown placeholders become empty."""
+    try:
+        return str(template).format_map(defaultdict(str, fields))
+    except (KeyError, IndexError, ValueError):
+        return str(template)
+
+
+def _sentence_fields(
+    context: dict[str, Any], events: list[dict[str, Any]], severity: str
+) -> dict[str, str]:
+    top = events[0] if events else {}
+    return {
+        "rule": str(top.get("rule") or ""),
+        "subject": str(top.get("subject") or ""),
+        "layer": str(top.get("layer") or "pipeline"),
+        "severity": severity,
+        "label": LABELS[severity],
+        "impact": str(top.get("impact") or ""),
+    }
+
+
+def _next_actions(
+    events: list[dict[str, Any]], template: str, cap: int = 4
+) -> list[dict[str, Any]]:
+    """One action per runbook anchor and rule, worst severity first."""
+    grouped: dict[tuple[str, str], dict[str, Any]] = {}
+    for event in events:
+        runbook = event.get("runbook")
+        if not runbook:
+            continue
+        key = (str(runbook), str(event["rule"]))
+        group = grouped.get(key)
+        if group is None:
+            grouped[key] = {
+                "rule": event["rule"],
+                "severity": event["severity"],
+                "runbook": str(runbook),
+                "subjects": [str(event["subject"])],
+            }
+        elif event["subject"] not in group["subjects"]:
+            group["subjects"].append(str(event["subject"]))
+    actions = list(grouped.values())[:cap]
+    for action in actions:
+        subjects = action["subjects"]
+        while True:
+            text = _fill(
+                template,
+                {
+                    "severity": str(action["severity"]),
+                    "rule": str(action["rule"]),
+                    "subjects": ", ".join(subjects),
+                    "runbook": action["runbook"],
+                },
+            )
+            if len(text) <= 300 or len(subjects) == 1:
+                break
+            subjects.pop()
+        action["text"] = text[:300]
+    return actions
 
 
 def evaluate(
@@ -420,8 +524,9 @@ def evaluate(
     volume_ratio: float = 0.5,
     duration_ratio: float = 1.5,
     watchdog_alerts: list[str] | None = None,
+    wording: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Attach the event list and the run verdict to a copy of the context."""
+    """Attach events, KPIs, next actions and the run verdict to a copy of the context."""
     events: list[dict[str, Any]] = []
     for rule in RULES:
         events.extend(rule(context))
@@ -441,7 +546,26 @@ def evaluate(
             key=lambda s: _RANK[s],
             default="INFO",
         )
+    if wording is None:
+        wording = paths.load_report_config().get("wording") or {}
+    verdict_wording = wording.get("verdict") or {}
+    fields = _sentence_fields(context, events, severity)
+    headline = _fill(
+        str((verdict_wording.get("headline") or {}).get(severity) or ""), fields
+    )
+    consequence = _fill(
+        str((verdict_wording.get("consequence") or {}).get(severity) or ""), fields
+    )
     result = dict(context)
     result["events"] = events
-    result["verdict"] = {"severity": severity, "label": LABELS[severity]}
+    result["verdict"] = {
+        "severity": severity,
+        "label": LABELS[severity],
+        "headline": headline[:200],
+        "consequence": consequence[:300],
+    }
+    result["kpis"] = kpis.compute(context)
+    result["next_actions"] = _next_actions(
+        events, str(wording.get("next_action") or "")
+    )
     return result

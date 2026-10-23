@@ -13,6 +13,8 @@ Table & Age & Window & Breached \\
 \bottomrule
 \end{tabular}
 \end{center}
-\BLOCK{else}
+\BLOCK{elif 'freshness' in sections_failed}
 \BLOCK{include 'partials/section_unavailable.tex.j2'}
+\BLOCK{else}
+\sectionidle{Freshness}{\detokenize{\VAR{idle_reasons.freshness | raw}}}
 \BLOCK{endif}

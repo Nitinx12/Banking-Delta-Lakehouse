@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "meta": {
     "kind": "weekly",
     "generated_at": "2026-10-26T08:05:40+05:30",
@@ -12,59 +12,356 @@
   "run": {
     "status": "SUCCESS",
     "duration_s": 3200,
-    "total_tables": 10,
-    "successful_tables": 10,
+    "total_tables": 5,
+    "successful_tables": 4,
     "failed_tables": 0,
     "skipped_tables": 1,
     "started_at": "2026-10-26T02:05:00+05:30",
     "ended_at": "2026-10-26T02:58:20+05:30"
   },
   "steps": [
-    {"id": "n01", "name": "preflight", "layer": "orchestration", "state": "ok", "duration_s": 22, "attempts": 1},
-    {"id": "n02", "name": "extract_mongo", "layer": "source", "state": "ok", "duration_s": 410, "attempts": 1},
-    {"id": "n03", "name": "extract_databricks", "layer": "source", "state": "ok", "duration_s": 505, "attempts": 1},
-    {"id": "n04", "name": "extract_mysql", "layer": "source", "state": "ok", "duration_s": 360, "attempts": 1},
-    {"id": "n05", "name": "raw_tests", "layer": "raw", "state": "ok", "duration_s": 48, "attempts": 1},
-    {"id": "n06", "name": "staging_load", "layer": "staging", "state": "ok", "duration_s": 320, "attempts": 1},
-    {"id": "n07", "name": "staging_tests", "layer": "staging", "state": "ok", "duration_s": 55, "attempts": 1},
-    {"id": "n08", "name": "analytics_load", "layer": "analytics", "state": "ok", "duration_s": 480, "attempts": 1},
-    {"id": "n09", "name": "analytics_tests", "layer": "analytics", "state": "ok", "duration_s": 62, "attempts": 1},
-    {"id": "n10", "name": "marts_load", "layer": "marts", "state": "ok", "duration_s": 430, "attempts": 1},
-    {"id": "n11", "name": "marts_tests", "layer": "marts", "state": "ok", "duration_s": 40, "attempts": 1},
-    {"id": "n12", "name": "publish", "layer": "publish", "state": "ok", "duration_s": 340, "attempts": 1},
-    {"id": "n13", "name": "finalize_audit", "layer": "audit", "state": "ok", "duration_s": 18, "attempts": 1}
+    {
+      "id": "n01",
+      "name": "preflight",
+      "layer": "orchestration",
+      "state": "ok",
+      "duration_s": 22,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 0.0,
+      "end_offset_s": 22.0
+    },
+    {
+      "id": "n02",
+      "name": "extract_mongo",
+      "layer": "source",
+      "state": "ok",
+      "duration_s": 410,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 27.0,
+      "end_offset_s": 437.0
+    },
+    {
+      "id": "n03",
+      "name": "extract_databricks",
+      "layer": "source",
+      "state": "ok",
+      "duration_s": 505,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 27.0,
+      "end_offset_s": 532.0
+    },
+    {
+      "id": "n04",
+      "name": "extract_mysql",
+      "layer": "source",
+      "state": "ok",
+      "duration_s": 360,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 27.0,
+      "end_offset_s": 387.0
+    },
+    {
+      "id": "n05",
+      "name": "raw_tests",
+      "layer": "raw",
+      "state": "ok",
+      "duration_s": 48,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 537.0,
+      "end_offset_s": 585.0
+    },
+    {
+      "id": "n06",
+      "name": "staging_load",
+      "layer": "staging",
+      "state": "ok",
+      "duration_s": 320,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 585.0,
+      "end_offset_s": 905.0
+    },
+    {
+      "id": "n07",
+      "name": "staging_tests",
+      "layer": "staging",
+      "state": "ok",
+      "duration_s": 55,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 905.0,
+      "end_offset_s": 960.0
+    },
+    {
+      "id": "n08",
+      "name": "analytics_load",
+      "layer": "analytics",
+      "state": "ok",
+      "duration_s": 480,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 960.0,
+      "end_offset_s": 1440.0
+    },
+    {
+      "id": "n09",
+      "name": "analytics_tests",
+      "layer": "analytics",
+      "state": "ok",
+      "duration_s": 62,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 1440.0,
+      "end_offset_s": 1502.0
+    },
+    {
+      "id": "n10",
+      "name": "marts_load",
+      "layer": "marts",
+      "state": "ok",
+      "duration_s": 430,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 1502.0,
+      "end_offset_s": 1932.0
+    },
+    {
+      "id": "n11",
+      "name": "marts_tests",
+      "layer": "marts",
+      "state": "ok",
+      "duration_s": 40,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 1932.0,
+      "end_offset_s": 1972.0
+    },
+    {
+      "id": "n12",
+      "name": "publish",
+      "layer": "publish",
+      "state": "ok",
+      "duration_s": 340,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 1972.0,
+      "end_offset_s": 2312.0
+    },
+    {
+      "id": "n13",
+      "name": "finalize_audit",
+      "layer": "audit",
+      "state": "ok",
+      "duration_s": 18,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 3182.0,
+      "end_offset_s": 3200.0
+    }
   ],
   "tables": [
-    {"layer": "raw", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": null, "watermark_end": null, "attempts": 1},
-    {"layer": "raw", "table": "branches", "status": "SKIPPED", "rows_extracted": 0, "rows_landed": 0, "watermark_start": null, "watermark_end": null, "attempts": 1},
-    {"layer": "staging", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
-    {"layer": "analytics", "table": "dim_customer", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": "2026-10-25T00:00:00+00:00", "watermark_end": "2026-10-26T00:00:00+00:00", "attempts": 1},
-    {"layer": "publish", "table": "marts.fact_transactions", "status": "SUCCESS", "rows_extracted": 50000, "rows_landed": 50000, "watermark_start": null, "watermark_end": null, "attempts": 1}
+    {
+      "layer": "raw",
+      "table": "customers",
+      "status": "SUCCESS",
+      "rows_extracted": 1000,
+      "rows_landed": 1000,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": 1,
+      "label": "raw.customers",
+      "median_rows": 1000
+    },
+    {
+      "layer": "raw",
+      "table": "branches",
+      "status": "SKIPPED",
+      "rows_extracted": 0,
+      "rows_landed": 0,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": 1,
+      "label": "raw.branches",
+      "median_rows": 0
+    },
+    {
+      "layer": "staging",
+      "table": "customers",
+      "status": "SUCCESS",
+      "rows_extracted": 1000,
+      "rows_landed": 1000,
+      "watermark_start": "2026-10-25T00:00:00+00:00",
+      "watermark_end": "2026-10-26T00:00:00+00:00",
+      "attempts": 1,
+      "label": "staging.customers",
+      "median_rows": 1000
+    },
+    {
+      "layer": "analytics",
+      "table": "dim_customer",
+      "status": "SUCCESS",
+      "rows_extracted": 1000,
+      "rows_landed": 1000,
+      "watermark_start": "2026-10-25T00:00:00+00:00",
+      "watermark_end": "2026-10-26T00:00:00+00:00",
+      "attempts": 1,
+      "label": "analytics.dim_customer",
+      "median_rows": 1000
+    },
+    {
+      "layer": "publish",
+      "table": "marts.fact_transactions",
+      "status": "SUCCESS",
+      "rows_extracted": 50000,
+      "rows_landed": 50000,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": 1,
+      "label": "publish.marts.fact_transactions",
+      "median_rows": 50000
+    }
   ],
   "dq": [
-    {"layer": "raw", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
-    {"layer": "staging", "script_name": "01_lp_check_metadata_col.sql", "status": "PASS", "violation_count": 0},
-    {"layer": "analytics", "script_name": "12_lp_check_derived_attributes.sql", "status": "PASS", "violation_count": 0},
-    {"layer": "marts", "script_name": "01_lp_check_row_counts.sql", "status": "WARNING", "violation_count": 1}
+    {
+      "layer": "raw",
+      "script_name": "01_lp_check_metadata_col.sql",
+      "status": "PASS",
+      "violation_count": 0
+    },
+    {
+      "layer": "staging",
+      "script_name": "01_lp_check_metadata_col.sql",
+      "status": "PASS",
+      "violation_count": 0
+    },
+    {
+      "layer": "analytics",
+      "script_name": "12_lp_check_derived_attributes.sql",
+      "status": "PASS",
+      "violation_count": 0
+    },
+    {
+      "layer": "marts",
+      "script_name": "01_lp_check_row_counts.sql",
+      "status": "WARNING",
+      "violation_count": 1
+    }
   ],
   "errors": [],
   "freshness": [
-    {"table": "customers", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
-    {"table": "accounts", "age_s": 3200, "window": "PT24H", "breached": false, "severity": "WARNING"},
-    {"table": "loans", "age_s": 7200, "window": "PT24H", "breached": false, "severity": "WARNING"},
-    {"table": "card_transactions", "age_s": 9500, "window": "PT24H", "breached": false, "severity": "WARNING"}
+    {
+      "table": "customers",
+      "age_s": 3200,
+      "window": "PT24H",
+      "breached": false,
+      "severity": "WARNING"
+    },
+    {
+      "table": "accounts",
+      "age_s": 3200,
+      "window": "PT24H",
+      "breached": false,
+      "severity": "WARNING"
+    },
+    {
+      "table": "loans",
+      "age_s": 7200,
+      "window": "PT24H",
+      "breached": false,
+      "severity": "WARNING"
+    },
+    {
+      "table": "card_transactions",
+      "age_s": 9500,
+      "window": "PT24H",
+      "breached": false,
+      "severity": "WARNING"
+    }
   ],
   "trends": [
-    {"run_key": "scheduled__2026_10_19T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3090, "rows_landed": 53600, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_20T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3180, "rows_landed": 54000, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_21T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3240, "rows_landed": 54200, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_22T20_30_00_00_00", "status": "PARTIAL", "duration_s": 3400, "rows_landed": 41000, "failed_tables": 1, "dq_failures": 1},
-    {"run_key": "scheduled__2026_10_23T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3150, "rows_landed": 53900, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_24T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3110, "rows_landed": 53700, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_25T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3095, "rows_landed": 53550, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_26T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3200, "rows_landed": 24000, "failed_tables": 0, "dq_failures": 0}
+    {
+      "run_key": "scheduled__2026_10_19T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3090,
+      "rows_landed": 2450,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_20T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3180,
+      "rows_landed": 2510,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_21T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3240,
+      "rows_landed": 2480,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_22T20_30_00_00_00",
+      "status": "PARTIAL",
+      "duration_s": 3400,
+      "rows_landed": 2500,
+      "failed_tables": 1,
+      "dq_failures": 1
+    },
+    {
+      "run_key": "scheduled__2026_10_23T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3150,
+      "rows_landed": 2470,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_24T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3110,
+      "rows_landed": 2490,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_25T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3095,
+      "rows_landed": 2505,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_26T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3200,
+      "rows_landed": 1000,
+      "failed_tables": 0,
+      "dq_failures": 0
+    }
   ],
   "events": [
+    {
+      "event_id": "R008:marts:audit.dq_01_lp_check_row_counts",
+      "rule": "R008",
+      "severity": "MINOR",
+      "layer": "marts",
+      "subject": "audit.dq_01_lp_check_row_counts",
+      "category": "DATA",
+      "first_seen": "2026-10-26T02:58:20+05:30",
+      "message": "WARNING check not passing, violation_count=1",
+      "impact": "warning only, nothing was blocked",
+      "runbook": null
+    },
     {
       "event_id": "R009:pipeline:banking_report_weekly",
       "rule": "R009",
@@ -72,24 +369,68 @@
       "layer": null,
       "subject": "banking_report_weekly",
       "category": "VOLUME",
-      "first_seen": "2026-10-26T02:52:10+05:30",
-      "message": "rows_landed=24000, trailing median 53750, deviation 55 percent",
+      "first_seen": "2026-10-26T02:58:20+05:30",
+      "message": "rows_landed=1000, trailing median 2490, deviation 60 percent",
       "impact": "quiet or unusually loud night, check the source",
       "runbook": "RUNBOOK.md#a-run-failed-triage"
     },
     {
-      "event_id": "R008:marts:01_lp_check_row_counts",
-      "rule": "R008",
-      "severity": "MINOR",
-      "layer": "marts",
-      "subject": "audit.dq_marts_row_counts",
+      "event_id": "R017:raw:raw.branches",
+      "rule": "R017",
+      "severity": "INFO",
+      "layer": "raw",
+      "subject": "raw.branches",
       "category": "DATA",
-      "first_seen": "2026-10-26T02:50:02+05:30",
-      "message": "WARNING check not passing, violation_count=1",
-      "impact": "row counts drifted, marts still published",
-      "runbook": "RUNBOOK.md#a-run-failed-triage"
+      "first_seen": "2026-10-26T02:58:20+05:30",
+      "message": "table skipped, no new data since last watermark",
+      "impact": "none, the table refreshes once the source changes",
+      "runbook": null
     }
   ],
-  "verdict": {"severity": "MINOR", "label": "ATTENTION"},
-  "sections_failed": []
+  "verdict": {
+    "severity": "MINOR",
+    "label": "ATTENTION",
+    "headline": "R008 audit.dq_01_lp_check_row_counts needs attention.",
+    "consequence": "warning only, nothing was blocked"
+  },
+  "sections_failed": [],
+  "kpis": {
+    "tables": {
+      "total": 5,
+      "ok": 4,
+      "failed": 0,
+      "skipped": 1
+    },
+    "rows": {
+      "raw": 1000,
+      "published": 50000
+    },
+    "dq": {
+      "passed": 3,
+      "warnings": 1,
+      "failed": 0,
+      "total": 4
+    },
+    "duration": {
+      "duration_s": 3200,
+      "median_s": 3150.0,
+      "delta_pct": 2
+    },
+    "freshest": {
+      "worst_age_share": 0.11,
+      "breaches": 0
+    },
+    "retries": 0
+  },
+  "next_actions": [
+    {
+      "rule": "R009",
+      "severity": "MINOR",
+      "runbook": "RUNBOOK.md#a-run-failed-triage",
+      "subjects": [
+        "banking_report_weekly"
+      ],
+      "text": "MINOR R009: banking_report_weekly; see RUNBOOK.md#a-run-failed-triage"
+    }
+  ]
 }

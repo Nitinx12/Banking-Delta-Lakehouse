@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "meta": {
     "kind": "daily",
     "generated_at": "2026-10-21T02:40:30+05:30",
@@ -12,34 +12,219 @@
   "run": {
     "status": "FAILED",
     "duration_s": 1450,
-    "total_tables": 10,
-    "successful_tables": 3,
-    "failed_tables": 7,
-    "skipped_tables": 0,
+    "total_tables": 5,
+    "successful_tables": 1,
+    "failed_tables": 2,
+    "skipped_tables": 2,
     "started_at": "2026-10-21T02:05:00+05:30",
     "ended_at": "2026-10-21T02:29:00+05:30"
   },
   "steps": [
-    {"id": "n01", "name": "preflight", "layer": "orchestration", "state": "ok", "duration_s": 22, "attempts": 1},
-    {"id": "n02", "name": "extract_mongo", "layer": "source", "state": "bad", "duration_s": 900, "attempts": 2},
-    {"id": "n03", "name": "extract_databricks", "layer": "source", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n04", "name": "extract_mysql", "layer": "source", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n05", "name": "raw_tests", "layer": "raw", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n06", "name": "staging_load", "layer": "staging", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n07", "name": "staging_tests", "layer": "staging", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n08", "name": "analytics_load", "layer": "analytics", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n09", "name": "analytics_tests", "layer": "analytics", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n10", "name": "marts_load", "layer": "marts", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n11", "name": "marts_tests", "layer": "marts", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n12", "name": "publish", "layer": "publish", "state": "idle", "duration_s": null, "attempts": null},
-    {"id": "n13", "name": "finalize_audit", "layer": "audit", "state": "ok", "duration_s": 18, "attempts": 1}
+    {
+      "id": "n01",
+      "name": "preflight",
+      "layer": "orchestration",
+      "state": "ok",
+      "duration_s": 22,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 0.0,
+      "end_offset_s": 22.0
+    },
+    {
+      "id": "n02",
+      "name": "extract_mongo",
+      "layer": "source",
+      "state": "bad",
+      "duration_s": 900,
+      "attempts": 2,
+      "evidence": true,
+      "start_offset_s": 27.0,
+      "end_offset_s": 927.0
+    },
+    {
+      "id": "n03",
+      "name": "extract_databricks",
+      "layer": "source",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n04",
+      "name": "extract_mysql",
+      "layer": "source",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n05",
+      "name": "raw_tests",
+      "layer": "raw",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n06",
+      "name": "staging_load",
+      "layer": "staging",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n07",
+      "name": "staging_tests",
+      "layer": "staging",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n08",
+      "name": "analytics_load",
+      "layer": "analytics",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n09",
+      "name": "analytics_tests",
+      "layer": "analytics",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n10",
+      "name": "marts_load",
+      "layer": "marts",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n11",
+      "name": "marts_tests",
+      "layer": "marts",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n12",
+      "name": "publish",
+      "layer": "publish",
+      "state": "idle",
+      "duration_s": null,
+      "attempts": null,
+      "evidence": false,
+      "start_offset_s": null,
+      "end_offset_s": null
+    },
+    {
+      "id": "n13",
+      "name": "finalize_audit",
+      "layer": "audit",
+      "state": "ok",
+      "duration_s": 18,
+      "attempts": 1,
+      "evidence": true,
+      "start_offset_s": 1432.0,
+      "end_offset_s": 1450.0
+    }
   ],
   "tables": [
-    {"layer": "raw", "table": "customers", "status": "SUCCESS", "rows_extracted": 1000, "rows_landed": 1000, "watermark_start": null, "watermark_end": null, "attempts": 1},
-    {"layer": "raw", "table": "support_tickets", "status": "FAILED", "rows_extracted": null, "rows_landed": null, "watermark_start": "652f0a1b0000000000000000", "watermark_end": null, "attempts": 2},
-    {"layer": "raw", "table": "card_transactions", "status": "FAILED", "rows_extracted": null, "rows_landed": null, "watermark_start": "652f0a1c0000000000000000", "watermark_end": null, "attempts": 2},
-    {"layer": "staging", "table": "customers", "status": "UNKNOWN", "rows_extracted": null, "rows_landed": null, "watermark_start": null, "watermark_end": null, "attempts": null},
-    {"layer": "publish", "table": "marts.fact_transactions", "status": "UNKNOWN", "rows_extracted": null, "rows_landed": null, "watermark_start": null, "watermark_end": null, "attempts": null}
+    {
+      "layer": "raw",
+      "table": "customers",
+      "status": "SUCCESS",
+      "rows_extracted": 1000,
+      "rows_landed": 1000,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": 1,
+      "label": "raw.customers",
+      "median_rows": 1000
+    },
+    {
+      "layer": "raw",
+      "table": "support_tickets",
+      "status": "FAILED",
+      "rows_extracted": null,
+      "rows_landed": null,
+      "watermark_start": "652f0a1b0000000000000000",
+      "watermark_end": null,
+      "attempts": 2,
+      "label": "raw.support_tickets",
+      "median_rows": 2380
+    },
+    {
+      "layer": "raw",
+      "table": "card_transactions",
+      "status": "FAILED",
+      "rows_extracted": null,
+      "rows_landed": null,
+      "watermark_start": "652f0a1c0000000000000000",
+      "watermark_end": null,
+      "attempts": 2,
+      "label": "raw.card_transactions",
+      "median_rows": 48000
+    },
+    {
+      "layer": "staging",
+      "table": "customers",
+      "status": "UNKNOWN",
+      "rows_extracted": null,
+      "rows_landed": null,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": null,
+      "label": "staging.customers",
+      "median_rows": 1000
+    },
+    {
+      "layer": "publish",
+      "table": "marts.fact_transactions",
+      "status": "UNKNOWN",
+      "rows_extracted": null,
+      "rows_landed": null,
+      "watermark_start": null,
+      "watermark_end": null,
+      "attempts": null,
+      "label": "publish.marts.fact_transactions",
+      "median_rows": 50000
+    }
   ],
   "dq": [],
   "errors": [
@@ -54,11 +239,46 @@
   ],
   "freshness": [],
   "trends": [
-    {"run_key": "scheduled__2026_10_16T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3100, "rows_landed": 53500, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_17T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3250, "rows_landed": 54100, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_18T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3180, "rows_landed": 53800, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_19T20_30_00_00_00", "status": "SUCCESS", "duration_s": 3090, "rows_landed": 53600, "failed_tables": 0, "dq_failures": 0},
-    {"run_key": "scheduled__2026_10_20T20_30_00_00_00", "status": "FAILED", "duration_s": 1450, "rows_landed": 1000, "failed_tables": 7, "dq_failures": 0}
+    {
+      "run_key": "scheduled__2026_10_16T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3100,
+      "rows_landed": 2490,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_17T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3250,
+      "rows_landed": 2510,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_18T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3180,
+      "rows_landed": 2480,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_19T20_30_00_00_00",
+      "status": "SUCCESS",
+      "duration_s": 3090,
+      "rows_landed": 2500,
+      "failed_tables": 0,
+      "dq_failures": 0
+    },
+    {
+      "run_key": "scheduled__2026_10_20T20_30_00_00_00",
+      "status": "FAILED",
+      "duration_s": 1450,
+      "rows_landed": 1000,
+      "failed_tables": 7,
+      "dq_failures": 0
+    }
   ],
   "events": [
     {
@@ -67,10 +287,22 @@
       "severity": "CRITICAL",
       "layer": null,
       "subject": "banking_delta_daily",
-      "category": "CONNECTION",
+      "category": "UNKNOWN",
       "first_seen": "2026-10-21T02:29:00+05:30",
-      "message": "run status FAILED, 7 of 10 tables failed",
+      "message": "run status FAILED, 2 of 5 tables failed",
       "impact": "nothing was published, yesterday's marts stand",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "event_id": "R004:publish:publish.marts.fact_transactions",
+      "rule": "R004",
+      "severity": "MAJOR",
+      "layer": "publish",
+      "subject": "publish.marts.fact_transactions",
+      "category": "DATA",
+      "first_seen": "2026-10-21T02:29:00+05:30",
+      "message": "publish status UNKNOWN",
+      "impact": "Databricks marts were not updated",
       "runbook": "RUNBOOK.md#a-run-failed-triage"
     },
     {
@@ -78,26 +310,136 @@
       "rule": "R005",
       "severity": "MAJOR",
       "layer": "raw",
-      "subject": "raw.support_tickets",
+      "subject": "support_tickets",
       "category": "CONNECTION",
       "first_seen": "2026-10-21T02:29:00+05:30",
       "message": "CONNECTION error on the final attempt",
-      "impact": "mongo extract did not land, staging never started",
+      "impact": "the run did not recover",
       "runbook": "RUNBOOK.md#a-run-failed-triage"
     },
     {
-      "event_id": "R016:report:freshness",
+      "event_id": "R007:raw:raw.card_transactions",
+      "rule": "R007",
+      "severity": "MINOR",
+      "layer": "raw",
+      "subject": "raw.card_transactions",
+      "category": "UNKNOWN",
+      "first_seen": "2026-10-21T02:29:00+05:30",
+      "message": "attempt_number=2",
+      "impact": "a table needed more than one attempt",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "event_id": "R007:raw:raw.support_tickets",
+      "rule": "R007",
+      "severity": "MINOR",
+      "layer": "raw",
+      "subject": "raw.support_tickets",
+      "category": "UNKNOWN",
+      "first_seen": "2026-10-21T02:29:00+05:30",
+      "message": "attempt_number=2",
+      "impact": "a table needed more than one attempt",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "event_id": "R009:pipeline:banking_delta_daily",
+      "rule": "R009",
+      "severity": "MINOR",
+      "layer": null,
+      "subject": "banking_delta_daily",
+      "category": "VOLUME",
+      "first_seen": "2026-10-21T02:29:00+05:30",
+      "message": "rows_landed=1000, trailing median 2495, deviation 60 percent",
+      "impact": "quiet or unusually loud night, check the source",
+      "runbook": "RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "event_id": "R016:pipeline:freshness",
       "rule": "R016",
       "severity": "MINOR",
       "layer": null,
       "subject": "freshness",
       "category": "REPORT",
       "first_seen": "2026-10-21T02:40:30+05:30",
-      "message": "freshness section degraded while collecting landing ages",
-      "impact": "freshness chapter shows the section unavailable box",
+      "message": "freshness section degraded while collecting",
+      "impact": "part of the report shows the section unavailable box",
       "runbook": null
     }
   ],
-  "verdict": {"severity": "CRITICAL", "label": "INCIDENT"},
-  "sections_failed": ["freshness"]
+  "verdict": {
+    "severity": "CRITICAL",
+    "label": "INCIDENT",
+    "headline": "R001 banking_delta_daily failed this run.",
+    "consequence": "nothing was published, yesterday's marts stand"
+  },
+  "sections_failed": [
+    "freshness"
+  ],
+  "kpis": {
+    "tables": {
+      "total": 5,
+      "ok": 1,
+      "failed": 2,
+      "skipped": 2
+    },
+    "rows": {
+      "raw": 1000,
+      "published": null
+    },
+    "dq": {
+      "passed": 0,
+      "warnings": 0,
+      "failed": 0,
+      "total": 0
+    },
+    "duration": {
+      "duration_s": 1450,
+      "median_s": 3140.0,
+      "delta_pct": -54
+    },
+    "freshest": {
+      "worst_age_share": null,
+      "breaches": 0
+    },
+    "retries": 2
+  },
+  "next_actions": [
+    {
+      "rule": "R001",
+      "severity": "CRITICAL",
+      "runbook": "RUNBOOK.md#a-run-failed-triage",
+      "subjects": [
+        "banking_delta_daily"
+      ],
+      "text": "CRITICAL R001: banking_delta_daily; see RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "rule": "R004",
+      "severity": "MAJOR",
+      "runbook": "RUNBOOK.md#a-run-failed-triage",
+      "subjects": [
+        "publish.marts.fact_transactions"
+      ],
+      "text": "MAJOR R004: publish.marts.fact_transactions; see RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "rule": "R005",
+      "severity": "MAJOR",
+      "runbook": "RUNBOOK.md#a-run-failed-triage",
+      "subjects": [
+        "support_tickets"
+      ],
+      "text": "MAJOR R005: support_tickets; see RUNBOOK.md#a-run-failed-triage"
+    },
+    {
+      "rule": "R007",
+      "severity": "MINOR",
+      "runbook": "RUNBOOK.md#a-run-failed-triage",
+      "subjects": [
+        "raw.card_transactions",
+        "raw.support_tickets"
+      ],
+      "text": "MINOR R007: raw.card_transactions, raw.support_tickets; see RUNBOOK.md#a-run-failed-triage"
+    }
+  ]
 }

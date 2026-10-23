@@ -29,8 +29,8 @@ def _load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def test_schema_declares_version_one() -> None:
-    assert _SCHEMA["properties"]["schema_version"] == {"const": 1}
+def test_schema_declares_version_two() -> None:
+    assert _SCHEMA["properties"]["schema_version"] == {"const": 2}
 
 
 @pytest.mark.parametrize("path", _FIXTURES, ids=_IDS)

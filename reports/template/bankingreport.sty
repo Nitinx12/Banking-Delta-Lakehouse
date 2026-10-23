@@ -196,6 +196,16 @@
     \end{tikzpicture}
   \end{center}}
 
+% \sectionidle{name}{reason}: box for an empty section that is not broken.
+\newcommand{\sectionidle}[2]{%
+  \begin{center}
+    \begin{tikzpicture}
+      \node[draw=\statestroke{idle}, fill=\statefill{idle}, rounded corners=3pt,
+            inner sep=8pt, text width=0.7\linewidth, align=center]{%
+            \textbf{#1 idle}\\[2pt]\small #2};
+    \end{tikzpicture}
+  \end{center}}
+
 \pagestyle{fancy}
 \fancyhf{}
 \fancyhead[L]{\small\reporttitle}

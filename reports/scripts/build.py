@@ -72,60 +72,69 @@ def _median(rows: list[dict[str, Any]], key: str) -> int | None:
     return int(statistics.median(values))
 
 
-def _total_rows(context: dict[str, Any]) -> int:
-    """Rows landed across every table of the run."""
-    return sum(int(t.get("rows_landed") or 0) for t in context.get("tables") or [])
-
-
-def _kpis(context: dict[str, Any]) -> dict[str, dict[str, str]]:
-    """The four cards on page one: tables, rows, data quality and duration."""
-    tables = context.get("tables") or []
-    ok = sum(1 for t in tables if t.get("status") == "SUCCESS")
-    failed = sum(1 for t in tables if t.get("status") == "FAILED")
-    skipped = len(tables) - ok - failed
-    total = len(tables)
-    dq = context.get("dq") or []
-    dq_ok = sum(1 for row in dq if str(row.get("status", "")).upper() == "PASS")
-    dq_failed = len(dq) - dq_ok
-    duration = (context.get("run") or {}).get("duration_s")
-    baseline = _median(context.get("trends") or [], "duration_s")
-    if duration is None:
+def _cards(context: dict[str, Any]) -> dict[str, dict[str, str]]:
+    """The four cards on page one; every number comes from the kpis block."""
+    counts = context["kpis"]["tables"]
+    rows = context["kpis"]["rows"]
+    dq = context["kpis"]["dq"]
+    duration = context["kpis"]["duration"]
+    ok = counts["ok"]
+    total = counts["total"]
+    tables_card = {
+        "value": (
+            f"{ok if ok is not None else 'n/a'}/{total if total is not None else 'n/a'}"
+        ),
+        "subtitle": f"{counts['failed'] or 0} failed, {counts['skipped'] or 0} skipped",
+        "state": "bad" if counts["failed"] else "ok",
+    }
+    raw = rows["raw"]
+    if raw is None:
+        rows_card = {"value": "n/a", "subtitle": "rows landed at raw", "state": "idle"}
+    else:
+        published = rows["published"]
+        rows_card = {
+            "value": render.fmt_int(raw),
+            "subtitle": (
+                f"{published:,} published"
+                if published is not None
+                else "rows landed at raw"
+            ),
+            "state": "ok",
+        }
+    if dq["total"] == 0:
+        dq_card = {"value": "0/0", "subtitle": "no gate ran", "state": "idle"}
+    else:
+        dq_card = {
+            "value": f"{dq['passed']}/{dq['total']}",
+            "subtitle": f"{dq['warnings']} warnings, {dq['failed']} failed",
+            "state": "bad" if dq["failed"] else ("warn" if dq["warnings"] else "ok"),
+        }
+    delta = duration["delta_pct"]
+    median_s = duration["median_s"]
+    if duration["duration_s"] is None:
         duration_card = {"value": "n/a", "subtitle": "run duration", "state": "idle"}
-    elif baseline:
-        change = int(round((float(duration) / baseline - 1) * 100))
+    elif delta is not None and median_s:
         duration_card = {
-            "value": render.fmt_dur(duration),
-            "subtitle": f"{change:+d}% vs median {render.fmt_dur(baseline)}",
-            "state": "warn" if change > 50 else "ok",
+            "value": render.fmt_dur(duration["duration_s"]),
+            "subtitle": f"{delta:+d}% vs median {render.fmt_dur(median_s)}",
+            "state": "warn" if delta > 50 else "ok",
         }
     else:
         duration_card = {
-            "value": render.fmt_dur(duration),
+            "value": render.fmt_dur(duration["duration_s"]),
             "subtitle": "run duration",
             "state": "ok",
         }
     return {
-        "tables_ok": {
-            "value": f"{ok}/{total}",
-            "subtitle": f"{failed} failed, {skipped} skipped",
-            "state": "bad" if failed else "ok",
-        },
-        "rows_landed": {
-            "value": render.fmt_int(_total_rows(context)),
-            "subtitle": "rows landed",
-            "state": "ok" if total else "idle",
-        },
-        "dq_passed": {
-            "value": f"{dq_ok}/{len(dq)}",
-            "subtitle": f"{dq_failed} not passing",
-            "state": "bad" if dq_failed else "ok",
-        },
+        "tables_ok": tables_card,
+        "rows_landed": rows_card,
+        "dq_passed": dq_card,
         "duration": duration_card,
     }
 
 
 def _attention(events: list[dict[str, Any]], limit: int = 5) -> list[dict[str, Any]]:
-    """The events a human has to read, worst first."""
+    """The events a human has to read, grouped per rule and worst first."""
     ranked = [event for event in events if event.get("severity") != "INFO"]
     ranked.sort(
         key=lambda event: (
@@ -134,7 +143,57 @@ def _attention(events: list[dict[str, Any]], limit: int = 5) -> list[dict[str, A
             str(event.get("subject", "")),
         )
     )
-    return ranked[:limit]
+    groups: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for event in ranked:
+        key = (
+            str(event.get("severity")),
+            str(event.get("rule")),
+            str(event.get("layer")),
+        )
+        group = groups.get(key)
+        subject = str(event.get("subject"))
+        if group is None:
+            groups[key] = {"event": event, "subjects": [subject]}
+        elif subject not in group["subjects"]:
+            group["subjects"].append(subject)
+    items: list[dict[str, Any]] = []
+    runbook_shown = False
+    for group in groups.values():
+        event = group["event"]
+        subjects = group["subjects"]
+        if len(subjects) == 1:
+            subject_text = f"{event['rule']} {subjects[0]}"
+        else:
+            subject_text = f"{event['rule']} x{len(subjects)} {', '.join(subjects)}"
+        runbook = event.get("runbook") if not runbook_shown else None
+        if runbook:
+            runbook_shown = True
+        items.append(
+            {
+                "severity": event["severity"],
+                "subject_text": subject_text,
+                "message": event["message"],
+                "impact": event["impact"],
+                "runbook": runbook,
+            }
+        )
+        if len(items) >= limit:
+            break
+    return items
+
+
+def _idle_reasons(context: dict[str, Any]) -> dict[str, str]:
+    """Why a section has no rows: the step that stopped the run, per section."""
+    steps = context.get("steps") or []
+    bad = next((step for step in steps if step.get("state") == "bad"), None)
+    head = f"run stopped at {bad['name']}" if bad else "no audit row was collected"
+    suffix = {
+        "dq": "no DQ gate ran",
+        "tables": "no table row was collected",
+        "freshness": "no landing age was collected",
+        "trends": "no earlier run was collected",
+    }
+    return {key: f"{head}; {text}" for key, text in suffix.items()}
 
 
 def _load_context(args: argparse.Namespace, kind: str) -> dict[str, Any]:
@@ -281,6 +340,7 @@ def _build_kind(
     variables = {
         **template_vars,
         "meta": {**(context.get("meta") or {}), "kind": kind},
+        "regeneration": _regeneration(args, kind),
         "figures": figures,
         "flow": flow_data,
     }
@@ -339,23 +399,23 @@ def build_report(args: argparse.Namespace) -> int:
     if kind not in config["kinds"]:
         print(f"unknown kind: {kind}", file=sys.stderr)
         return EXIT_INVALID
-    schema = json.loads(paths.CONTEXT_SCHEMA.read_text(encoding="utf-8"))
-    try:
-        jsonschema.validate(context, schema)
-    except jsonschema.ValidationError as exc:
-        print(f"context invalid: {exc.message}", file=sys.stderr)
-        return EXIT_INVALID
-    if args.strict and context.get("sections_failed"):
-        print(f"sections degraded: {context['sections_failed']}", file=sys.stderr)
-        return EXIT_INVALID
-
-    thresholds = config["thresholds"]
     context["meta"]["kind"] = kind
+    thresholds = config["thresholds"]
     evaluated = severity.evaluate(
         context,
         volume_ratio=float(thresholds["volume_deviation_ratio"]),
         duration_ratio=float(thresholds["duration_regression_ratio"]),
+        wording=config.get("wording"),
     )
+    schema = json.loads(paths.CONTEXT_SCHEMA.read_text(encoding="utf-8"))
+    try:
+        jsonschema.validate(evaluated, schema)
+    except jsonschema.ValidationError as exc:
+        print(f"context invalid: {exc.message}", file=sys.stderr)
+        return EXIT_INVALID
+    if args.strict and evaluated.get("sections_failed"):
+        print(f"sections degraded: {evaluated['sections_failed']}", file=sys.stderr)
+        return EXIT_INVALID
     context_file = paths.context_path()
     context_file.parent.mkdir(parents=True, exist_ok=True)
     context_text = json.dumps(evaluated, indent=2, sort_keys=True) + "\n"
@@ -380,9 +440,9 @@ def build_report(args: argparse.Namespace) -> int:
     env = render.make_env(paths.TEMPLATE_DIR, paths.CHAPTERS_DIR)
     template_vars = {
         **evaluated,
-        "kpis": _kpis(evaluated),
+        "kpicards": _cards(evaluated),
         "attention": _attention(evaluated.get("events") or []),
-        "regeneration": _regeneration(args, kind),
+        "idle_reasons": _idle_reasons(evaluated),
         "degraded": False,
     }
     kinds = [kind]

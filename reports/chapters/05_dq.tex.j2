@@ -13,6 +13,8 @@ Layer & Check & Status & Violations \\
 \bottomrule
 \end{tabular}
 \end{center}
-\BLOCK{else}
+\BLOCK{elif 'dq' in sections_failed}
 \BLOCK{include 'partials/section_unavailable.tex.j2'}
+\BLOCK{else}
+\sectionidle{Data Quality}{\detokenize{\VAR{idle_reasons.dq | raw}}}
 \BLOCK{endif}

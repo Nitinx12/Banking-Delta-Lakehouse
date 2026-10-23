@@ -1,6 +1,8 @@
 \section{Incidents}
 \BLOCK{if events}
+\BLOCK{if errors}
 \VAR{figures.get('error_categories', '') | raw}
+\BLOCK{endif}
 \BLOCK{include 'partials/event_table.tex.j2'}
 \BLOCK{else}
 \begin{center}

@@ -4,13 +4,14 @@
 \subsection*{What needs attention}
 \BLOCK{if attention}
 \begin{center}
-\begin{tabular}{@{}C{1.7cm}L{5.6cm}L{4.6cm}L{3.4cm}@{}}
+\begin{tabular}{@{}C{1.4cm}L{3.6cm}L{4.4cm}L{3.6cm}L{2.3cm}@{}}
 \toprule
-Severity & Message & Impact & Runbook \\
+Severity & Subject & Message & Impact & Runbook \\
 \midrule
 \BLOCK{for event in attention}
-\severitytag{\VAR{event.severity}} & \VAR{event.message | breakable} & \VAR{event.impact | breakable} &
-  \texttt{\VAR{(event.runbook or 'docs/RUNBOOK.md') | breakable}} \\
+\severitytag{\VAR{event.severity}} & \texttt{\VAR{event.subject_text | ident}} &
+  \VAR{event.message | breakable} & \VAR{event.impact | breakable} &
+  \BLOCK{if event.runbook}\texttt{\VAR{event.runbook | breakable}}\BLOCK{endif} \\
 \BLOCK{endfor}
 \bottomrule
 \end{tabular}

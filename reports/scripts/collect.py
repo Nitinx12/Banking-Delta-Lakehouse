@@ -81,6 +81,18 @@ def _iso(value: Any) -> Any:
     return value.isoformat() if hasattr(value, "isoformat") else value
 
 
+def _as_datetime(value: Any) -> datetime | None:
+    """Parse an ISO string or pass a datetime through; None when unusable."""
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    return None
+
+
 def _seconds(value: Any) -> float | None:
     if value is None:
         return None
@@ -105,7 +117,7 @@ def collect(
     """Build the context for one run; degraded sections land in sections_failed."""
     own = conn if conn is not None else _connect()
     context: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "meta": _meta(kind, dag_id, dag_run_id),
         "run": {},
         "steps": [],
@@ -162,6 +174,37 @@ def collect(
         )
         return row[0]["pipeline_run_id"] if row else None
 
+    def _median_rows() -> dict[tuple[str, str], int]:
+        """Trailing median of rows landed per table over the recent runs."""
+        try:
+            rows = _fetch(
+                own,
+                """
+                SELECT processing_layer, target_table,
+                       percentile_cont(0.5) WITHIN GROUP (ORDER BY rows_landed)
+                           AS median_rows
+                FROM audit.table_runs
+                WHERE pipeline_run_id IN (
+                    SELECT pipeline_run_id FROM audit.pipeline_runs
+                    WHERE dag_id = %s
+                    ORDER BY started_at DESC
+                    LIMIT %s
+                )
+                GROUP BY processing_layer, target_table
+                """,
+                (dag_id, int(os.environ.get("REPORT_TREND_RUNS", "14"))),
+            )
+        except Exception as exc:  # noqa: BLE001 - a missing median never blocks the list
+            logger.warning("row medians degraded: %s", type(exc).__name__)
+            return {}
+        return {
+            (str(row["processing_layer"]), str(row["target_table"])): int(
+                row["median_rows"]
+            )
+            for row in rows
+            if row.get("median_rows") is not None
+        }
+
     def _tables():
         run_id = _pipeline_run_id()
         rows = _fetch(
@@ -176,10 +219,15 @@ def collect(
             """,
             (run_id,),
         )
+        medians = _median_rows()
         return [
             {
                 "layer": row["processing_layer"],
                 "table": row["target_table"],
+                "label": f"{row['processing_layer']}.{row['target_table']}",
+                "median_rows": medians.get(
+                    (str(row["processing_layer"]), str(row["target_table"]))
+                ),
                 "status": row["status"],
                 "rows_extracted": row["rows_extracted"],
                 "rows_landed": row["rows_landed"],
@@ -206,6 +254,7 @@ def collect(
             (run_id,),
         )
         evidence = {str(row["airflow_task_id"]): row for row in task_rows}
+        run_started = (context.get("run") or {}).get("started_at")
         steps = []
         for index, (name, layer) in enumerate(STEPS, start=1):
             row = evidence.get(name)
@@ -227,9 +276,31 @@ def collect(
                     "state": state,
                     "duration_s": duration,
                     "attempts": attempts,
+                    **_timing(row, run_started),
                 }
             )
         return steps
+
+    def _timing(row: dict[str, Any] | None, run_started: Any) -> dict[str, Any]:
+        """Evidence flag and second offsets of one task from the run start."""
+        if row is None:
+            return {"evidence": False, "start_offset_s": None, "end_offset_s": None}
+        start = _offset(row.get("started_at"), run_started)
+        end = _offset(row.get("ended_at"), run_started)
+        if start is None or end is None:
+            return {"evidence": False, "start_offset_s": None, "end_offset_s": None}
+        return {"evidence": True, "start_offset_s": start, "end_offset_s": end}
+
+    def _offset(value: Any, reference: Any) -> float | None:
+        """Seconds from the reference timestamp, never negative, None when unknown."""
+        moment = _as_datetime(value)
+        base = _as_datetime(reference)
+        if moment is None or base is None:
+            return None
+        try:
+            return float(max(0.0, (moment - base).total_seconds()))
+        except TypeError:
+            return None
 
     def _duration(row: dict[str, Any]) -> float | None:
         if row.get("started_at") is None or row.get("ended_at") is None:
@@ -397,7 +468,8 @@ def collect(
             run_id = _fetch(
                 own,
                 """
-                SELECT coalesce(sum(rows_landed), 0) AS rows_landed,
+                SELECT coalesce(sum(rows_landed) FILTER (WHERE processing_layer = 'raw'), 0)
+                       AS rows_landed,
                        count(*) FILTER (WHERE status = 'FAILED') AS failed_tables
                 FROM audit.table_runs
                 WHERE pipeline_run_id = (

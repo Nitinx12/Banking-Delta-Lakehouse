@@ -120,7 +120,7 @@ Restricted (ask first): `make spark-smoke`, `ALLOW_SQL_SMOKE=1 make sql-smoke in
 | `reports.scripts.tex_escape` covers all 10 LaTeX specials + `None` + unicode | broken compiles from error text |
 | `reports.scripts.tex_escape` neutralises `\input{...}`, `\write18`, `\immediate` in free text | LaTeX injection through audit messages |
 | `reports.scripts.RenderTeX` is the only escape bypass; `StrictUndefined` raises on missing key | silent blanks, accidental raw output |
-| severity rules R001–R017: one table-driven test per rule | wrong or downgraded severity |
+| severity rules R001–R018: one table-driven test per rule | wrong or downgraded severity |
 | verdict is maximum severity; `UNKNOWN` never renders as `ok` | false green report |
 | latest attempt per table decides the table status | a retry that succeeded reported as failed |
 | redaction applied to every free text field, 300 char cap | secrets in mail or PDF |

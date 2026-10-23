@@ -74,15 +74,16 @@ def _finish(fig: Figure) -> Figure:
 
 def task_timeline(steps: list[dict[str, Any]]) -> Figure:
     """Horizontal start-to-end timeline per task, layer coloured."""
-    done = [s for s in steps if s.get("duration_s") is not None]
+    done = [s for s in steps if s.get("evidence")]
     if not done:
         return _placeholder()
     fig, ax = plt.subplots(figsize=(FULL_WIDTH, HEIGHT))
     for index, step in enumerate(reversed(done)):
         colour = PALETTE.get(str(step.get("layer")), PALETTE["idle"])["stroke"]
-        duration = float(step["duration_s"])
-        ax.barh(index, duration, left=0, color=colour, height=0.6)
-        ax.text(duration, index, f" {step['name']}", va="center", fontsize=7)
+        left = float(step["start_offset_s"])
+        end = float(step["end_offset_s"])
+        ax.barh(index, end - left, left=left, color=colour, height=0.6)
+        ax.text(end, index, f" {step['name']}", va="center", fontsize=7)
     ax.set_yticks([])
     ax.set_xlabel("seconds from run start")
     return _finish(fig)
@@ -101,7 +102,10 @@ def volumes_dumbbell(tables: list[dict[str, Any]], median_rows: int | None) -> F
         ax.text(value, index, f" {value:,}", va="center", fontsize=7)
         if median_rows is not None:
             ax.axvline(median_rows, color="#475569", linewidth=0.6, linestyle="--")
-    ax.set_yticks([])
+    ax.set_yticks(
+        range(len(landed)),
+        [str(t.get("label") or f"{t['layer']}.{t['table']}") for t in reversed(landed)],
+    )
     ax.set_xlabel("rows landed")
     return _finish(fig)
 
@@ -183,7 +187,7 @@ def freshness_bullet(freshness: list[dict[str, Any]]) -> Figure:
                 color="#475569",
                 linewidth=1.2,
             )
-    ax.set_yticks([])
+    ax.set_yticks(range(len(rows)), [f"raw.{row['table']}" for row in reversed(rows)])
     ax.set_xlabel("hours since last load (bar) vs window (tick)")
     return _finish(fig)
 
@@ -263,7 +267,6 @@ def publish_reconcile(tables: list[dict[str, Any]]) -> Figure:
     if not rows:
         return _placeholder()
     fig, ax = plt.subplots(figsize=(FULL_WIDTH, HEIGHT))
-    names = [str(t["table"]) for t in rows]
     positions = range(len(rows))
     ax.barh(
         [p - 0.15 for p in positions],
@@ -279,7 +282,10 @@ def publish_reconcile(tables: list[dict[str, Any]]) -> Figure:
         color="#A16207",
         label="landed",
     )
-    ax.set_yticks(list(positions), names)
+    ax.set_yticks(
+        list(positions),
+        [str(t.get("label") or f"{t['layer']}.{t['table']}") for t in rows],
+    )
     ax.legend(fontsize=7)
     return _finish(fig)
 

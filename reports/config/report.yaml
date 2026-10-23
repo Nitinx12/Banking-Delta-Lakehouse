@@ -15,3 +15,18 @@ thresholds:
   duration_regression_ratio: 1.5
   freshness_default_window: PT24H
   max_message_chars: 300
+wording:
+  verdict:
+    headline:
+      INFO: "All gates passed."
+      MINOR: "{rule} {subject} needs attention."
+      MAJOR: "{rule} {subject} blocked part of the run."
+      CRITICAL: "{rule} {subject} failed this run."
+      UNKNOWN: "Run status unknown."
+    consequence:
+      INFO: "Nothing is late and no action is needed."
+      MINOR: "{impact}"
+      MAJOR: "{impact}"
+      CRITICAL: "{impact}"
+      UNKNOWN: "Investigate before trusting this report."
+  next_action: "{severity} {rule}: {subjects}; see {runbook}"
