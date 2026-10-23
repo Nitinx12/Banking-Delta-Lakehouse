@@ -3,7 +3,7 @@
 Discovers ``tests/data-quality/raw/*.sql`` in numeric order, creates/refreshes each test's
 audit procedure, then ``CALL``s it against the PostgreSQL warehouse. Every run is logged to
 ``audit.dq_run``/``audit.dq_violation`` by the procedures themselves; this script prints a
-live progress bar, a pass/fail summary table, and the latest audit result per test. Exits 0
+live progress bar and a pass/fail summary table. Exits 0
 only if every test passed.
 
     python scripts/run_raw_tests.py                 # run every raw test
@@ -137,42 +137,6 @@ def _print_failures(results: list[TestResult]) -> None:
         )
 
 
-def _print_audit(conn) -> None:
-    """Print the latest audit.dq_run row for each test recorded by the procedures."""
-    try:
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT script_name, status, violation_count, finished_at "
-                "FROM audit.v_dq_latest ORDER BY script_name"
-            )
-            rows = cur.fetchall()
-    except Exception:  # noqa: BLE001 - audit is best-effort reporting, never gate the run
-        return
-    if not rows:
-        return
-    table = Table(
-        title="Latest audit (audit.v_dq_latest)",
-        show_header=True,
-        header_style="bold cyan",
-        box=None,
-        pad_edge=False,
-    )
-    table.add_column("Test", style="white")
-    table.add_column("Status", justify="center")
-    table.add_column("Violations", justify="right")
-    table.add_column("Finished", style="dim")
-    for script_name, status, count, finished in rows:
-        colour = "green" if status == "PASS" else "red"
-        table.add_row(
-            script_name,
-            Text(status, style=f"bold {colour}"),
-            str(count),
-            finished.isoformat(sep=" ", timespec="seconds") if finished else "-",
-        )
-    console.print()
-    console.print(table)
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Run the raw-schema data-quality SQL tests."
@@ -251,8 +215,6 @@ def main(argv: list[str] | None = None) -> int:
                     for notice in result.notices:
                         progress.console.print(f"    [dim]{notice}[/dim]")
                 progress.advance(task)
-
-        _print_audit(conn)
     finally:
         conn.close()
 

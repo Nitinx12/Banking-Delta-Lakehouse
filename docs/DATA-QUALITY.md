@@ -43,7 +43,7 @@ tests/data-quality/
 ```
 
 Runners: `scripts/run_{raw,staging,analytics,marts}_tests.py` (discover in numeric order,
-Rich progress, print latest `audit.v_dq_latest` row per test, exit non-zero on any
+Rich progress, exit non-zero on any
 failure). Make targets: `make dq-raw` … `make dq-marts`, or `make dq` for all four in
 layer order. Airflow runs the same runners as `*_tests` steps of `banking_delta_daily`.
 
