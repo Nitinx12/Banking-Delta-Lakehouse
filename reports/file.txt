@@ -1,0 +1,142 @@
+===============================================================================
+BANKING DELTA LAKEHOUSE - REPORT SYSTEM DOCUMENTATION
+===============================================================================
+
+1. OVERVIEW & PURPOSE
+-------------------------------------------------------------------------------
+The `reports` directory contains an automated, data-driven PDF reporting engine 
+for the Banking Delta Lakehouse data pipeline.
+
+When a pipeline run completes, an Airflow alert triggers, or a weekly digest is 
+scheduled, the report engine executes the following workflow:
+1. Queries the PostgreSQL `audit` schema for pipeline execution metrics.
+2. Evaluates run severity, SLA targets, and Data Quality (DQ) pass rates.
+3. Generates high-resolution vector charts using Matplotlib.
+4. Renders Jinja2 LaTeX templates with run metadata.
+5. Compiles the documents via `latexmk` / TeX engine into clean PDF reports 
+   (`report.pdf`, `incident.pdf`, `weekly.pdf`).
+6. Attaches the generated PDF to Airflow's automated summary notification email.
+
+
+2. DIRECTORY STRUCTURE & FILE BREAKDOWN
+-------------------------------------------------------------------------------
+
+reports/
+├── main.tex                  # Root LaTeX template structuring the report layout.
+├── latexmkrc                 # Configuration file for latexmkrc build system.
+├── Dockerfile                # Isolated container setup containing TeX Live & Python.
+├── apt-packages.txt          # System package dependencies for Linux/Docker build.
+├── README.md                 # Brief command summary for report generation targets.
+├── .dockerignore             # Docker build exclusions.
+├── .gitignore                # Git exclusions for build artifacts.
+│
+├── scripts/                  # Python backend engine powering data & build steps.
+│   ├── __init__.py           # Python package marker.
+│   ├── build.py              # Main entry point orchestrating end-to-end report build.
+│   ├── collect.py            # Read-only audit database collector generating context.json.
+│   ├── severity.py           # Evaluates SLAs, status thresholds, and incident levels.
+│   ├── kpis.py               # Computes key performance indicator metrics & cards.
+│   ├── flow.py               # Generates pipeline DAG structure & TikZ node data.
+│   ├── charts.py             # Matplotlib script generating vector PDF graphs.
+│   ├── render.py             # Jinja2 template renderer outputting escaped .tex files.
+│   ├── compile.py            # Executes latexmk/XeLaTeX compiler and validates output.
+│   └── paths.py              # Absolute directory and file path helper definitions.
+│
+├── config/                   # Configuration YAML files.
+│   ├── report.yaml           # Styling rules, color themes, and chapter settings.
+│   └── slo.yaml              # Service Level Objectives (freshness, DQ, duration).
+│
+├── chapters/                 # Jinja2 LaTeX chapter templates (.tex.j2).
+│   ├── 01_summary.tex.j2     # Pipeline verdict and high-level execution summary.
+│   ├── 02_flow.tex.j2        # Execution DAG & stage status flow diagram.
+│   ├── 03_timeline.tex.j2    # Task timing breakdown and execution gantt/timeline.
+│   ├── 04_volumes.tex.j2     # Row count changes across Landing, Staging, Core, Mart.
+│   ├── 05_dq.tex.j2          # Data quality suite check results & failure heatmaps.
+│   ├── 06_freshness.tex.j2   # Source & target table data freshness vs SLA limits.
+│   ├── 07_incidents.tex.j2   # Detailed breakdown of failures, errors & runbook links.
+│   ├── 08_trends.tex.j2      # Multi-day performance & failure trend analysis.
+│   ├── 09_appendix.tex.j2   # Technical environment and run metadata appendix.
+│   └── partials/             # Reusable sub-templates (TikZ flows, KPI cards, tables).
+│       ├── event_table.tex.j2
+│       ├── flow_tikz.tex.j2
+│       ├── kpi_cards.tex.j2
+│       └── section_unavailable.tex.j2
+│
+├── template/                 # Document layout and styling definitions.
+│   ├── bankingreport.sty     # Custom LaTeX package defining typography, colors & styles.
+│   ├── manifest.tex.j2       # Jinja template defining included chapter modules.
+│   └── meta.tex.j2           # Jinja template injecting document title & metadata.
+│
+├── data/                     # Context schemas, extracted datasets & mock fixtures.
+│   ├── context.json          # Extracted run metadata passed into template rendering.
+│   ├── context.schema.json   # JSON Schema validating context structure.
+│   └── fixtures/             # Mock datasets for offline testing without database:
+│       ├── healthy.json
+│       ├── critical_failed_run.json
+│       ├── major_dq_fail.json
+│       ├── minor_retry.json
+│       └── weekly.json
+│
+├── figures/                  # Output directory for vector PDF charts (Matplotlib).
+│   ├── layer_rows.pdf        # Data volume changes per layer.
+│   ├── dq_heatmap.pdf       # Data quality check status heatmap.
+│   ├── task_timeline.pdf     # Gantt chart of task durations.
+│   ├── freshness_bullet.pdf # Freshness metrics relative to SLAs.
+│   ├── trend_duration.pdf   # Trend of run durations over time.
+│   ├── error_categories.pdf   # Breakdown of failure types.
+│   ├── publish_reconcile.pdf # Reconciliation of published vs extracted records.
+│   ├── trend_failures.pdf    # Failure rate trends.
+│   └── volumes_dumbbell.pdf# Volume changes visualized as dumbbell charts.
+│
+├── fonts/                    # OpenType/TrueType fonts (Inter & JetBrains Mono).
+│   ├── Inter-Regular.ttf
+│   ├── Inter-SemiBold.ttf
+│   ├── Inter-Italic.ttf
+│   ├── Inter-SemiBoldItalic.ttf
+│   ├── JetBrainsMono-Regular.ttf
+│   ├── JetBrainsMono-Bold.ttf
+│   └── README.md
+│
+├── build/                    # Temporary build directory for intermediate TeX/log files.
+├── output/                   # Final output directory for compiled PDF files.
+├── legacy/                   # Archived older versions of report templates.
+│   └── report_v1.tex
+└── __init__.py               # Python package marker.
+
+
+3. HOW THE REPORT ENGINE WORKS (END-TO-END FLOW)
+-------------------------------------------------------------------------------
+1. DATA COLLECTION (`collect.py`):
+   Connects to PostgreSQL in read-only mode, queries `audit.pipeline_runs`, 
+   `audit.table_runs`, and `audit.dq_validations`, then serializes the result to 
+   `data/context.json`.
+
+2. EVALUATION & METRICS (`severity.py`, `kpis.py`, `flow.py`):
+   Parses `context.json` against targets in `config/slo.yaml`. It determines the 
+   overall run status (SUCCESS, WARNING, CRITICAL, or UNKNOWN), computes row count 
+   diffs, calculates execution durations, and structures the pipeline flow diagram.
+
+3. CHART GENERATION (`charts.py`):
+   Reads the calculated metrics and uses Matplotlib to generate vector PDF 
+   charts into `reports/figures/` (e.g. data volumes, DQ check heatmaps, timeline).
+
+4. TEMPLATE RENDERING (`render.py`):
+   Passes the evaluated context into Jinja2 to render LaTeX templates from 
+   `reports/chapters/` into LaTeX `.tex` files in `reports/build/`. All dynamic text 
+   is strictly escaped to adhere to LaTeX rules.
+
+5. LATEX COMPILATION (`compile.py`):
+   Calls `latexmk` on `main.tex`, linking the generated TeX chapters and vector 
+   charts into the final output PDFs in `reports/output/`.
+
+
+4. AVAILABLE MAKE COMMANDS
+-------------------------------------------------------------------------------
+- `make report-fixture`  : Render all test fixtures to TeX (no TeX installation required).
+- `make report-pdf`      : Render and compile all test fixtures to PDF files.
+- `make report-tex`      : Compile report TeX and perform log and page budget checks.
+- `make report-docker`   : Run full TeX compilation inside Docker environment.
+- `make report`          : Generate a daily report from live database connection.
+- `make report-incident` : Generate a focused incident report (usage: `make report-incident RUN=<run_id>`).
+- `make report-weekly`   : Generate a 7-day weekly digest report.
+===============================================================================
