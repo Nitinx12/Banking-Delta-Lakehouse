@@ -2,8 +2,8 @@ name: docker
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    tags: ['v*']
 
 permissions:
   contents: read
