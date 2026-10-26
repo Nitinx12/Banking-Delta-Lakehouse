@@ -170,6 +170,14 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Bootstrap PostgreSQL schema (audit, source registry, watermarks)
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y postgresql-client
+          for f in sql/scripts/0*.sql; do
+            echo "Applying $f"
+            PGPASSWORD="${PG_PASS}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f "$f"
+          done
+
       - name: Run full daily pipeline
         run: uv run main.py --keep-going
 
