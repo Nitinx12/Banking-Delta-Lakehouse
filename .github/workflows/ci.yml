@@ -1,6 +1,7 @@
-# Required CI gate. Mirrors `make ci` (lint + contracts + sql-lint + unit + smoke),
-# running the unit tests under the coverage floor instead of a separate bare run.
-# Keep the Make targets as the single source of truth so local == CI.
+# CI gate. Mirrors `make ci` (lint + contracts + sql-lint + unit + smoke).
+# Runs on every push to main and every PR. The `pipeline` job additionally runs
+# the full daily pipeline on main so a red commit blocks merge via branch
+# protection (which you configure in repo settings).
 name: ci
 
 on:
@@ -18,7 +19,6 @@ permissions:
 
 jobs:
   gate:
-    # NOTE: job name is a required status check in branch protection. If you rename it, update the rule too.
     name: gate (lint + sql-lint + unit + smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -52,12 +52,30 @@ jobs:
       - name: Smoke tests
         run: make smoke
 
-      # `make cov` runs the unit tests under the coverage floor, so unit is not run separately.
       - name: Unit tests + coverage gate
         run: make cov
 
       - name: Report fixtures render (no TeX, no database)
         run: make report-fixture
+
+  dep-audit:
+    name: dependency vulnerability audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Audit locked dependencies
+        run: |
+          set -euo pipefail
+          uv export --frozen --no-hashes --no-emit-project -o "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
 
   windows-gate:
     name: windows-gate (batch runner parity)
@@ -65,7 +83,6 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        # default shell on Windows runners is pwsh, which won't run `tasks.bat` from the cwd without `.\`
         shell: cmd
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
@@ -102,7 +119,7 @@ jobs:
 
   pipeline:
     name: full pipeline (uv run main.py)
-    needs: gate
+    needs: [gate, dep-audit, windows-gate]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -154,3 +171,14 @@ jobs:
 
       - name: Run full daily pipeline
         run: uv run main.py --keep-going
+
+      - name: Upload pipeline audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-audit
+          path: |
+            **/audit/**
+            **/test-results.xml
+            **/coverage.xml
+          retention-days: 7
