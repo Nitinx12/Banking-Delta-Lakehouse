@@ -274,6 +274,12 @@ def get_spark(
         # --- stability --------------------------------------------------------------
         .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.driver.host", "127.0.0.1")
+        # Pin the executor host to loopback too. Without it, after a heartbeat
+        # failure the executor re-resolves its own address (VPN / multi-NIC hosts
+        # return a different IP), building a BlockManagerId whose
+        # idWithoutTopologyInfo() is null and dying with a NullPointerException
+        # in BlockManagerMasterEndpoint.register during BlockManager.reregister.
+        .config("spark.executor.host", "127.0.0.1")
         .config("spark.network.timeout", "600s")
         .config("spark.executor.heartbeatInterval", "60s")
         # --- fix Spark 3.5 local-mode BlockManager NPE (idWithoutTopologyInfo) -------

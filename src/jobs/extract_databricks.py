@@ -35,6 +35,7 @@ SOURCE = Source(
     max_watermark=databricks_max_watermark,
     count=databricks_count,
     prepare=prepare,
+    max_workers=1,  # Databricks SQL can't serve concurrent statement creation; run tables sequentially
 )
 
 

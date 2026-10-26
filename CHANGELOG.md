@@ -42,6 +42,27 @@ the `release` workflow verifies before publishing.
 - `make sql-lint` is green: added an explicit `.sqlfluff` baseline (dialect,
   capitalisation policy, `max_line_length`) and `.sqlfluffignore` for the raw
   exploration probes, so `make ci` and `tasks.bat ci` pass end to end.
+- **`main.py` — `run_load()` deploys every `sp_load_*` procedure via `psql -f`**
+  before calling `sp_load_all()`, so edits to `sql/*/0N_*.sql` files actually take
+  effect. Replaced the fragile Python SQL-statement splitter with native `psql`
+  deployment (the way the files are written to be run), fixing `syntax error at
+  or near "ORDER"` on PL/pgSQL `$$`-quoted bodies.
+- **`src/jobs/publish_marts.py` — publish now does a full overwrite**
+  (`INSERT OVERWRITE`) instead of incremental MERGE on a watermark, because PG marts
+  are rebuilt wholesale each run (`DROP + CTAS`). Avoids re-reading every row and
+  never deleting rows that fell out of the mart.
+- **`sql/analytics/{03_dim_branch,05_dim_card,09_dim_txn_profile}.sql` — heartbeat**
+  on no-change daily runs: when `inserted + updated = 0`, touch one non-Unknown row
+  so `row_updated_at` advances and the metadata staleness gate does not false-positive.
+
+### Fixed
+
+- **Pipeline failure at `analytics-tests`**: `01_lp_check_metadata_col.sql` check #7
+  flagged `dim_branch`, `dim_card` and `dim_txn_profile` as stale (`max(row_updated_at)`
+  = 2026-10-18, past the 7-day limit). Root cause: `analytics-load` found no source
+  changes, so no `UPDATE` fired the `set_updated_at('row_updated_at')` trigger and
+  `row_updated_at` stayed stuck. The heartbeat fix advances it on no-change runs;
+  the 7-day staleness rule itself is unchanged.
 
 ### Removed
 

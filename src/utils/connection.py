@@ -7,9 +7,16 @@ Driver imports are lazy, so a MySQL script does not need pymongo installed
 from __future__ import annotations
 
 import os
+import time
+from typing import Callable, TypeVar
 
 from . import config  # noqa: F401  (loads .env)
 from .config import require
+from .logger import get_logger
+
+logger = get_logger(__name__)
+
+T = TypeVar("T")
 
 # --------------------------------------------------------------------------
 # Plain Python connections (audit writes, bounds queries, MAX() watermark ...)
@@ -86,6 +93,57 @@ def get_databricks_connection():
     if schema:
         kwargs["schema"] = schema
     return sql.connect(**kwargs)
+
+
+_DBX_TRANSIENT = (
+    "cannot create the resource",
+    "resource_exhausted",
+    "please try again later",
+    "rate limit",
+    "too many requests",
+    "service unavailable",
+    "temporarily unavailable",
+    "clusternotready",
+    "worker environment",
+    "rpc token bucket",
+)
+
+
+def databricks_transient(err: BaseException) -> bool:
+    """True for warehouse capacity/throttle failures that heal on their own."""
+    if isinstance(err, (ConnectionError, TimeoutError)):
+        return True
+    message = str(err).lower()
+    return any(marker in message for marker in _DBX_TRANSIENT)
+
+
+def dbx_call(label: str, fn: Callable[[], T]) -> T:
+    """Run one Databricks SQL call, retrying transient errors with backoff.
+
+    The connector never retries HTTP 400, and a warehouse that is still launching
+    compute answers 400 RESOURCE_EXHAUSTED, so without this one capacity blip
+    fails the whole extract step.
+    """
+    attempts = max(1, int(os.environ.get("DATABRICKS_MAX_ATTEMPTS", "4")))
+    base = float(os.environ.get("DATABRICKS_RETRY_BASE_SECONDS", "5"))
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            return fn()
+        except Exception as err:  # noqa: BLE001 - only transient errors are swallowed
+            if attempt >= attempts or not databricks_transient(err):
+                raise
+            delay = min(base * 2 ** (attempt - 1), 60.0)
+            logger.warning(
+                "[%s] transient Databricks error, attempt %d/%d, retrying in %.0fs: %s",
+                label,
+                attempt,
+                attempts,
+                delay,
+                err,
+            )
+            time.sleep(delay)
 
 
 # --------------------------------------------------------------------------

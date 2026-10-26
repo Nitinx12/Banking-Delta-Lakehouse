@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 from .config import PROJECT_ROOT
 from .connection import (
+    dbx_call,
     get_databricks_connection,
     get_mongo_client,
     get_mysql_connection,
@@ -174,9 +175,15 @@ def databricks_max_watermark(cfg: dict) -> Optional[str]:
     Returns canonical UTC timestamp string with +00:00 offset.
     """
     col = _dbx_ident(cfg["incremental_column"])
-    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
-        cur.execute(f"SELECT MAX(`{col}`) FROM {_dbx_qualified(cfg)}")
-        (value,) = cur.fetchone()
+    label = f"{cfg['source_schema']}.{cfg['source_table']}"
+
+    def query() -> object:
+        with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+            cur.execute(f"SELECT MAX(`{col}`) FROM {_dbx_qualified(cfg)}")
+            (value,) = cur.fetchone()
+        return value
+
+    value = dbx_call(label, query)
     if value is None:
         return None
     if hasattr(value, "isoformat"):  # date / datetime
@@ -505,14 +512,19 @@ def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
 
 def _dbx_columns(cfg: dict) -> list[tuple[str, str]]:
     """(column_name, data_type) from DESCRIBE, stopping before the partition section."""
-    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
-        cur.execute(f"DESCRIBE TABLE {_dbx_qualified(cfg)}")
-        columns = []
-        for name, dtype, *_ in cur.fetchall():
-            if not name or name.startswith("#") or name == "col_name":
-                break
-            columns.append((_dbx_ident(name), dtype))
-    return columns
+    label = f"{cfg['source_schema']}.{cfg['source_table']}"
+
+    def describe() -> list[tuple[str, str]]:
+        with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+            cur.execute(f"DESCRIBE TABLE {_dbx_qualified(cfg)}")
+            columns = []
+            for name, dtype, *_ in cur.fetchall():
+                if not name or name.startswith("#") or name == "col_name":
+                    break
+                columns.append((_dbx_ident(name), dtype))
+        return columns
+
+    return dbx_call(label, describe)
 
 
 def databricks_count(
@@ -520,9 +532,14 @@ def databricks_count(
 ) -> int:
     """Exact number of source rows in the batch window (for the row-count DQ check)."""
     where = _dbx_where(cfg, start, end)
-    with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
-        cur.execute(f"SELECT COUNT(*) FROM {_dbx_qualified(cfg)}{where}")
-        return cur.fetchone()[0]
+    label = f"{cfg['source_schema']}.{cfg['source_table']}"
+
+    def count() -> int:
+        with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+            cur.execute(f"SELECT COUNT(*) FROM {_dbx_qualified(cfg)}{where}")
+            return int(cur.fetchone()[0])
+
+    return dbx_call(label, count)
 
 
 def read_databricks(
@@ -552,26 +569,29 @@ def read_databricks(
     schema = pa.schema(
         [pa.field(name, _dbx_arrow_type(dtype)) for name, dtype in columns]
     )
-    writer: Optional[pq.ParquetWriter] = None
-    total = 0
-    try:
-        with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
-            cur.execute(query)
-            while True:
-                batch = cur.fetchmany_arrow(batch_rows)
-                if batch.num_rows == 0:
-                    break
-                if writer is None:
-                    writer = pq.ParquetWriter(out_file, batch.schema)
-                writer.write_table(batch)
-                total += batch.num_rows
-    finally:
-        if writer is not None:
-            writer.close()
 
-    if (
-        writer is None
-    ):  # empty result: still write an empty file so Spark sees the schema
+    def fetch() -> int:
+        writer: Optional[pq.ParquetWriter] = None
+        rows = 0
+        try:
+            with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
+                cur.execute(query)
+                while True:
+                    batch = cur.fetchmany_arrow(batch_rows)
+                    if batch.num_rows == 0:
+                        break
+                    if writer is None:
+                        writer = pq.ParquetWriter(out_file, batch.schema)
+                    writer.write_table(batch)
+                    rows += batch.num_rows
+        finally:
+            if writer is not None:
+                writer.close()  # a retried attempt reopens the file, truncating it
+        return rows
+
+    total = dbx_call(cfg["source_table"], fetch)
+
+    if total == 0:  # empty result: still write an empty file so Spark sees the schema
         pq.write_table(pa.Table.from_batches([], schema=schema), out_file)
 
     logger.info("[%s] Databricks read: %d rows", cfg["source_table"], total)

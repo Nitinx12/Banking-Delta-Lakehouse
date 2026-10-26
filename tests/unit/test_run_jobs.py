@@ -47,6 +47,7 @@ def test_hung_job_is_killed_and_retried(
         run_jobs.subprocess, "Popen", lambda *args, **kwargs: procs.pop(0)
     )
     monkeypatch.setattr(run_jobs, "_kill_tree", lambda proc: kills.append(id(proc)))
+    monkeypatch.setattr(run_jobs.time, "sleep", lambda seconds: None)
 
     assert run_jobs.run_job("mongo", []) == 0
     assert not procs, "both attempts must have been consumed"
@@ -63,6 +64,7 @@ def test_persistent_failure_is_reported_after_one_retry(
         run_jobs.subprocess, "Popen", lambda *args, **kwargs: procs.pop(0)
     )
     monkeypatch.setattr(run_jobs, "_kill_tree", lambda proc: None)
+    monkeypatch.setattr(run_jobs.time, "sleep", lambda seconds: None)
 
     assert run_jobs.run_job("databricks", []) == 7
     assert not procs, "the retry must have been consumed"

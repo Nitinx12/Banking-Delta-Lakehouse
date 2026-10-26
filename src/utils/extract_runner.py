@@ -52,6 +52,9 @@ class Source:
     count: Callable[[dict, Any, Any], int]
     prepare: Callable[[TableContext], Prepared]
     empty_message: str = "no rows with a value in '{column}'"
+    max_workers: Optional[int] = (
+        None  # None -> honour --parallel; set to 1 for sources that can't run concurrently
+    )
 
 
 def _independent_connections() -> bool:
@@ -210,6 +213,8 @@ class Extractor:
         try:
             if configs:
                 workers = min(args.parallel, len(configs))
+                if source.max_workers is not None:
+                    workers = min(workers, source.max_workers)
                 if workers > 1 and not _independent_connections():
                     log.warning(
                         "pg_transaction shares one connection, running tables one at a time"

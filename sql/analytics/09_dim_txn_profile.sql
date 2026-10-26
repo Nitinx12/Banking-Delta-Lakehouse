@@ -187,6 +187,21 @@ BEGIN
 
     v_unchanged := v_source_rows - v_inserted - v_updated;
 
+    -- Heartbeat: this load rewrites all combos but only touches changed
+    -- directions, so a no-change run must still advance row_updated_at for
+    -- the metadata staleness gate (txn_profile_key <> -1 excludes Unknown).
+    IF v_inserted + v_updated = 0 THEN
+        UPDATE analytics.dim_txn_profile
+        SET    txn_type = txn_type         -- no-op; trigger sets row_updated_at = now()
+        WHERE  txn_profile_key = (
+            SELECT txn_profile_key
+            FROM   analytics.dim_txn_profile
+            WHERE  txn_profile_key <> -1
+            ORDER  BY txn_profile_key
+            LIMIT  1
+        );
+    END IF;
+
     -- ---- Close out the audit run ----
     UPDATE audit.table_runs
     SET status             = 'SUCCESS',

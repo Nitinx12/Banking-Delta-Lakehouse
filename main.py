@@ -15,7 +15,10 @@ step stops the run, so nothing downstream sees half-loaded data, unless
 from __future__ import annotations
 
 import argparse
+import contextlib
+import functools
 import os
+import re
 import subprocess
 import sys
 import time
@@ -24,6 +27,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from rich.console import Console
+from rich.markup import escape
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
@@ -49,6 +53,10 @@ console = Console(legacy_windows=False)
 SUCCESS = "SUCCESS"
 FAILED = "FAILED"
 SKIPPED = "SKIPPED"
+
+MASTER_LOAD_FILE = "00_master_load.sql"
+_MANUAL_RUN_RE = re.compile(r"^[ \t]*-- Manual run", re.MULTILINE)
+_PROCEDURE_RE = re.compile(r"CREATE\s+OR\s+REPLACE\s+PROCEDURE", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -132,14 +140,17 @@ def select_steps(
 ) -> list[Step]:
     """Filter the pipeline by --from/--only, rejecting unknown step names."""
     names = [step.name for step in steps]
+    valid = ", ".join(names)
+    if only and start_at:
+        raise ValueError("--from and --only cannot be combined")
     if only:
         unknown = sorted(set(only) - set(names))
         if unknown:
-            raise ValueError(f"unknown step(s): {', '.join(unknown)}")
+            raise ValueError(f"unknown step(s): {', '.join(unknown)} (valid: {valid})")
         return [step for step in steps if step.name in only]
     if start_at:
         if start_at not in names:
-            raise ValueError(f"unknown step: {start_at}")
+            raise ValueError(f"unknown step: {start_at} (valid: {valid})")
         return list(steps[names.index(start_at) :])
     return list(steps)
 
@@ -148,10 +159,14 @@ def run_script(
     script: Path, dag_id: str | None = None, dag_run_id: str | None = None
 ) -> tuple[str, str]:
     """Run one child script to completion; return (status, detail)."""
+    if not script.is_file():
+        return FAILED, f"script not found: {script}"
     cmd = [sys.executable, str(script)]
     if dag_id and dag_run_id:
         cmd.extend(["--dag-id", dag_id, "--dag-run-id", dag_run_id])
-    code = subprocess.run(cmd, cwd=PROJECT_ROOT, check=False).returncode
+    # Children print the same glyphs; stop them crashing on cp1252 consoles.
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8:replace"}
+    code = subprocess.run(cmd, cwd=PROJECT_ROOT, env=env, check=False).returncode
     if code == 0:
         return SUCCESS, ""
     return FAILED, f"exit {code}"
@@ -163,31 +178,121 @@ def _first_line(exc: BaseException) -> str:
     return lines[0][:200]
 
 
-def _attach_audit_run() -> uuid.UUID | None:
-    """Pipeline run to log against; None outside Airflow (manual runs stay independent)."""
-    dag_run_id = os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
+@functools.cache
+def _attach_audit_run(
+    dag_id: str | None = None, dag_run_id: str | None = None
+) -> uuid.UUID | None:
+    """Pipeline run to log against; None outside Airflow (manual runs stay independent).
+
+    Cached so every load step in one invocation logs against the SAME run
+    instead of opening a new audit run per schema.
+    """
+    dag_run_id = dag_run_id or os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
     if not dag_run_id:
         return None
     return start_pipeline_run(
-        dag_id=os.environ.get("AIRFLOW_CTX_DAG_ID"),
+        dag_id=dag_id or os.environ.get("AIRFLOW_CTX_DAG_ID"),
         dag_run_id=dag_run_id,
         trigger_type="airflow",
     )
 
 
-def run_load(schema: str) -> tuple[str, str]:
-    """Refresh the schema's master procedure and CALL its sp_load_all()."""
-    sql = (SQL_DIR / schema / "00_master_load.sql").read_text(encoding="utf-8")
+def _psql_env() -> dict[str, str]:
+    """Environment for psql subprocesses (inherits os.environ + PGPASSWORD)."""
+    env = os.environ.copy()
+    pg_pass = os.environ.get("PG_PASS")
+    if pg_pass:
+        env["PGPASSWORD"] = pg_pass
+    return env
+
+
+def _run_psql_file(sql_file: Path, application_name: str) -> None:
+    """Execute one SQL file with psql (ON_ERROR_STOP so any error fails the step)."""
+    cmd = [
+        "psql",
+        "-v",
+        "ON_ERROR_STOP=1",
+        "-h",
+        os.environ.get("PG_HOST", "localhost"),
+        "-p",
+        os.environ.get("PG_PORT", "5432"),
+        "-d",
+        os.environ.get("PG_DB", "banking_delta"),
+        "-U",
+        os.environ.get("PG_USER", "postgres"),
+        "--set",
+        f"application_name={application_name}",
+        "-f",
+        str(sql_file),
+    ]
+    try:
+        subprocess.run(cmd, env=_psql_env(), check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            f"psql -f {sql_file} failed (exit {exc.returncode}):\n"
+            f"STDOUT: {exc.stdout}\nSTDERR: {exc.stderr}"
+        ) from exc
+
+
+def _deploy_load_procedures(schema: str) -> None:
+    """Create/replace every sp_load_* procedure in <schema> before sp_load_all runs.
+
+    Each 0N_<name>.sql file defines its table, triggers, Unknown member and
+    procedure, then ends with a manual-run CALL that must NOT fire here (the
+    orchestrator calls sp_load_all once at the end). Strip that trailing block
+    so deployment stays idempotent and does not double-load data.
+
+    Files are deployed with psql -f (the way they are written to be run),
+    because psycopg2's cur.execute() cannot reliably digest PL/pgSQL
+    $$-quoted bodies in multi-statement batches.
+    """
+    sql_dir = SQL_DIR / schema
+    if not sql_dir.is_dir():
+        raise FileNotFoundError(f"missing SQL directory: {sql_dir}")
+    app = f"main_{schema}_deploy"
+    for path in sorted(sql_dir.glob("*.sql")):
+        if path.name == MASTER_LOAD_FILE:
+            continue
+        source = path.read_text(encoding="utf-8")
+        if not _PROCEDURE_RE.search(source):
+            continue
+        # Strip the trailing manual-run CALL block so we do not double-load data.
+        matches = list(_MANUAL_RUN_RE.finditer(source))
+        if matches:
+            source = source[: matches[-1].start()].rstrip() + "\n"
+        # Write the stripped source to a temp file so psql -f sees exactly what
+        # we intend (no manual CALL at the end).
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".sql", delete=False, encoding="utf-8"
+        ) as tf:
+            tf.write(source)
+            tmp_path = Path(tf.name)
+        try:
+            _run_psql_file(tmp_path, app)
+        finally:
+            tmp_path.unlink(missing_ok=True)
+
+
+def run_load(
+    schema: str, dag_id: str | None = None, dag_run_id: str | None = None
+) -> tuple[str, str]:
+    """Deploy the schema's load procedures, then CALL its sp_load_all()."""
+    master_file = SQL_DIR / schema / MASTER_LOAD_FILE
     try:
         conn = get_pg_connection(application_name=f"main_{schema}")
     except Exception as exc:  # noqa: BLE001 - a connection error is this step's failure
         return FAILED, _first_line(exc)
 
-    notices: list[str] = []
     try:
-        pipeline_run_id = _attach_audit_run()
+        pipeline_run_id = _attach_audit_run(dag_id, dag_run_id)
+        # Deploy every sp_load_* procedure (including the master) with psql -f,
+        # because psycopg2 cannot reliably digest PL/pgSQL $$-quoted bodies.
+        app = f"main_{schema}_deploy"
+        _run_psql_file(master_file, app)
+        _deploy_load_procedures(schema)
         with conn.cursor() as cur:
-            cur.execute(sql)
             if pipeline_run_id is None:
                 cur.execute(f"CALL {schema}.sp_load_all()")
             else:
@@ -197,14 +302,15 @@ def run_load(schema: str) -> tuple[str, str]:
                 )
         conn.commit()
     except Exception as exc:  # noqa: BLE001 - a DB error is the step failure we report
-        conn.rollback()
+        with contextlib.suppress(Exception):  # connection may already be dead
+            conn.rollback()
         return FAILED, _first_line(exc)
     finally:
+        # Print notices on success AND failure; they usually explain the error.
         notices = [line.strip() for line in conn.notices if line.strip()]
         conn.close()
-
-    for notice in notices:
-        console.print(f"    [dim]{notice}[/dim]")
+        for notice in notices:
+            console.print(f"    [dim]{escape(notice)}[/dim]")
     return SUCCESS, ""
 
 
@@ -213,7 +319,7 @@ def run_step(
 ) -> tuple[str, str]:
     """Run a single step, whichever kind it is."""
     if step.schema:
-        return run_load(step.schema)
+        return run_load(step.schema, dag_id, dag_run_id)
     if step.script is None:
         return FAILED, "step is not runnable"
     return run_script(step.script, dag_id, dag_run_id)
@@ -277,24 +383,26 @@ def print_summary(results: list[StepResult], total_seconds: float) -> None:
             result.step.name,
             status_text(result.status),
             "—" if result.status == SKIPPED else fmt_duration(result.seconds),
-            result.detail,
+            # Text(), not str: DB errors contain "[...]" which Rich would parse as markup.
+            Text(result.detail),
         )
     console.print()
     console.print(table)
 
     failed = [r for r in results if r.status == FAILED]
     done = [r for r in results if r.status == SUCCESS]
-    noun = "step" if len(results) == 1 else "steps"
-    if failed:
-        console.print(
-            Panel(
-                f"[red bold]{len(failed)} of {len(results)} {noun} failed "
-                f"({len(done)} succeeded) in {fmt_duration(total_seconds)}[/red bold]\n"
-                f"[dim]first failure: {failed[0].step.name}[/dim]",
-                border_style="red",
-            )
-        )
+    skipped = [r for r in results if r.status == SKIPPED]
+    if failed or skipped:
+        colour = "red" if failed else "yellow"
+        lines = [
+            f"[{colour} bold]{len(done)} passed, {len(failed)} failed, "
+            f"{len(skipped)} not run in {fmt_duration(total_seconds)}[/{colour} bold]"
+        ]
+        if failed:
+            lines.append(f"[dim]first failure: {escape(failed[0].step.name)}[/dim]")
+        console.print(Panel("\n".join(lines), border_style=colour))
         return
+    noun = "step" if len(results) == 1 else "steps"
     console.print(
         Panel(
             f"[green bold]All {len(results)} {noun} passed "
@@ -368,6 +476,8 @@ def main(argv: list[str] | None = None) -> int:
                     )
                 )
                 raise
+            except Exception as exc:  # noqa: BLE001 - never lose the summary to a crash
+                status, detail = FAILED, f"{type(exc).__name__}: {_first_line(exc)}"
             results.append(
                 StepResult(step, status, time.monotonic() - step_started, detail)
             )
@@ -386,7 +496,8 @@ def main(argv: list[str] | None = None) -> int:
             results.append(StepResult(step, SKIPPED))
 
     print_summary(results, time.monotonic() - started)
-    return 1 if any(r.status == FAILED for r in results) else 0
+    # Anything not SUCCESS (failed OR never run, e.g. Ctrl+C between steps) is a bad exit.
+    return 0 if all(r.status == SUCCESS for r in results) else 1
 
 
 if __name__ == "__main__":

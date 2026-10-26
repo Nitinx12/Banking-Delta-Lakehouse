@@ -127,27 +127,26 @@ BEGIN
                            v_schema, v_tbl.relname, v_future);
             END IF;
 
-            -- Freshness: a full load rebuilds the table every run, so
-            -- source_loaded_at is a reliable "pipeline ran" signal. An incremental
-            -- load only touches changed rows, so source_loaded_at ages whenever the
-            -- source is quiet; for those tables use the last staging table run.
+            -- Freshness: staging loads are SCD1 procedures that only refresh
+            -- source_loaded_at on INSERT/UPDATE, never on unchanged rows.
+            -- source_loaded_at therefore ages whenever the source is quiet, so
+            -- use the last staging table run as the "pipeline ran" signal,
+            -- falling back to max(source_loaded_at) when no run exists yet.
             SELECT st.load_strategy INTO v_load_strategy
             FROM audit.source_tables st
             WHERE st.target_table = v_tbl.relname;
 
-            IF COALESCE(v_load_strategy, 'full') = 'incremental' THEN
-                SELECT max(tr.ended_at) INTO v_last_run_at
-                FROM audit.table_runs tr
-                WHERE tr.target_table     = v_schema || '.' || v_tbl.relname
-                  AND tr.processing_layer = 'staging'
-                  AND tr.ended_at IS NOT NULL;
+            SELECT max(tr.ended_at) INTO v_last_run_at
+            FROM audit.table_runs tr
+            WHERE tr.target_table     = v_schema || '.' || v_tbl.relname
+              AND tr.processing_layer = 'staging'
+              AND tr.ended_at IS NOT NULL;
 
-                v_fresh_ts    := COALESCE(v_last_run_at, v_max_loaded);
-                v_fresh_label := 'last staging run';
-            ELSE
-                v_fresh_ts    := v_max_loaded;
-                v_fresh_label := 'latest source_loaded_at';
-            END IF;
+            v_fresh_ts    := COALESCE(v_last_run_at, v_max_loaded);
+            v_fresh_label := CASE WHEN COALESCE(v_load_strategy, 'full') = 'incremental'
+                                  THEN 'last staging run'
+                                  ELSE 'last staging run / latest source_loaded_at'
+                             END;
 
             IF v_fresh_ts IS NOT NULL AND v_fresh_ts < now() - v_max_staleness THEN
                 v_violations := v_violations ||

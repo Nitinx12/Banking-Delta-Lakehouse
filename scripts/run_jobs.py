@@ -3,7 +3,9 @@
 One subprocess per source (each job owns its Spark session and audit pipeline
 run), run sequentially so only one Spark/Java instance is alive at a time.
 Each job gets EXTRACT_TIMEOUT_SECONDS (default 180); a job that exceeds it is
-killed together with its JVM children and retried once, because a local Spark
+killed together with its JVM children, and a failed job is retried once after
+JOB_RETRY_BACKOFF_SECONDS (default 30) so a warehouse that is still launching
+compute is not hit again immediately. The kill matters because a local Spark
 executor that misses registration hangs forever instead of erroring.
 Stops at the first failing job unless --keep-going is passed. Options this script
 does not know (for example --tables or --parallel) are passed on to every job.
@@ -36,6 +38,7 @@ logger = get_logger("run_jobs")
 JOBS: tuple[str, ...] = ("mongo", "databricks", "mysql")
 
 EXTRACT_TIMEOUT_SECONDS = int(os.environ.get("EXTRACT_TIMEOUT_SECONDS", "180"))
+JOB_RETRY_BACKOFF_SECONDS = int(os.environ.get("JOB_RETRY_BACKOFF_SECONDS", "30"))
 MAX_ATTEMPTS = 2
 
 
@@ -94,6 +97,13 @@ def run_job(source: str, extra: list[str]) -> int:
             code,
             "; retrying once" if attempt < MAX_ATTEMPTS else "",
         )
+        if attempt < MAX_ATTEMPTS and JOB_RETRY_BACKOFF_SECONDS > 0:
+            logger.info(
+                "waiting %ds before retrying %s",
+                JOB_RETRY_BACKOFF_SECONDS,
+                source,
+            )
+            time.sleep(JOB_RETRY_BACKOFF_SECONDS)
     return code
 
 

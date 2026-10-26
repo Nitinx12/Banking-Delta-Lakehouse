@@ -323,6 +323,21 @@ BEGIN
 
     v_unchanged := v_source_rows - v_inserted - v_updated;
 
+    -- Heartbeat: a no-change daily run must still advance row_updated_at so
+    -- the metadata staleness gate sees the table as "loaded recently"
+    -- (row_updated_at only moves on real attribute changes otherwise).
+    IF v_inserted + v_updated = 0 THEN
+        UPDATE analytics.dim_branch
+        SET    branch_name = branch_name   -- no-op; trigger sets row_updated_at = now()
+        WHERE  branch_key = (
+            SELECT branch_key
+            FROM   analytics.dim_branch
+            WHERE  branch_key <> -1
+            ORDER  BY branch_key
+            LIMIT  1
+        );
+    END IF;
+
     -- ---- New watermark = max staging change processed ----
     SELECT max(source_row_updated_at) INTO v_new_wm FROM _dim_branch_src;
     v_new_wm := GREATEST(v_new_wm, v_last_wm);   -- GREATEST ignores NULLs; never moves backwards

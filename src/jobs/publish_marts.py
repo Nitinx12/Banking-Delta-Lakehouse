@@ -477,26 +477,16 @@ def publish_table(
         conn.cursor() as cur,
     ):
         exists = _table_exists(cur, catalog, schema, table)
-        last = None
-        if exists and not full and plan.watermark:
-            last = _last_watermark(cur, target, plan.watermark)
-
-        where = _where_clause(plan, last, lookback)
+        # PG marts are fully refreshed (DROP + CTAS) every run, so publish mirrors
+        # that with a full overwrite instead of an incremental MERGE on a watermark.
+        where = ""
         expected = _postgres_count(pg_conn, table, where)
-        logger.info(
-            "[%s] %s rows to publish%s",
-            table,
-            expected,
-            "" if last is None else f" (since {last})",
-        )
+        logger.info("[%s] %s rows to publish (full overwrite)", table, expected)
         if expected == 0:
             return 0, 0, _published_count(cur, target) if exists else 0
 
         df = _read_mart(spark, table, where)
         columns = df.columns
-        missing_keys = [k for k in plan.keys if k not in columns]
-        if missing_keys:
-            raise ValueError(f"[{table}] key columns not in source: {missing_keys}")
 
         if exists:
             _add_missing_columns(cur, catalog, schema, table, df)
@@ -521,10 +511,7 @@ def publish_table(
             logger.info("[%s] uploaded %d file(s)", table, len(files))
 
             source = f"(SELECT * FROM read_files('{volume_dir}/', format => 'parquet'))"
-            if plan.keys:
-                statement = _merge_sql(target, source, columns, plan.keys)
-            else:
-                statement = _overwrite_sql(target, source, columns)
+            statement = _overwrite_sql(target, source, columns)
             cur.execute(statement)
             written = _affected_rows(cur, expected)
         finally:
