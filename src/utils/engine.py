@@ -226,6 +226,20 @@ def _await_executor(spark, timeout_seconds: int = 60) -> None:
         raise errors[0]
 
 
+def _stability_config(master: str) -> dict[str, str]:
+    """Return heartbeat settings; local mode keeps the first beat after block-manager init."""
+    if master == "local" or master.startswith("local["):
+        # The local executor's heartbeater starts before the driver's block
+        # manager is initialized. A heartbeat inside that window sends a null
+        # BlockManagerId and aborts the session (SPARK-53042), so delay the
+        # first beat far past startup. Timeout must stay above the interval.
+        return {
+            "spark.executor.heartbeatInterval": "600s",
+            "spark.network.timeout": "1200s",
+        }
+    return {"spark.network.timeout": "600s"}
+
+
 def get_spark(
     app_name: str = "banking-pipeline", sources: Iterable[str] = ("postgres",)
 ):
@@ -253,9 +267,10 @@ def get_spark(
         else ""
     )
     jvm_opts = f"-Duser.timezone=UTC -XX:+UseG1GC{quiet}"
+    master = os.environ.get("SPARK_MASTER", "local[*]")
     builder = (
         SparkSession.builder.appName(app_name)
-        .master(os.environ.get("SPARK_MASTER", "local[*]"))
+        .master(master)
         # --- memory / parallelism -------------------------------------------------
         .config("spark.driver.memory", os.environ.get("SPARK_DRIVER_MEMORY", "4g"))
         .config("spark.driver.maxResultSize", "1g")
@@ -274,18 +289,6 @@ def get_spark(
         # --- stability --------------------------------------------------------------
         .config("spark.driver.bindAddress", "127.0.0.1")
         .config("spark.driver.host", "127.0.0.1")
-        # Pin the executor host to loopback too. Without it, after a heartbeat
-        # failure the executor re-resolves its own address (VPN / multi-NIC hosts
-        # return a different IP), building a BlockManagerId whose
-        # idWithoutTopologyInfo() is null and dying with a NullPointerException
-        # in BlockManagerMasterEndpoint.register during BlockManager.reregister.
-        .config("spark.executor.host", "127.0.0.1")
-        .config("spark.network.timeout", "600s")
-        .config("spark.executor.heartbeatInterval", "60s")
-        # --- fix Spark 3.5 local-mode BlockManager NPE (idWithoutTopologyInfo) -------
-        .config("spark.driver.blockManager.port", "0")
-        .config("spark.blockManager.port", "0")
-        .config("spark.executor.instances", "1")
         # --- keep junk inside the project, not in cwd / user profile ---------------
         .config("spark.local.dir", str(spark_dir / "tmp"))
         .config("spark.sql.warehouse.dir", str(spark_dir / "warehouse"))
@@ -294,6 +297,8 @@ def get_spark(
         .config("spark.ui.enabled", os.environ.get("SPARK_UI_ENABLED", "false"))
         .config("spark.ui.showConsoleProgress", "false")
     )
+    for key, value in _stability_config(master).items():
+        builder = builder.config(key, value)
 
     override = _clean_packages(os.environ.get("SPARK_JARS_PACKAGES") or "")
     if override or not _have_source_jars(sources):

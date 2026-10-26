@@ -48,7 +48,7 @@ flowchart TB
 
 | File | Workflow | Triggers | What it runs | Blocks merges |
 |---|---|---|---|---|
-| `.github/workflows/ci.yml` | `ci` | PR, push to `main`, manual | `make lint`, `sql-lint`, `unit`, `smoke`, `cov`, `report-fixture` (ubuntu); `tasks.bat lint` + `test` + `report-fixture` (windows) | **yes** (`gate`, `windows-gate`) |
+| `.github/workflows/ci.yml` | `ci` | PR, push to `main`, manual | `make lint`, `sql-lint`, `unit`, `smoke`, `cov`, `report-fixture` (ubuntu); `tasks.bat lint` + `test` + `report-fixture` (windows); on push to `main`, the full `uv run main.py --keep-going` pipeline against real Mongo/MySQL/Databricks secrets and a disposable Postgres | **yes** (`gate`, `windows-gate`) |
 | `.github/workflows/leaks.yml` | `leaks` | PR, push to `main`, weekly, manual | gitleaks over full history with `.gitleaks.toml` | recommended |
 | `.github/workflows/codeql.yml` | `codeql` | PR, push to `main`, weekly | CodeQL Python `security-and-quality` | recommended |
 | `.github/workflows/nightly.yml` | `nightly` | schedule 20:00 UTC, manual | `make sql-smoke` + `make integration` on a disposable Postgres; `spark-smoke` on manual dispatch; **optional** `make report-pdf` via Docker (`report-docker` target) | no |
@@ -61,8 +61,9 @@ flowchart TB
 
 - Every workflow declares least-privilege `permissions:` (`contents: read` by default).
 - **No `pull_request_target`** anywhere — PRs from forks must not get secrets.
-- Secrets (`PG_*`, Databricks, SMTP) are **never** available to the PR gate; only the
-  scheduled jobs get a disposable, synthetic database.
+- Secrets (`PG_*`, Databricks, SMTP, source credentials) are **never** available to the
+  PR gate. The `pipeline` job uses them only on push to `main`, with a disposable
+  Postgres service for the warehouse.
 - Pin third-party actions by version; upgrade via Dependabot. Keep `astral-sh/setup-uv`
   and `github/codeql-action` current.
 - Cache dependency downloads keyed on `uv.lock`.
@@ -79,7 +80,8 @@ The PR gate must stay fast and need nothing external. Heavier tiers are schedule
 | sql-smoke, integration | `nightly` / manual | disposable Postgres (`ALLOW_SQL_SMOKE=1`) |
 | spark-smoke | `nightly` (manual dispatch) | Java 17 (`make spark-smoke`) |
 | report-pdf, report-docker | manual / optional nightly | TeX Live or Docker (`make report-pdf`) |
-| smoke-live, daily, publish, DQ against real data, Airflow triggers | **never in CI** | real credentials + approval |
+| full daily pipeline (`raw-inject` → `publish`, incl. DQ and real data) | `ci` (`pipeline` job), push to `main` only | real Mongo/MySQL/Databricks secrets; disposable Postgres |
+| smoke-live, Airflow triggers | **never in CI** | real credentials + approval |
 
 ## Windows parity
 
