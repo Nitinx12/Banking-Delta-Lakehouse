@@ -4,9 +4,9 @@
 name: ci
 
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 
 concurrency:
@@ -99,3 +99,58 @@ jobs:
 
       - name: Report fixtures render (no TeX, no database)
         run: tasks.bat report-fixture
+
+  pipeline:
+    name: full pipeline (uv run main.py)
+    needs: gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: banking_delta
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PG_HOST: localhost
+      PG_PORT: "5432"
+      PG_DB: banking_delta
+      PG_USER: postgres
+      PG_PASS: test-only
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: banking_delta
+      PGUSER: postgres
+      PGPASSWORD: test-only
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Set up Java 17 for Spark
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Run full daily pipeline
+        run: uv run main.py --keep-going
