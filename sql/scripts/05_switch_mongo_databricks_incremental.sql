@@ -40,15 +40,13 @@ WHERE r.source_id = t.source_id
 -- MySQL stays full: business keys are stable, tables are small and upstream
 -- rebuilds them, so a window would add risk without saving meaningful time.
 
--- Verify registration and extract-watermark state.
+-- Verify registration state.
 SELECT
     r.source_name,
     t.source_table,
     t.load_strategy,
     t.incremental_column,
-    t.watermark_strategy,
-    w.last_watermark_value
+    t.watermark_strategy
 FROM audit.source_tables AS t
 JOIN audit.source_registry AS r USING (source_id)
-LEFT JOIN audit.extract_watermarks AS w USING (config_id)
 ORDER BY r.source_name, t.source_table;
