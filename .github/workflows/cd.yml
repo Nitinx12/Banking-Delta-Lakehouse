@@ -1,0 +1,139 @@
+# Continuous Deployment. Runs on every published release and on manual
+# dispatch to a chosen environment. Production requires manual approval via
+# GitHub environment protection rules (configure in repo settings).
+name: cd
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deploy target
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - production
+      ref:
+        description: Git ref to deploy (branch, tag, or SHA)
+        required: true
+        default: main
+        type: string
+
+concurrency:
+  group: cd-${{ github.event.inputs.environment || github.event.release.tag_name }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
+jobs:
+  gate:
+    name: verify release quality
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Lint (ruff)
+        run: make lint
+
+      - name: Data contracts
+        run: make contracts
+
+      - name: SQL lint (sqlfluff)
+        run: make sql-lint
+
+      - name: Unit tests + coverage gate
+        run: make cov
+
+  deploy:
+    name: deploy to ${{ inputs.environment || github.event.release.tag_name }}
+    needs: gate
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'release' && github.event.action == 'published')
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    environment: ${{ inputs.environment || github.event.release.tag_name }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.ref || github.event.release.tag_name }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install dependencies
+        run: make install
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull latest pipeline image
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/pipeline:${{ inputs.ref || github.event.release.tag_name }}
+
+      - name: Run full daily pipeline against target environment
+        env:
+          CI: "true"
+          PG_HOST: ${{ secrets.PG_HOST }}
+          PG_PORT: ${{ secrets.PG_PORT }}
+          PG_DB: ${{ secrets.PG_DB }}
+          PG_USER: ${{ secrets.PG_USER }}
+          PG_PASS: ${{ secrets.PG_PASS }}
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_CATALOG: ${{ secrets.DATABRICKS_CATALOG }}
+          DATABRICKS_MARTS_SCHEMA: ${{ secrets.DATABRICKS_MARTS_SCHEMA }}
+          PUBLISH_STAGE_VOLUME: ${{ secrets.PUBLISH_STAGE_VOLUME }}
+        run: |
+          docker run --rm \
+            --env PG_HOST \
+            --env PG_PORT \
+            --env PG_DB \
+            --env PG_USER \
+            --env PG_PASS \
+            --env DATABRICKS_HOST \
+            --env DATABRICKS_TOKEN \
+            --env DATABRICKS_CATALOG \
+            --env DATABRICKS_MARTS_SCHEMA \
+            --env PUBLISH_STAGE_VOLUME \
+            --env CI \
+            ghcr.io/${{ github.repository_owner }}/pipeline:${{ inputs.ref || github.event.release.tag_name }} \
+            --keep-going
+
+      - name: Notify on deployment failure
+        if: failure()
+        run: |
+          echo "Deployment to ${{ inputs.environment || github.event.release.tag_name }} failed."
+          exit 1
