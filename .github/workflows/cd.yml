@@ -1,6 +1,8 @@
 # Continuous Deployment. Runs on every published release and on manual
-# dispatch to a chosen environment. Production requires manual approval via
-# GitHub environment protection rules (configure in repo settings).
+# dispatch (release.yml dispatches it after a verified tag).
+#   staging    -> deploys straight away (the tag was already gated by release.yml)
+#   production -> re-runs the quality gate first, then waits for manual approval
+#                 via GitHub environment protection rules (configure in repo settings).
 name: cd
 
 on:
@@ -76,6 +78,7 @@ jobs:
   gate:
     name: verify release quality
     needs: resolve
+    # Production (and release events) re-run the gate. Staging dispatches skip it.
     if: >
       needs.resolve.outputs.environment == 'production' ||
       github.event_name == 'release'
@@ -114,30 +117,13 @@ jobs:
   deploy:
     name: deploy to ${{ needs.resolve.outputs.environment }}
     needs: [resolve, gate]
-    if: >
-      needs.resolve.outputs.environment == 'production' ||
-      github.event_name == 'release'
+    # Run when resolve succeeded and the gate either passed or was skipped
+    # (staging). A failed or cancelled gate blocks the deploy.
+    if: ${{ !cancelled() && needs.resolve.result == 'success' && (needs.gate.result == 'success' || needs.gate.result == 'skipped') }}
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ needs.resolve.outputs.environment }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          ref: ${{ needs.resolve.outputs.ref }}
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
-        with:
-          enable-cache: false
-
-      - name: Set up Python (from pyproject)
-        run: uv python install
-
-      - name: Install dependencies
-        run: make install
-
       - name: Wait for docker run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -157,7 +143,16 @@ jobs:
           echo "docker run did not finish in time"
           exit 1
 
+      - name: Log in to GitHub Container Registry
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$ACTOR" --password-stdin
+
       - name: Pull pipeline image
+        id: pull
         env:
           OWNER: ${{ github.repository_owner }}
           IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
@@ -167,11 +162,11 @@ jobs:
           docker pull "$image"
           digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$image")"
           echo "Image digest: $digest" >> "$GITHUB_STEP_SUMMARY"
+          echo "image=$digest" >> "$GITHUB_OUTPUT"
 
       - name: Deploy by digest
         env:
-          OWNER: ${{ github.repository_owner }}
-          IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
+          IMAGE: ${{ steps.pull.outputs.image }}
           PG_HOST: ${{ secrets.PG_HOST }}
           PG_PORT: ${{ secrets.PG_PORT }}
           PG_DB: ${{ secrets.PG_DB }}
@@ -191,7 +186,7 @@ jobs:
           CI: "true"
         run: |
           set -euo pipefail
-          image="ghcr.io/${OWNER,,}/pipeline:${IMAGE_TAG}"
+          # $IMAGE is repo@sha256:..., so exactly the pulled bytes are run
           docker run --rm \
             --env PG_HOST \
             --env PG_PORT \
@@ -210,7 +205,7 @@ jobs:
             --env MYSQL_USER \
             --env MYSQL_PASSWORD \
             --env CI \
-            "$image" --keep-going
+            "$IMAGE" --keep-going
 
       - name: Notify on deployment failure
         if: failure()

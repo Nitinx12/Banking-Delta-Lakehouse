@@ -1,4 +1,5 @@
 # Release on version tags. Refuses to publish an unverified commit.
+# Flow: verify -> create GitHub release -> trigger cd with the tag.
 name: release
 
 on:
@@ -61,21 +62,28 @@ jobs:
       - name: Create release
         run: |
           set -euo pipefail
-          flags=""
-          case "${GITHUB_REF_NAME}" in *-*) flags="--prerelease" ;; esac
+          args=()
+          # tags with a hyphen (v1.2.0-rc1) are prereleases
+          case "${GITHUB_REF_NAME}" in *-*) args+=(--prerelease) ;; esac
           gh release create "${GITHUB_REF_NAME}" \
             --verify-tag \
             --title "${GITHUB_REF_NAME}" \
-            --generate-notes ${flags}
+            --generate-notes \
+            "${args[@]}"
 
   trigger-cd:
     name: trigger cd deployment
+    # Runs only if verify AND github-release succeeded (no `always()`),
+    # so an unverified commit can never be deployed.
     needs: github-release
-    if: always()
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     permissions:
       contents: read
       actions: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
       - name: Trigger cd workflow
         run: |
@@ -85,4 +93,8 @@ jobs:
           else
             environment="production"
           fi
-          gh workflow run cd.yml -f environment="$environment" -f ref="${GITHUB_SHA}"
+          # cd needs the TAG as ref (production requires a stable vX.Y.Z tag),
+          # not the commit SHA.
+          gh workflow run cd.yml \
+            -f environment="$environment" \
+            -f ref="${GITHUB_REF_NAME}"

@@ -27,11 +27,18 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install actionlint
+      - name: Install actionlint (checksum-verified)
         run: |
           set -euo pipefail
-          curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.6.8/actionlint_1.6.8_linux_amd64.tar.gz -o /tmp/actionlint.tar.gz
-          tar -xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
+          version=1.7.12   # bump via PR; check the actionlint releases page
+          base="https://github.com/rhysd/actionlint/releases/download/v${version}"
+          tarball="actionlint_${version}_linux_amd64.tar.gz"
+          mkdir -p "$RUNNER_TEMP/actionlint" && cd "$RUNNER_TEMP/actionlint"
+          curl -sSfL -O "${base}/${tarball}"
+          curl -sSfL -O "${base}/actionlint_${version}_checksums.txt"
+          grep " ${tarball}\$" "actionlint_${version}_checksums.txt" | sha256sum -c -
+          tar -xzf "${tarball}" actionlint
+          echo "$RUNNER_TEMP/actionlint" >> "$GITHUB_PATH"
 
       - name: Run actionlint
         run: actionlint
