@@ -130,8 +130,8 @@ jobs:
       - name: Set up Python (from pyproject)
         run: uv python install
 
-      - name: Install dependencies
-        run: tasks.bat install
+      - name: Install
+        run: .\tasks.bat install
 
       - name: Lint (ruff)
         run: tasks.bat lint
