@@ -154,8 +154,10 @@ jobs:
   pipeline:
     name: full pipeline (uv run main.py)
     needs: [gate, dep-audit, windows-gate]
+    # Runs only on pushes to main, never on PRs, so untrusted code can't
+    # reach the self-hosted runner.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux]
     timeout-minutes: 60
     services:
       postgres:
@@ -221,7 +223,11 @@ jobs:
 
       - name: Bootstrap PostgreSQL schema (audit, source registry, watermarks)
         run: |
-          sudo apt-get update -y && sudo apt-get install -y postgresql-client
+          set -euo pipefail
+          # Install psql only if the runner doesn't already have it
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -y && sudo apt-get install -y postgresql-client
+          fi
           for f in sql/scripts/0*.sql; do
             echo "Applying $f"
             PGPASSWORD="${PG_PASS}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f "$f"
@@ -232,7 +238,7 @@ jobs:
 
       - name: Upload pipeline audit artifacts
         if: always()
-        uses: actions/upload-artifact@a180798ea5f5b2943e295ba72290c58751f1019c # v4.2.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: pipeline-audit
           path: |
