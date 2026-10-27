@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import argparse
 import os
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional
+from typing import Any
 
 from .audit import (
     advance_watermark,
@@ -29,8 +30,8 @@ class TableContext:
     spark: Any
     pipeline_run_id: Any
     cfg: dict
-    start: Optional[str]
-    end: Optional[str]
+    start: str | None
+    end: str | None
     run: Any
     label: str
     logger: Any
@@ -40,7 +41,7 @@ class TableContext:
 class Prepared:
     df: Any
     promote_kwargs: dict[str, Any] = field(default_factory=dict)
-    after_dq: Optional[Callable[[int], None]] = None
+    after_dq: Callable[[int], None] | None = None
 
 
 @dataclass(frozen=True)
@@ -52,7 +53,7 @@ class Source:
     count: Callable[[dict, Any, Any], int]
     prepare: Callable[[TableContext], Prepared]
     empty_message: str = "no rows with a value in '{column}'"
-    max_workers: Optional[int] = (
+    max_workers: int | None = (
         None  # None -> honour --parallel; set to 1 for sources that can't run concurrently
     )
 
@@ -75,8 +76,8 @@ class Extractor:
         spark,
         pipeline_run_id,
         cfg: dict,
-        task_id: Optional[str],
-        try_number: Optional[int],
+        task_id: str | None,
+        try_number: int | None,
     ) -> str:
         source = self.source
         log = self.logger
@@ -156,7 +157,7 @@ class Extractor:
                 prepared.after_dq(expected)
             return "SUCCESS"
 
-    def run(self, argv: Optional[list[str]] = None) -> int:
+    def run(self, argv: list[str] | None = None) -> int:
         source = self.source
         log = self.logger
         parser = argparse.ArgumentParser(
@@ -249,5 +250,5 @@ class Extractor:
         return 1 if "FAILED" in results.values() else 0
 
 
-def run_source(source: Source, argv: Optional[list[str]] = None) -> int:
+def run_source(source: Source, argv: list[str] | None = None) -> int:
     return Extractor(source).run(argv)

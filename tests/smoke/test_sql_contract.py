@@ -51,7 +51,7 @@ def test_dq_suite_files_follow_contract(layer: str) -> None:
 
     for sql_file in suite_files:
         text = sql_file.read_text(encoding="utf-8")
-        proc = re.search(r"PROCEDURE\s+(audit\.dq_\w+)\s*\(", text, re.I)
+        proc = re.search(r"PROCEDURE\s+(audit\.dq_\w+)\s*\(", text, re.IGNORECASE)
         assert proc, f"{sql_file.name}: no audit.dq_* procedure"
         assert proc.group(1) in master_text, (
             f"{sql_file.name}: {proc.group(1)} not called by master"

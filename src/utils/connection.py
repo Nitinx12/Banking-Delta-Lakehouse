@@ -8,15 +8,13 @@ from __future__ import annotations
 
 import os
 import time
-from typing import Callable, TypeVar
+from collections.abc import Callable
 
 from . import config  # noqa: F401  (loads .env)
 from .config import require
 from .logger import get_logger
 
 logger = get_logger(__name__)
-
-T = TypeVar("T")
 
 # --------------------------------------------------------------------------
 # Plain Python connections (audit writes, bounds queries, MAX() watermark ...)
@@ -34,11 +32,11 @@ def get_pg_connection(application_name: str = "banking-pipeline"):
 
     conn = psycopg2.connect(
         host=require("PG_HOST"),
-        port=int(os.environ.get("PG_PORT", 5432)),
+        port=int(os.environ.get("PG_PORT", "5432")),
         dbname=require("PG_DB"),
         user=require("PG_USER"),
         password=os.environ.get("PG_PASS", ""),
-        connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", 10)),
+        connect_timeout=int(os.environ.get("PG_CONNECT_TIMEOUT", "10")),
         application_name=application_name,
         options=f"-c timezone=UTC -c lock_timeout={os.environ.get('PG_LOCK_TIMEOUT', '60s')}",
     )
@@ -55,13 +53,13 @@ def get_mysql_connection():
 
     conn = pymysql.connect(
         host=require("MYSQL_HOST"),
-        port=int(os.environ.get("MYSQL_PORT", 3306)),
+        port=int(os.environ.get("MYSQL_PORT", "3306")),
         user=require("MYSQL_USER"),
         password=os.environ.get("MYSQL_PASSWORD", ""),
         database=require("MYSQL_DB"),
         charset="utf8mb4",
         autocommit=True,  # we only run SELECTs here
-        connect_timeout=int(os.environ.get("MYSQL_CONNECT_TIMEOUT", 15)),
+        connect_timeout=int(os.environ.get("MYSQL_CONNECT_TIMEOUT", "15")),
     )
     with conn.cursor() as cur:
         cur.execute("SET time_zone = '+00:00'")
@@ -74,7 +72,7 @@ def get_mongo_client():
 
     return pymongo.MongoClient(
         require("MONGO_URI"),
-        serverSelectionTimeoutMS=int(os.environ.get("MONGO_TIMEOUT_MS", 15000)),
+        serverSelectionTimeoutMS=int(os.environ.get("MONGO_TIMEOUT_MS", "15000")),
         appname="banking-pipeline",
     )
 
@@ -83,12 +81,12 @@ def get_databricks_connection():
     """Databricks SQL connection via the official pure-Python connector (no JVM)."""
     from databricks import sql
 
-    kwargs = dict(
-        server_hostname=require("DATABRICKS_HOST"),
-        http_path=require("DATABRICKS_HTTP_PATH"),
-        access_token=require("DATABRICKS_TOKEN"),
-        catalog=os.environ.get("DATABRICKS_CATALOG", "main"),
-    )
+    kwargs = {
+        "server_hostname": require("DATABRICKS_HOST"),
+        "http_path": require("DATABRICKS_HTTP_PATH"),
+        "access_token": require("DATABRICKS_TOKEN"),
+        "catalog": os.environ.get("DATABRICKS_CATALOG", "main"),
+    }
     schema = os.environ.get("DATABRICKS_SCHEMA")
     if schema:
         kwargs["schema"] = schema
@@ -117,7 +115,7 @@ def databricks_transient(err: BaseException) -> bool:
     return any(marker in message for marker in _DBX_TRANSIENT)
 
 
-def dbx_call(label: str, fn: Callable[[], T]) -> T:
+def dbx_call[T](label: str, fn: Callable[[], T]) -> T:
     """Run one Databricks SQL call, retrying transient errors with backoff.
 
     The connector never retries HTTP 400, and a warehouse that is still launching
@@ -131,7 +129,7 @@ def dbx_call(label: str, fn: Callable[[], T]) -> T:
         attempt += 1
         try:
             return fn()
-        except Exception as err:  # noqa: BLE001 - only transient errors are swallowed
+        except Exception as err:
             if attempt >= attempts or not databricks_transient(err):
                 raise
             delay = min(base * 2 ** (attempt - 1), 60.0)

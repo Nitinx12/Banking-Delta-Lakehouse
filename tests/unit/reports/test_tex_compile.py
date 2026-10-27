@@ -7,7 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from reports.scripts import build, compile as compile_mod, paths
+from reports.scripts import build, paths
+from reports.scripts import compile as compile_mod
 
 pytestmark = pytest.mark.tex
 

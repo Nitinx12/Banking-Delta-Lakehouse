@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -105,7 +105,7 @@ def prune_runs(
 ) -> list[Path]:
     """Delete run folders outside the retention window; return what went."""
     limit = retention_days() if days is None else days
-    reference = now or datetime.now(timezone.utc)
+    reference = now or datetime.now(UTC)
     cutoff = reference - timedelta(days=limit)
     removed: list[Path] = []
     runs = (root or output_root()) / "runs"
@@ -114,7 +114,7 @@ def prune_runs(
     for entry in sorted(runs.iterdir()):
         if not entry.is_dir():
             continue
-        mtime = datetime.fromtimestamp(entry.stat().st_mtime, tz=timezone.utc)
+        mtime = datetime.fromtimestamp(entry.stat().st_mtime, tz=UTC)
         if mtime < cutoff:
             shutil.rmtree(entry)
             removed.append(entry)

@@ -26,9 +26,9 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import closing, suppress
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
@@ -112,8 +112,8 @@ MART_CONFIG: dict[str, dict[str, Any]] = {
 class MartPlan:
     table: str
     keys: list[str]
-    watermark: Optional[str]
-    kind: Optional[str]
+    watermark: str | None
+    kind: str | None
 
 
 def _ident(name: str) -> str:
@@ -122,7 +122,7 @@ def _ident(name: str) -> str:
     return name
 
 
-def _dbx_name(*parts: Optional[str]) -> str:
+def _dbx_name(*parts: str | None) -> str:
     return ".".join(f"`{_ident(p)}`" for p in parts if p)
 
 
@@ -366,7 +366,7 @@ def _converter(dtype: Any):
     from pyspark.sql import types as T
 
     if isinstance(dtype, T.TimestampType):
-        return lambda v: None if v is None else v.astimezone(timezone.utc)
+        return lambda v: None if v is None else v.astimezone(UTC)
     if isinstance(dtype, T.BinaryType):
         return lambda v: None if v is None else bytes(v)
     known = (
@@ -608,7 +608,7 @@ def _publish_all(
             table = futures[future]
             try:
                 source_rows, written_rows, table_rows = future.result()
-            except Exception as exc:
+            except Exception as exc:  # noqa: BLE001 - preserve per-mart failures
                 results[table] = "FAILED"
                 _log_failure(table, exc)
                 continue

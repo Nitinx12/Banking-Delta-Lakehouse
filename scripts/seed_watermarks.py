@@ -19,9 +19,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from utils.audit import get_enabled_tables, seed_watermark  # noqa: E402
-from utils.logger import get_logger  # noqa: E402
-from utils.spark_io import databricks_max_watermark, mongo_max_watermark  # noqa: E402
+from utils.audit import get_enabled_tables, seed_watermark
+from utils.logger import get_logger
+from utils.spark_io import databricks_max_watermark, mongo_max_watermark
 
 logger = get_logger("seed_watermarks")
 

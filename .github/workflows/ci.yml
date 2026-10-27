@@ -24,6 +24,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Install actionlint
         run: |
@@ -32,7 +34,14 @@ jobs:
           tar -xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
 
       - name: Run actionlint
-        run: actionlint .github/workflows
+        run: actionlint
+
+      - name: Install zizmor
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz -o /tmp/zizmor.tar.gz
+          echo "d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99  /tmp/zizmor.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/zizmor.tar.gz -C /usr/local/bin zizmor
 
       - name: Run zizmor
         run: zizmor .github/workflows
@@ -43,6 +52,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
@@ -83,6 +94,8 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
@@ -102,9 +115,11 @@ jobs:
     timeout-minutes: 30
     defaults:
       run:
-        shell: cmd
+        shell: pwsh
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
@@ -183,6 +198,8 @@ jobs:
       DATABRICKS_MARTS_SCHEMA: ${{ secrets.DATABRICKS_MARTS_SCHEMA }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5

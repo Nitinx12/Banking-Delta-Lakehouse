@@ -21,13 +21,12 @@ on:
         required: true
         default: main
         type: string
-  workflow_call:
-
 concurrency:
-  group: cd-${{ needs.resolve.outputs.environment }}
+  group: cd-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
+  actions: read
   contents: read
   packages: read
 
@@ -44,7 +43,7 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.release.tag_name || inputs.ref }}
+          ref: ${{ github.event.release.tag_name || github.event.inputs.ref }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -53,8 +52,8 @@ jobs:
           EVENT: ${{ github.event_name }}
           TAG: ${{ github.event.release.tag_name }}
           PRERELEASE: ${{ github.event.release.prerelease }}
-          INPUT_REF: ${{ inputs.ref }}
-          INPUT_ENV: ${{ inputs.environment }}
+          INPUT_REF: ${{ github.event.inputs.ref }}
+          INPUT_ENV: ${{ github.event.inputs.environment }}
         run: |
           set -euo pipefail
           if [ "$EVENT" = "release" ]; then
@@ -71,7 +70,7 @@ jobs:
           fi
           # Determine image tag: docker.yml uses type=ref,event=branch and type=sha,
           # so we always pull the SHA-based tag for reproducibility
-          image_tag="pipeline:sha-${sha:0:7}"
+          image_tag="sha-${sha:0:7}"
           printf 'ref=%s\nsha=%s\nenvironment=%s\nimage_tag=%s\n' "$ref" "$sha" "$target" "$image_tag" >> "$GITHUB_OUTPUT"
 
   gate:
@@ -92,8 +91,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
+          enable-cache: false
 
       - name: Set up Python (from pyproject)
         run: uv python install
@@ -132,8 +130,7 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
         with:
-          enable-cache: true
-          cache-dependency-glob: uv.lock
+          enable-cache: false
 
       - name: Set up Python (from pyproject)
         run: uv python install
@@ -160,6 +157,7 @@ jobs:
 
       - name: Pull pipeline image
         env:
+          OWNER: ${{ github.repository_owner }}
           IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
         run: |
           set -euo pipefail
@@ -171,6 +169,7 @@ jobs:
       - name: Deploy by digest
         env:
           OWNER: ${{ github.repository_owner }}
+          IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
           PG_HOST: ${{ secrets.PG_HOST }}
           PG_PORT: ${{ secrets.PG_PORT }}
           PG_DB: ${{ secrets.PG_DB }}
@@ -190,7 +189,6 @@ jobs:
           CI: "true"
         run: |
           set -euo pipefail
-          IMAGE_TAG="${IMAGE_TAG}"
           image="ghcr.io/${OWNER,,}/pipeline:${IMAGE_TAG}"
           docker run --rm \
             --env PG_HOST \

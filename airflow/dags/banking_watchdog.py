@@ -7,11 +7,10 @@ stuck, mail broken). Runbook: airflow/AIRFLOW_AGENT_GUIDE.md §12.
 from __future__ import annotations
 
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pendulum
 from airflow.sdk import DAG
-
 from banking_airflow.commands import RUN_ENV, banking_cmd, report_command
 
 TZ = pendulum.timezone(os.environ.get("TIMEZONE", "Asia/Kolkata"))
@@ -52,6 +51,7 @@ def _build_incident_report(dag_run_id: str) -> None:
     result = subprocess.run(
         cmd,
         shell=True,
+        check=False,
         env={**os.environ, **RUN_ENV},
         capture_output=True,
         text=True,
@@ -96,7 +96,7 @@ def check_pipeline_health() -> None:
     finally:
         conn.close()
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if success and success[1] is not None:
         age = now - success[1]
         if age > timedelta(hours=MAX_AGE_HOURS):

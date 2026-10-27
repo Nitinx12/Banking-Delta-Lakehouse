@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
+from itertools import pairwise
 
 import pendulum
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import DAG, Param, task
-
 from banking_airflow.callbacks import notify_task_failure
 from banking_airflow.commands import (
     RUN_ENV,
@@ -98,8 +98,8 @@ with DAG(
         for source, weight in (("mongo", 30), ("databricks", 20), ("mysql", 10))
     ]
 
-    gate_kw = dict(retries=0, execution_timeout=timedelta(minutes=30))
-    load_kw = dict(retries=1, execution_timeout=timedelta(hours=1))
+    gate_kw = {"retries": 0, "execution_timeout": timedelta(minutes=30)}
+    load_kw = {"retries": 1, "execution_timeout": timedelta(hours=1)}
 
     raw_tests = step("raw_tests", load_or_test_cmd("raw-tests"), **gate_kw)
     staging_load = step("staging_load", load_or_test_cmd("staging-load"), **load_kw)
@@ -190,7 +190,7 @@ with DAG(
     ]
     preflight >> extracts
     extracts >> raw_tests
-    for upstream, downstream in zip(steps, steps[1:]):
+    for upstream, downstream in pairwise(steps):
         upstream >> downstream
     [preflight, *extracts, *steps] >> finalize >> build_report >> summary
     [preflight, *extracts, *steps] >> gate

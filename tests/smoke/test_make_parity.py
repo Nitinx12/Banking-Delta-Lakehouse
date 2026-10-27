@@ -23,7 +23,7 @@ _CI_FORBIDDEN = (
 
 def _make_targets() -> set[str]:
     text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    return set(re.findall(r"^([a-zA-Z][\w-]*):", text, re.M)) - {"help"}
+    return set(re.findall(r"^([a-zA-Z][\w-]*):", text, re.MULTILINE)) - {"help"}
 
 
 def test_batch_runner_implements_every_make_target() -> None:
@@ -34,7 +34,7 @@ def test_batch_runner_implements_every_make_target() -> None:
 
 def test_ci_target_is_hermetic() -> None:
     text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    ci_block = re.search(r"^ci:.*(?:\n\t.*)*", text, re.M)
+    ci_block = re.search(r"^ci:.*(?:\n\t.*)*", text, re.MULTILINE)
     assert ci_block, "Makefile has no ci target"
     for forbidden in _CI_FORBIDDEN:
         assert forbidden not in ci_block.group(0), f"ci must not run {forbidden}"

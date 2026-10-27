@@ -25,9 +25,10 @@ from __future__ import annotations
 import re
 import traceback
 import uuid
+from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Iterator, Optional
+from typing import Any
 
 import psycopg2.extras
 
@@ -96,8 +97,8 @@ def _classify(exc: BaseException) -> tuple[str, bool]:
 # ------------------------------------------------------------- pipeline runs
 def start_pipeline_run(
     *,
-    dag_id: Optional[str] = None,
-    dag_run_id: Optional[str] = None,
+    dag_id: str | None = None,
+    dag_run_id: str | None = None,
     execution_date=None,
     run_type: str = "scheduled",
     trigger_type: str = "manual",
@@ -167,7 +168,7 @@ def finish_pipeline_run(pipeline_run_id: uuid.UUID, conn=None) -> str:
     return status
 
 
-def finalize_dag_run(dag_id: str, dag_run_id: str, conn=None) -> Optional[str]:
+def finalize_dag_run(dag_id: str, dag_run_id: str, conn=None) -> str | None:
     """Close this DAG run's pipeline run after every task has finished.
 
     Reaps table_runs that stayed RUNNING (killed worker) so the rollup settles,
@@ -230,9 +231,9 @@ def start_table_run(
     cfg: dict,
     *,
     processing_layer: str = "raw",
-    operation_type: Optional[str] = None,
-    airflow_task_id: Optional[str] = None,
-    airflow_try_number: Optional[int] = None,
+    operation_type: str | None = None,
+    airflow_task_id: str | None = None,
+    airflow_try_number: int | None = None,
     conn=None,
 ) -> uuid.UUID:
     table_run_id = uuid.uuid4()
@@ -271,12 +272,12 @@ def finish_table_run(
     table_run_id: uuid.UUID,
     status: str,
     *,
-    rows_extracted: Optional[int] = None,
-    rows_landed: Optional[int] = None,
-    watermark_start: Optional[str] = None,
-    watermark_end: Optional[str] = None,
-    error_id: Optional[int] = None,
-    metadata: Optional[dict] = None,
+    rows_extracted: int | None = None,
+    rows_landed: int | None = None,
+    watermark_start: str | None = None,
+    watermark_end: str | None = None,
+    error_id: int | None = None,
+    metadata: dict | None = None,
     conn=None,
 ) -> None:
     if status not in {"SUCCESS", "FAILED", "SKIPPED"}:
@@ -312,9 +313,9 @@ def finish_table_run(
 def log_error(
     exc: BaseException,
     *,
-    pipeline_run_id: Optional[uuid.UUID] = None,
-    table_run_id: Optional[uuid.UUID] = None,
-    cfg: Optional[dict] = None,
+    pipeline_run_id: uuid.UUID | None = None,
+    table_run_id: uuid.UUID | None = None,
+    cfg: dict | None = None,
     processing_layer: str = "raw",
     severity: str = "ERROR",
     conn=None,
@@ -380,10 +381,10 @@ class TableRun:
     table_run_id: uuid.UUID
     pipeline_run_id: uuid.UUID
     cfg: dict
-    rows_extracted: Optional[int] = None
-    rows_landed: Optional[int] = None
-    watermark_start: Optional[str] = None
-    watermark_end: Optional[str] = None
+    rows_extracted: int | None = None
+    rows_landed: int | None = None
+    watermark_start: str | None = None
+    watermark_end: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
     status: str = "SUCCESS"
 
@@ -399,9 +400,9 @@ def table_run(
     cfg: dict,
     *,
     processing_layer: str = "raw",
-    operation_type: Optional[str] = None,
-    airflow_task_id: Optional[str] = None,
-    airflow_try_number: Optional[int] = None,
+    operation_type: str | None = None,
+    airflow_task_id: str | None = None,
+    airflow_try_number: int | None = None,
 ) -> Iterator[TableRun]:
     """Start a table run; on exit mark SUCCESS/SKIPPED, or log the error + FAILED and re-raise."""
     run = TableRun(
@@ -438,7 +439,7 @@ def table_run(
                 error_id=error_id,
                 metadata=run.metadata,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             logger.exception("[%s] could not write failure to audit tables", label)
         logger.error("[%s] FAILED: %s", label, _redact(str(exc))[:500])
         raise
@@ -467,7 +468,7 @@ def table_run(
 # Source->raw progress lives in audit.extract_watermarks; audit.etl_watermarks
 # is the staging layer's raw->staging progress on the same config_id, so the
 # two layers must never share a value.
-def get_watermark(config_id: int, conn=None) -> Optional[dict]:
+def get_watermark(config_id: int, conn=None) -> dict | None:
     return _q(
         conn,
         "SELECT * FROM audit.extract_watermarks WHERE config_id = %s",
@@ -477,7 +478,7 @@ def get_watermark(config_id: int, conn=None) -> Optional[dict]:
 
 
 def begin_batch(
-    cfg: dict, batch_start: Optional[str], batch_end: Optional[str], conn=None
+    cfg: dict, batch_start: str | None, batch_end: str | None, conn=None
 ) -> dict:
     """Record the batch window about to be loaded; returns {lock_version, last_watermark_value}.
 
@@ -586,10 +587,10 @@ def log_dq_result(
     status: str,
     records_checked: int = 0,
     records_failed: int = 0,
-    details: Optional[dict] = None,
-    pipeline_run_id: Optional[uuid.UUID] = None,
-    table_run_id: Optional[uuid.UUID] = None,
-    config_id: Optional[int] = None,
+    details: dict | None = None,
+    pipeline_run_id: uuid.UUID | None = None,
+    table_run_id: uuid.UUID | None = None,
+    config_id: int | None = None,
     conn=None,
 ) -> None:
     status = status.upper()

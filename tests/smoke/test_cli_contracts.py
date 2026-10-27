@@ -29,6 +29,7 @@ def test_cli_exits_zero_without_infrastructure(
     result = subprocess.run(
         [sys.executable, *args],
         cwd=ROOT,
+        check=False,
         capture_output=True,
         text=True,
         encoding="utf-8",

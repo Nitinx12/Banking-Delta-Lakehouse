@@ -13,7 +13,7 @@ pytestmark = pytest.mark.unit
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-import run_jobs  # noqa: E402
+import run_jobs  # noqa: E402 - script path is set above
 
 
 class _FakeProc:
@@ -22,7 +22,7 @@ class _FakeProc:
     def __init__(self, outcomes: list[int | subprocess.TimeoutExpired]) -> None:
         self._outcomes = list(outcomes)
 
-    def wait(self, timeout: float | None = None) -> int:  # noqa: ARG002 - mirrors Popen
+    def wait(self, timeout: float | None = None) -> int:
         outcome = self._outcomes.pop(0)
         if isinstance(outcome, subprocess.TimeoutExpired):
             raise outcome

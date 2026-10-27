@@ -21,7 +21,7 @@ def _makefile_text() -> str:
 def test_help_lists_every_declared_target():
     text = _makefile_text()
     listed = {name for _, name, _ in make_help.targets(text)}
-    declared = set(re.findall(r"^([a-zA-Z][\w-]*):", text, re.M))
+    declared = set(re.findall(r"^([a-zA-Z][\w-]*):", text, re.MULTILINE))
     assert declared
     assert declared <= listed, sorted(declared - listed)
 
@@ -34,6 +34,6 @@ def test_help_keeps_the_groups_and_the_usage_line():
 
 
 def test_help_target_does_not_call_awk():
-    block = re.search(r"^help:.*(?:\n\t.*)*", _makefile_text(), re.M)
+    block = re.search(r"^help:.*(?:\n\t.*)*", _makefile_text(), re.MULTILINE)
     assert block, "Makefile has no help target"
     assert "awk" not in block.group(0)

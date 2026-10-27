@@ -6,7 +6,6 @@ import os
 import re
 
 import pytest
-
 from banking_airflow import commands
 
 pytestmark = pytest.mark.unit
@@ -22,7 +21,9 @@ def test_banking_cmd_uses_exec_cd_and_banking_python():
 
 def test_run_env_is_secret_free():
     offenders = [
-        k for k in commands.RUN_ENV if re.search(r"PASS|TOKEN|SECRET|KEY", k, re.I)
+        k
+        for k in commands.RUN_ENV
+        if re.search(r"PASS|TOKEN|SECRET|KEY", k, re.IGNORECASE)
     ]
     assert offenders == []
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from src.utils.audit import _redact
@@ -368,7 +368,7 @@ def collect(
             """,
         )
         rows = []
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for entry in registry:
             table = str(entry["target_table"])
             load_strategy = entry["load_strategy"]
@@ -423,9 +423,9 @@ def collect(
                         # Watermark is stored in canonical UTC format (+00:00)
                         from datetime import datetime as dt
 
-                        wm_dt = dt.fromisoformat(watermark_value.replace("Z", "+00:00"))
+                        wm_dt = dt.fromisoformat(watermark_value)
                         if wm_dt.tzinfo is None:
-                            wm_dt = wm_dt.replace(tzinfo=timezone.utc)
+                            wm_dt = wm_dt.replace(tzinfo=UTC)
                         age_s = (now - wm_dt).total_seconds()
                     except (ValueError, AttributeError):
                         # Fallback
@@ -540,9 +540,7 @@ def _meta(kind: str, dag_id: str | None, dag_run_id: str | None) -> dict[str, An
         airflow_version = "unknown"
     return {
         "kind": kind,
-        "generated_at": datetime.now(timezone.utc)
-        .astimezone()
-        .isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).astimezone().isoformat(timespec="seconds"),
         "env": os.environ.get("ENVIRONMENT", "unknown"),
         "git_sha": git_sha[:12],
         "airflow_version": airflow_version,

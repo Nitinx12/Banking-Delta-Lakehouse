@@ -20,8 +20,8 @@ import re
 import shutil
 import uuid
 from contextlib import closing
-from datetime import timezone
-from typing import TYPE_CHECKING, Optional
+from datetime import UTC
+from typing import TYPE_CHECKING
 
 from psycopg2 import sql
 
@@ -130,7 +130,7 @@ def _dbx_literal(strategy: str, value: str) -> str:
 
 
 # ------------------------------------------------------- batch window (source)
-def mysql_max_watermark(cfg: dict) -> Optional[str]:
+def mysql_max_watermark(cfg: dict) -> str | None:
     """MAX(incremental_column) straight from MySQL, in MySQL's own format (index it!).
 
     Returns canonical UTC timestamp string with +00:00 offset for timestamp columns.
@@ -150,7 +150,7 @@ def mysql_max_watermark(cfg: dict) -> Optional[str]:
     return str(value)
 
 
-def mongo_max_watermark(cfg: dict) -> Optional[str]:
+def mongo_max_watermark(cfg: dict) -> str | None:
     """Highest value of incremental_column in the collection (needs an index on it).
 
     Returns canonical UTC timestamp string with +00:00 offset.
@@ -169,7 +169,7 @@ def mongo_max_watermark(cfg: dict) -> Optional[str]:
     return str(value)
 
 
-def databricks_max_watermark(cfg: dict) -> Optional[str]:
+def databricks_max_watermark(cfg: dict) -> str | None:
     """MAX(incremental_column) straight from Databricks, in a normalised text form.
 
     Returns canonical UTC timestamp string with +00:00 offset.
@@ -190,13 +190,13 @@ def databricks_max_watermark(cfg: dict) -> Optional[str]:
         if not hasattr(value, "hour"):  # date column
             return value.isoformat()
         if value.tzinfo is not None:  # watermark text is naive UTC (see _norm_ts)
-            value = value.astimezone(timezone.utc).replace(tzinfo=None)
+            value = value.astimezone(UTC).replace(tzinfo=None)
         return value.isoformat(sep=" ", timespec="microseconds") + "+00:00"
     return str(value)
 
 
 # ----------------------------------------------------------------------- MySQL
-def _mysql_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
+def _mysql_where(cfg: dict, start: str | None, end: str | None) -> str:
     if cfg["load_strategy"] != "incremental" or end is None:
         return ""
     col, strat = _ident(cfg["incremental_column"]), cfg["watermark_strategy"]
@@ -210,7 +210,7 @@ def _mysql_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
 
 def _mysql_bounds(
     schema: str, table: str, col: str, where: str
-) -> Optional[tuple[str, str]]:
+) -> tuple[str, str] | None:
     with closing(get_mysql_connection()) as conn, conn.cursor() as cur:
         cur.execute(
             f"SELECT MIN(`{col}`), MAX(`{col}`) FROM `{schema}`.`{table}`{where}"
@@ -221,9 +221,7 @@ def _mysql_bounds(
     return str(lo), str(hi)
 
 
-def mysql_count(
-    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
-) -> int:
+def mysql_count(cfg: dict, start: str | None = None, end: str | None = None) -> int:
     """Exact number of source rows in the batch window (for the row-count DQ check)."""
     schema, table = _ident(cfg["source_schema"]), _ident(cfg["source_table"])
     where = _mysql_where(cfg, start, end)
@@ -312,9 +310,7 @@ def mysql_column_types(cfg: dict) -> dict[str, str]:
     }
 
 
-def read_mysql(
-    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
-):
+def read_mysql(spark, cfg: dict, start: str | None = None, end: str | None = None):
     """Read one MySQL table (or incremental window) with parallel, streamed JDBC partitions."""
     schema, table = _ident(cfg["source_schema"]), _ident(cfg["source_table"])
     where = _mysql_where(cfg, start, end)
@@ -357,7 +353,7 @@ def read_mysql(
 
 
 # --------------------------------------------------------------------- MongoDB
-def _mongo_window(cfg: dict, start: Optional[str], end: Optional[str]) -> dict:
+def _mongo_window(cfg: dict, start: str | None, end: str | None) -> dict:
     """Extended-JSON $match filter for the batch window ({} = whole collection)."""
     if cfg["load_strategy"] != "incremental" or end is None:
         return {}
@@ -370,9 +366,7 @@ def _mongo_window(cfg: dict, start: Optional[str], end: Optional[str]) -> dict:
     return {col: cond}
 
 
-def mongo_count(
-    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
-) -> int:
+def mongo_count(cfg: dict, start: str | None = None, end: str | None = None) -> int:
     """Exact number of source documents in the batch window (for the row-count DQ check)."""
     from bson import json_util
 
@@ -381,9 +375,7 @@ def mongo_count(
         return client[cfg["source_schema"]][cfg["source_table"]].count_documents(flt)
 
 
-def read_mongo(
-    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
-):
+def read_mongo(spark, cfg: dict, start: str | None = None, end: str | None = None):
     """Read a collection with its fields as columns (same names, inferred types).
 
     Schema is inferred from a sample of MONGO_SAMPLE_SIZE documents (default 10000).
@@ -480,7 +472,7 @@ def cast_integers(df: DataFrame, columns: tuple[str, ...]) -> DataFrame:
 
 
 # ----------------------------------------------------------------- Databricks
-def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
+def _dbx_where(cfg: dict, start: str | None, end: str | None) -> str:
     if cfg["load_strategy"] != "incremental" or end is None:
         return ""
     col, strat = _dbx_ident(cfg["incremental_column"]), cfg["watermark_strategy"]
@@ -498,11 +490,9 @@ def _dbx_where(cfg: dict, start: Optional[str], end: Optional[str]) -> str:
                 start.replace("Z", "+00:00").replace(" ", "T")
             )
             if start_dt.tzinfo is None:
-                start_dt = start_dt.replace(tzinfo=timezone.utc)
+                start_dt = start_dt.replace(tzinfo=UTC)
             lookback_start = start_dt - timedelta(minutes=lookback_minutes)
-            lookback_str = lookback_str = (
-                lookback_start.strftime("%Y-%m-%d %H:%M:%S") + "+00:00"
-            )
+            lookback_str = lookback_start.strftime("%Y-%m-%d %H:%M:%S") + "+00:00"
             clauses.append(f"`{col}` >= {_dbx_literal(strat, lookback_str)}")
         except (ValueError, AttributeError):
             # Fallback to strict > if parsing fails
@@ -528,7 +518,7 @@ def _dbx_columns(cfg: dict) -> list[tuple[str, str]]:
 
 
 def databricks_count(
-    cfg: dict, start: Optional[str] = None, end: Optional[str] = None
+    cfg: dict, start: str | None = None, end: str | None = None
 ) -> int:
     """Exact number of source rows in the batch window (for the row-count DQ check)."""
     where = _dbx_where(cfg, start, end)
@@ -542,9 +532,7 @@ def databricks_count(
     return dbx_call(label, count)
 
 
-def read_databricks(
-    spark, cfg: dict, start: Optional[str] = None, end: Optional[str] = None
-):
+def read_databricks(spark, cfg: dict, start: str | None = None, end: str | None = None):
     """Read a Databricks table (or incremental window) into a Spark DataFrame.
 
     The SQL warehouse is queried with the pure-Python connector; results arrive as
@@ -571,7 +559,7 @@ def read_databricks(
     )
 
     def fetch() -> int:
-        writer: Optional[pq.ParquetWriter] = None
+        writer: pq.ParquetWriter | None = None
         rows = 0
         try:
             with closing(get_databricks_connection()) as conn, conn.cursor() as cur:
@@ -736,7 +724,7 @@ def promote_staging(
     cfg: dict,
     *,
     jsonb_columns: tuple[str, ...] = (),
-    column_types: Optional[dict[str, str]] = None,
+    column_types: dict[str, str] | None = None,
 ) -> int:
     """staging -> raw target, inside the CALLER's transaction. Returns rows inserted.
 

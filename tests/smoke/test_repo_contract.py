@@ -48,7 +48,7 @@ def test_pytest_markers_are_registered() -> None:
 
 def test_ci_target_is_hermetic() -> None:
     text = (ROOT / "Makefile").read_text(encoding="utf-8")
-    ci_line = re.search(r"^ci:.*(?:\n\t.*)*", text, re.M)
+    ci_line = re.search(r"^ci:.*(?:\n\t.*)*", text, re.MULTILINE)
     assert ci_line, "Makefile has no ci target"
     for forbidden in _CI_FORBIDDEN:
         assert forbidden not in ci_line.group(0), f"ci must not run {forbidden}"
@@ -58,6 +58,7 @@ def test_env_file_is_not_tracked_by_git() -> None:
     result = subprocess.run(
         ["git", "ls-files", "--", ".env"],
         cwd=ROOT,
+        check=False,
         capture_output=True,
         text=True,
         encoding="utf-8",

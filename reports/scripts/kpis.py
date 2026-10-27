@@ -66,7 +66,7 @@ def compute(context: dict[str, Any]) -> dict[str, Any]:
     median_s = trailing_median(context.get("trends") or [], "duration_s")
     delta_pct: int | None = None
     if duration is not None and median_s:
-        delta_pct = int(round((float(duration) / median_s - 1) * 100))
+        delta_pct = round((float(duration) / median_s - 1) * 100)
     fresh = [
         row for row in context.get("freshness") or [] if row.get("age_s") is not None
     ]

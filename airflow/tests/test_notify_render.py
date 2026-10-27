@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from banking_airflow import notify
 from banking_airflow.redact import redact
 

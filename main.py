@@ -35,8 +35,8 @@ from rich.text import Text
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
-from utils.audit import start_pipeline_run  # noqa: E402
-from utils.connection import get_pg_connection  # noqa: E402
+from utils.audit import start_pipeline_run  # noqa: E402 - project path is set above
+from utils.connection import get_pg_connection  # noqa: E402 - project path is set above
 
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 SQL_DIR = PROJECT_ROOT / "sql"
@@ -45,7 +45,7 @@ SQL_DIR = PROJECT_ROOT / "sql"
 for _stream in (sys.stdout, sys.stderr):
     try:
         _stream.reconfigure(encoding="utf-8", errors="replace")
-    except (AttributeError, ValueError):  # noqa: PERF203 - non-seekable / detached stream
+    except (AttributeError, ValueError):
         pass
 
 console = Console(legacy_windows=False)
@@ -395,8 +395,10 @@ def print_summary(results: list[StepResult], total_seconds: float) -> None:
     if failed or skipped:
         colour = "red" if failed else "yellow"
         lines = [
-            f"[{colour} bold]{len(done)} passed, {len(failed)} failed, "
-            f"{len(skipped)} not run in {fmt_duration(total_seconds)}[/{colour} bold]"
+            (
+                f"[{colour} bold]{len(done)} passed, {len(failed)} failed, "
+                f"{len(skipped)} not run in {fmt_duration(total_seconds)}[/{colour} bold]"
+            )
         ]
         if failed:
             lines.append(f"[dim]first failure: {escape(failed[0].step.name)}[/dim]")

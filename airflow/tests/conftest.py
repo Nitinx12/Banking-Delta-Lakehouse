@@ -32,7 +32,7 @@ os.environ.setdefault("BANKING_HOME", str(AIRFLOW_DIR.parent))
 # reinit helpers only exist on POSIX — so initialise those modules first, then
 # no-op the hook for airflow. Linux CI never enters this branch.
 if not hasattr(os, "register_at_fork"):
-    import concurrent.futures.process  # noqa: F401
+    import concurrent.futures.process
     import concurrent.futures.thread  # noqa: F401
     import multiprocessing  # noqa: F401
 

@@ -12,7 +12,6 @@ from datetime import timedelta
 import pendulum
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import DAG, task
-
 from banking_airflow.commands import RUN_ENV, banking_cmd, report_command
 
 DAG_ID = "banking_report_weekly"

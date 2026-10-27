@@ -27,6 +27,8 @@ jobs:
       actions: read
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       # v3 is deprecated in December 2026 -> v4
       - name: Initialize CodeQL

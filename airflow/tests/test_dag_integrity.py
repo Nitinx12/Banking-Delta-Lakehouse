@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import os
 from datetime import timedelta
+from itertools import pairwise
 
 import pytest
-
 from conftest import DAGS_DIR
 
 pytestmark = pytest.mark.smoke
@@ -66,7 +66,7 @@ def test_every_pipeline_step_has_a_task(daily):
 
 def test_linear_order_matches_main(daily):
     chain = STEP_TASKS
-    for upstream, downstream in zip(chain, chain[1:]):
+    for upstream, downstream in pairwise(chain):
         assert downstream in daily.get_task(upstream).downstream_task_ids
 
 

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-import src.utils.connection as connection
-from src.utils.connection import dbx_call, databricks_transient
+from src.utils import connection
+from src.utils.connection import databricks_transient, dbx_call
 
 pytestmark = pytest.mark.unit
 

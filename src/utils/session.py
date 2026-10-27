@@ -9,8 +9,8 @@ Only the SparkSession is a per-process singleton.
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
-from typing import Iterable, Iterator
 
 from .connection import get_mongo_client, get_mysql_connection, get_pg_connection
 from .engine import get_spark

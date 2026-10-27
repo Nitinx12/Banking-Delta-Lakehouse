@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import string
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -64,7 +64,7 @@ def test_prune_runs_removes_only_folders_past_retention(
     new = tmp_path / "runs" / "new_run"
     old.mkdir(parents=True)
     new.mkdir(parents=True)
-    now = datetime(2026, 10, 26, tzinfo=timezone.utc)
+    now = datetime(2026, 10, 26, tzinfo=UTC)
     stale = now.timestamp() - 40 * 86400
     os.utime(old, (stale, stale))
 

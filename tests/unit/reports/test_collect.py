@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, Self
 
 import pytest
 
@@ -11,7 +11,7 @@ from reports.scripts import collect
 
 pytestmark = pytest.mark.unit
 
-_NOW = datetime(2026, 10, 21, 2, tzinfo=timezone.utc)
+_NOW = datetime(2026, 10, 21, 2, tzinfo=UTC)
 _HOUR = timedelta(hours=1)
 
 
@@ -19,7 +19,7 @@ class FakeCursor:
     def __init__(self, conn: FakeConn) -> None:
         self.conn = conn
 
-    def __enter__(self) -> FakeCursor:
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *_args: object) -> bool:

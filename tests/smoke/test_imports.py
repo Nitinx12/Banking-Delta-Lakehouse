@@ -42,6 +42,6 @@ def test_package_modules_import(package: str, monkeypatch: pytest.MonkeyPatch) -
             continue
         try:
             importlib.import_module(name)
-        except Exception as exc:  # collect all failures, not just the first
+        except Exception as exc:  # noqa: BLE001 - collect import failures
             failures.append(f"{name}: {type(exc).__name__}: {exc}")
     assert not failures, failures

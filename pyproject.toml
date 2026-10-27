@@ -49,6 +49,9 @@ default-groups = ["dev", "reports"]
 [tool.ruff]
 extend-exclude = ["notebooks"]
 
+[tool.ruff.lint]
+extend-select = ["E402"]
+
 [tool.setuptools.packages.find]
 include = ["contracts*", "src*"]
 

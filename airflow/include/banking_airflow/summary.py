@@ -462,7 +462,8 @@ def _find_report_attachments(run_id: str, status: str) -> list:
 
     if BANKING_HOME not in sys.path:  # worker PYTHONPATH lacks the project root
         sys.path.insert(0, BANKING_HOME)
-    from reports.scripts.paths import output_root as report_output_root, run_key
+    from reports.scripts.paths import output_root as report_output_root
+    from reports.scripts.paths import run_key
 
     out_root = report_output_root()
     key = run_key(run_id)
@@ -531,8 +532,10 @@ def render_text(
 ) -> str:
     lines = [
         subject,
-        f"Run: {run_meta['run_id']}  | {run_meta['duration']} | "
-        f"trigger={run_meta['trigger_type']} | env={run_meta['env']} | build={run_meta['git_sha']}",
+        (
+            f"Run: {run_meta['run_id']}  | {run_meta['duration']} | "
+            f"trigger={run_meta['trigger_type']} | env={run_meta['env']} | build={run_meta['git_sha']}"
+        ),
     ]
     if run_meta["base_url"]:
         lines.append(
@@ -698,9 +701,11 @@ def render_html(
 
     blocks = [
         f"<h2>{esc(subject)}</h2>",
-        f"<p>DAG {esc(run_meta['dag_id'])} | Run {esc(run_meta['run_id'])} | "
-        f"{esc(run_meta['duration'])} | env={esc(run_meta['env'])} | "
-        f"build={esc(run_meta['git_sha'])}</p>",
+        (
+            f"<p>DAG {esc(run_meta['dag_id'])} | Run {esc(run_meta['run_id'])} | "
+            f"{esc(run_meta['duration'])} | env={esc(run_meta['env'])} | "
+            f"build={esc(run_meta['git_sha'])}</p>"
+        ),
         table(
             "Steps",
             ["Step", "State", "Duration"],

@@ -31,7 +31,7 @@ def _check_java() -> None:
     import subprocess
 
     out = subprocess.run(
-        [java, "-version"], capture_output=True, text=True, timeout=15
+        [java, "-version"], check=False, capture_output=True, text=True, timeout=15
     ).stderr
     major = None
     for token in out.replace('"', " ").split():
@@ -60,14 +60,11 @@ def _check_disk() -> None:
 
 
 def _check_warehouse() -> None:
-    with get_pg_connection("airflow-preflight") as conn:
-        with conn.cursor() as cur:
-            cur.execute("SELECT 1")
-            cur.execute("SELECT to_regclass('audit.pipeline_runs')")
-            if cur.fetchone()[0] is None:
-                raise RuntimeError(
-                    "audit.pipeline_runs is missing; run the SQL migrations"
-                )
+    with get_pg_connection("airflow-preflight") as conn, conn.cursor() as cur:
+        cur.execute("SELECT 1")
+        cur.execute("SELECT to_regclass('audit.pipeline_runs')")
+        if cur.fetchone()[0] is None:
+            raise RuntimeError("audit.pipeline_runs is missing; run the SQL migrations")
     log.info("warehouse ok (audit.pipeline_runs present)")
 
 

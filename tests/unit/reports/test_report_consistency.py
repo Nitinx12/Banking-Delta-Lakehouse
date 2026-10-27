@@ -408,9 +408,7 @@ def test_d9_duration_kpi_trails_the_median_and_keeps_the_sign(
     history = [row["duration_s"] for row in _fixture("healthy")["trends"][:-1]]
     duration = context["kpis"]["duration"]
     assert duration["median_s"] == int(statistics.median(history))
-    expected = int(
-        round((context["run"]["duration_s"] / duration["median_s"] - 1) * 100)
-    )
+    expected = round((context["run"]["duration_s"] / duration["median_s"] - 1) * 100)
     assert duration["delta_pct"] == expected
     assert duration["delta_pct"] == 1
     summary = _chapter(built, "healthy", "01_summary.tex")

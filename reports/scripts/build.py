@@ -13,7 +13,8 @@ from typing import Any
 
 import jsonschema
 
-from . import charts, collect, compile as compile_mod, flow, paths, render, severity
+from . import charts, collect, flow, paths, render, severity
+from . import compile as compile_mod
 
 EXIT_OK = 0
 EXIT_UNEXPECTED = 1

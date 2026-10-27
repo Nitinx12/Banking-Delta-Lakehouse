@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import UTC, datetime
 
 import pytest
-
 from banking_airflow import notify, summary
 
 pytestmark = pytest.mark.unit
@@ -265,10 +264,10 @@ def test_section_notes_report_unavailable_audit():
 
     sections = {
         "run": summary.Section(boom),
-        "tables": summary.Section(lambda: []),
-        "errors": summary.Section(lambda: []),
-        "dq": summary.Section(lambda: []),
-        "latest_dq": summary.Section(lambda: []),
+        "tables": summary.Section(list),
+        "errors": summary.Section(list),
+        "dq": summary.Section(list),
+        "latest_dq": summary.Section(list),
     }
     notes = summary.section_notes(sections)
     assert any("unavailable" in n for n in notes)

@@ -68,7 +68,7 @@ def _is_ident(value: Any) -> bool:
 def _is_column(value: Any) -> bool:
     if not isinstance(value, str) or value == "":
         return False
-    body = value[1:] if value.startswith("_") else value
+    body = value.removeprefix("_")
     return (
         body != ""
         and body[0].isalpha()

@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from .paths import REPORTS_DIR
@@ -84,7 +84,7 @@ def source_date_epoch(ended_at: str | None) -> str:
             stamp = None
         if stamp is not None:
             if stamp.tzinfo is None:
-                stamp = stamp.replace(tzinfo=timezone.utc)
+                stamp = stamp.replace(tzinfo=UTC)
             return str(int(stamp.timestamp()))
     return os.environ.get("SOURCE_DATE_EPOCH", DEFAULT_EPOCH)
 

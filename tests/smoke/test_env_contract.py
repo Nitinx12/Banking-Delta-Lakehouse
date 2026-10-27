@@ -26,5 +26,7 @@ def test_env_example_covers_every_required_variable() -> None:
             )
 
     example = (ROOT / ".env.example").read_text(encoding="utf-8")
-    missing = sorted(var for var in used if not re.search(rf"^{var}=", example, re.M))
+    missing = sorted(
+        var for var in used if not re.search(rf"^{var}=", example, re.MULTILINE)
+    )
     assert not missing, f"add to .env.example: {missing}"

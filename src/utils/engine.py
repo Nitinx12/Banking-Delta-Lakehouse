@@ -21,8 +21,8 @@ import re
 import shutil
 import subprocess
 import sys
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from .config import PROJECT_ROOT
 from .logger import get_logger
@@ -58,7 +58,7 @@ def _java_executable() -> str | None:
 def _java_major(java: str) -> int | None:
     try:
         out = subprocess.run(
-            [java, "-version"], capture_output=True, text=True, timeout=20
+            [java, "-version"], check=False, capture_output=True, text=True, timeout=20
         ).stderr
     except Exception:  # noqa: BLE001
         return None
@@ -192,7 +192,7 @@ def _silence_windows_kill() -> None:
     if getattr(original, "_banking_quiet", False):
         return
 
-    def _quiet_popen(args, *rest, **kwargs):  # noqa: N802 - mirrors the name it replaces
+    def _quiet_popen(args, *rest, **kwargs):
         if isinstance(args, (list, tuple)) and "taskkill" in args:
             kwargs.setdefault("stdout", subprocess.DEVNULL)
             kwargs.setdefault("stderr", subprocess.DEVNULL)
