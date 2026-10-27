@@ -134,22 +134,22 @@ jobs:
         run: .\tasks.bat install
 
       - name: Lint (ruff)
-        run: tasks.bat lint
+        run: .\tasks.bat lint
 
       - name: Data contracts
-        run: tasks.bat contracts
+        run: .\tasks.bat contracts
 
       - name: SQL lint (sqlfluff)
-        run: tasks.bat sql-lint
+        run: .\tasks.bat sql-lint
 
       - name: Unit + smoke tests
-        run: tasks.bat test
+        run: .\tasks.bat test
 
       - name: Coverage gate
-        run: tasks.bat cov
+        run: .\tasks.bat cov
 
       - name: Report fixtures render (no TeX, no database)
-        run: tasks.bat report-fixture
+        run: .\tasks.bat report-fixture
 
   pipeline:
     name: full pipeline (uv run main.py)
