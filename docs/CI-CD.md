@@ -1,93 +1,73 @@
-# CI/CD and automation — Banking-Delta-Lakehouse
+# CI/CD — Banking-Delta-Lakehouse
 
-Everything is driven by the same `make` targets developers run locally, so **green locally
-means green in CI**. Workflow files live in `.github/workflows/`. Rules for restricted
-actions: `AGENTS.md`. Change loop: `docs/GITWORKFLOWS.md`.
+Everything runs the same `make` targets you run locally (`tasks.bat` on Windows), so
+**green locally means green in CI**. Workflows live in `.github/workflows/`.
+Restricted-action rules: `AGENTS.md`. Change loop: `docs/GITWORKFLOWS.md`.
 
-## Pipeline map
+## How it flows
 
 ```mermaid
-flowchart TB
-    subgraph PR["Pull request / push to a branch"]
-        C1["ci · gate<br/>lint + sql-lint + unit + smoke + cov"]
-        C2["ci · windows-gate<br/>tasks.bat lint + test"]
-        LK["leaks · gitleaks full history"]
-        CQ["codeql · python security-and-quality"]
+flowchart LR
+    subgraph PR["Pull request"]
+        A["ci<br/>workflow-lint · gate · dep-audit · windows-gate"]
+        B["leaks"]
+        C["codeql"]
+        D["labeler"]
     end
-    subgraph MERGE["Merge to main"]
-        M1["ci · gate (required)"]
-        M2["leaks"]
-        M3["codeql"]
-    end
-    subgraph NIGHT["Schedule (20:00 UTC)"]
-        N1["nightly · sql-smoke + integration<br/>disposable Postgres service"]
-        N2["nightly · spark smoke (manual only)"]
+    subgraph MAIN["Push to main"]
+        E["ci (same jobs)"]
+        F["pipeline<br/>uv run main.py<br/>self-hosted · real sources"]
+        G["docker<br/>build + push 4 images"]
     end
     subgraph TAG["Tag vX.Y.Z"]
-        R1["release · verify gate + version match"]
-        R2["release · GitHub release (generated notes)"]
+        H["release<br/>verify → GitHub release"]
+        I["cd<br/>resolve → gate → deploy"]
+    end
+    subgraph WEEK["Weekly (Mondays)"]
+        J["nightly<br/>sql-smoke + pip-audit"]
+        K["leaks + codeql scans"]
     end
 
-    C1 --> M1
-    C2 --> M1
-    LK --> M2
-    CQ --> M3
-    M1 --> R1 --> R2
-
-    classDef gate fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
-    classDef sec fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
-    classDef night fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
-    classDef rel fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
-    class C1,C2,M1 gate
-    class LK,CQ,M2,M3 sec
-    class N1,N2 night
-    class R1,R2 rel
+    A --> E --> F
+    E --> G
+    H --> I
+    G -.->|image sha-xxxxxxx| I
 ```
 
-## Workflows
+In one sentence: PRs get fast checks with no secrets, `main` additionally runs the real
+pipeline and builds images, and a version tag turns a verified commit into a release and a
+deployment.
 
-| File | Workflow | Triggers | What it runs | Blocks merges |
-|---|---|---|---|---|
-| `.github/workflows/ci.yml` | `ci` | PR, push to `main`, manual | `make lint`, `sql-lint`, `unit`, `smoke`, `cov`, `report-fixture` (ubuntu); `tasks.bat lint` + `test` + `report-fixture` (windows); on push to `main`, the full `uv run main.py --keep-going` pipeline against real Mongo/MySQL/Databricks secrets and a disposable Postgres | **yes** (`gate`, `windows-gate`) |
-| `.github/workflows/leaks.yml` | `leaks` | PR, push to `main`, weekly, manual | gitleaks over full history with `.gitleaks.toml` | recommended |
-| `.github/workflows/codeql.yml` | `codeql` | PR, push to `main`, weekly | CodeQL Python `security-and-quality` | recommended |
-| `.github/workflows/nightly.yml` | `nightly` | schedule 20:00 UTC, manual | `make sql-smoke` + `make integration` on a disposable Postgres; `spark-smoke` on manual dispatch; **optional** `make report-pdf` via Docker (`report-docker` target) | no |
-| `.github/workflows/release.yml` | `release` | tag `v*.*.*` | re-runs the gate, checks tag == `pyproject` version, creates a GitHub release | n/a |
-|.github/dependabot.yml opens weekly, grouped update PRs for `uv` (repo), `pip` (`airflow/`), Docker (`airflow/`) and GitHub Actions.
+## Workflows at a glance
 
-## Actions supply chain rules
+| Workflow | Runs on | What it does | Blocks merge |
+|---|---|---|---|
+| `ci` | PR, push to `main`, manual | Lint, tests, audits, Windows parity; full pipeline on `main` | **yes** |
+| `leaks` | PR, push to `main`, Mon 03:00 UTC, manual | gitleaks over full git history | recommended |
+| `codeql` | PR, push to `main`, Mon 04:00 UTC | CodeQL Python `security-and-quality` | recommended |
+| `labeler` | PR opened / updated | Labels the PR by changed paths (`.github/labeler.yml`) | no |
+| `nightly` | Mon 20:00 UTC, manual | `sql-smoke` on a disposable Postgres + full `pip-audit` | no |
+| `docker` | push to `main`, tag `v*`, manual | Builds and pushes `airflow`, `dashboard`, `reports`, `pipeline` images to GHCR | no |
+| `release` | tag `v*.*.*` | Verifies the tag, creates the GitHub release, triggers `cd` | n/a |
+| `cd` | manual, release published | Gate, then deploy the `pipeline` image to staging / production | n/a |
+| `dependabot` | weekly, Mon 02:00 UTC | Grouped update PRs for GitHub Actions, `uv`, and the 4 Dockerfiles | no |
 
-- Every workflow declares least-privilege `permissions:` (`contents: read` by default).
-- **No `pull_request_target`** anywhere — PRs from forks must not get secrets.
-- Secrets (`PG_*`, Databricks, SMTP, source credentials) are **never** available to the
-  PR gate. The `pipeline` job uses them only on push to `main`, with a disposable
-  Postgres service for the warehouse.
-- Pin third-party actions by version; upgrade via Dependabot. Keep `astral-sh/setup-uv`
-  and `github/codeql-action` current.
-- Cache dependency downloads keyed on `uv.lock`.
+## `ci` job by job
 
-## Hermetic vs infrastructure tiers
-
-The PR gate must stay fast and need nothing external. Heavier tiers are scheduled:
-
-| Tier | Where | Needs |
+| Job | Runner | What it checks |
 |---|---|---|
-| lint, sql-lint, unit, smoke, cov | `ci` (gate) | nothing |
-| report-fixture (render only, no TeX) | `ci` (gate) | nothing |
-| windows parity | `ci` (windows-gate) | nothing |
-| sql-smoke, integration | `nightly` / manual | disposable Postgres (`ALLOW_SQL_SMOKE=1`) |
-| spark-smoke | `nightly` (manual dispatch) | Java 17 (`make spark-smoke`) |
-| report-pdf, report-docker | manual / optional nightly | TeX Live or Docker (`make report-pdf`) |
-| full daily pipeline (`raw-inject` → `publish`, incl. DQ and real data) | `ci` (`pipeline` job), push to `main` only | real Mongo/MySQL/Databricks secrets; disposable Postgres |
-| smoke-live, Airflow triggers | **never in CI** | real credentials + approval |
+| `workflow-lint` | ubuntu | `actionlint` + `zizmor` on `.github/workflows` |
+| `gate` | ubuntu | `uv lock --check`, ruff, data contracts, sqlfluff, smoke, unit + coverage gate, report fixture |
+| `dep-audit` | ubuntu | `pip-audit` on the locked dependencies |
+| `windows-gate` | windows | Same checks via `tasks.bat` (install, lint, contracts, sql-lint, test, cov, report fixture) |
+| `pipeline` | **self-hosted** | Full `uv run main.py --keep-going` against real Mongo / MySQL / Databricks and a disposable Postgres |
 
-## Windows parity
+`pipeline` needs `gate`, `dep-audit` and `windows-gate` to pass first, and runs **only on
+push to `main`** (never on PRs). It applies `sql/scripts/0*.sql`, runs the daily pipeline, and
+uploads audit files as an artifact for 7 days. Because it runs after the merge, it tells you
+`main` is broken. It does not stop the merge.
 
-Windows developers use `tasks.bat` (no GNU Make required); CI runs the same commands on
-`windows-latest`. `tests/smoke/test_make_parity.py` fails if a Makefile target is missing
-from `tasks.bat`, or if `ci` ever picks up a non-hermetic target.
-
-## Release
+## Release and deploy
 
 ```bash
 # on main, with a clean CI run
@@ -95,54 +75,80 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The `release` workflow re-runs the gate, asserts the tag matches the `pyproject.toml` version,
-then creates the GitHub release with generated notes. A release is only as good as the commit
-it points at, so it never publishes an unverified tree.
+1. **`release`** checks that the tag matches the `pyproject.toml` version, that the commit is
+   on `main`, and that `make ci` passes. Then it creates the GitHub release (a tag with `-`,
+   like `v0.2.0-rc1`, becomes a prerelease) and triggers `cd`.
+2. **`docker`** also fires on the tag and pushes images tagged `sha-xxxxxxx`.
+3. **`cd`** runs three jobs:
+   - `resolve`: picks the environment (prerelease → `staging`, stable → `production`) and the
+     image tag. Production requires a stable `vX.Y.Z` tag on a commit that is on `origin/main`.
+   - `gate`: re-runs lint, contracts, sql-lint and coverage on that ref.
+   - `deploy`: waits for the `docker` run on the same commit, pulls the image, records its
+     digest, and runs the container with the environment's secrets.
+4. Production needs manual approval through the GitHub Environment protection rules.
 
-### Deploy path
+**Manual deploy:** dispatch `cd` with `environment` and `ref`.
+**Rollback:** dispatch `cd` with the previous stable tag. This redeploys code only. It does not
+undo data side effects (watermarks, published marts), and any watermark reset needs owner
+approval. See `docs/DESIGN.md`.
 
-When a release is published:
+## Security rules
 
-1. `resolve` job checks out the tag, determines the environment (`staging` for prereleases,
-   `production` for stable tags) and the image tag. Production also verifies the tag is a
-   stable semver and that the commit is on `origin/main`.
-2. `gate` job re-runs the quality gate on the resolved ref.
-3. `deploy` job waits for the image to finish building on `docker.yml`, pulls it by digest,
-   and runs the container against the target environment's secrets.
+- Every workflow sets least-privilege `permissions:` (`contents: read` by default).
+- No `pull_request_target` anywhere, so fork PRs never get secrets.
+- Secrets are never available to the PR gate. They are used only by `pipeline` (push to `main`)
+  and `cd` (environment secrets).
+- Third-party actions are pinned by **full commit SHA** with a version comment. Dependabot
+  bumps them. Copy SHAs from the action's releases page and never type them by hand, because a
+  wrong SHA fails the run with "unable to find version".
+- `zizmor` and `actionlint` lint the workflows themselves on every PR.
+- `leaks` and `codeql` run on every PR and weekly.
 
-### Manual dispatch
+## What runs where
 
-Dispatch `cd` with `environment=staging` or `environment=production` and a `ref`. The
-GitHub Environment protection rules decide whether approval is required. Dispatching to
-`production` runs the gate before deploy; dispatching to `staging` skips the gate (the
-ref was already gated upstream).
+| Tier | Where | Needs |
+|---|---|---|
+| lint, sql-lint, contracts, unit, smoke, coverage, report fixture | `ci` gate | nothing |
+| Windows parity | `ci` windows-gate | nothing |
+| dependency audit | `ci` and `nightly` | nothing |
+| sql-smoke | `nightly` / manual | disposable Postgres (`ALLOW_SQL_SMOKE=1`) |
+| full daily pipeline | `ci` `pipeline`, push to `main` | self-hosted runner + real source secrets |
+| smoke-live, Airflow triggers | **never in CI** | real credentials + approval |
 
-### Rollback
+The PR gate must stay fast and need nothing external. Heavier work goes to `main` or the
+weekly schedule. `tests/smoke/test_make_parity.py` fails if a Makefile target is missing from
+`tasks.bat`, or if `ci` picks up a non-hermetic target.
 
-Rolling back means dispatching `cd` with the previous stable tag. Redeploying code does not
-undo data side effects (watermarks, published marts). Any watermark reset is an owner
-approved action. See `docs/DESIGN.md` for data change responsibilities.
+## Self-hosted runner (for `pipeline`)
 
-### Code owners and permissions
+The runner needs the labels `self-hosted` and `linux`, Docker (for the Postgres service
+container), and either `psql` installed or passwordless `sudo`. Java 17 and `uv` are set up
+by the workflow. Keep the `if:` on `main` pushes only so PR code can never reach this machine.
 
-`CODEOWNERS` assigns review ownership by path. `.github/` needs a real handle before
-branch protection enables "Require review from Code Owners".
+## One-time setup (repo admin)
 
-## Setup checklist (one-time, needs repo admin)
+1. **Actions**: allow actions and confirm the workflows show up.
+2. **Branch protection on `main`**: require a PR (1 approval, dismiss stale approvals), require
+   up-to-date branches and resolved conversations, block force pushes and deletions. Required
+   checks (names as shown in the PR checks list): `gate (lint + sql-lint + unit + smoke)`,
+   `windows-gate (batch runner parity)`, `dependency vulnerability audit`, and later `leaks`
+   and `codeql`.
+3. **Secrets**:
+   - Repository secrets for `pipeline`: `MONGO_*`, `MYSQL_*`, `DATABRICKS_*`.
+   - Environment secrets for `cd` (set per environment): `PG_*`, `DATABRICKS_*`,
+     `PUBLISH_STAGE_VOLUME`, `MONGO_*`, `MYSQL_*`.
+4. **Environments**: create `staging` and `production`; add required reviewers on `production`.
+5. **Code security**: enable Dependabot alerts + security updates and private vulnerability
+   reporting (used by `SECURITY.md`).
+6. **`CODEOWNERS`**: replace the placeholder handles with real people or teams.
+7. **Self-hosted runner**: register it with the labels above.
 
-These cannot be done from a branch — a repository admin must:
+Until step 2 is done, CI runs but nothing stops a direct push to `main`.
 
-1. **Actions** → allow actions; confirm the workflows appear under the Actions tab.
-2. **Settings → Branches → `main` protection**:
-   - require a pull request before merging (1 approval), dismiss stale approvals
-   - require status checks: `gate`, `windows-gate` (and `leaks`, `codeql` once stable)
-   - require branches up to date before merge; require conversation resolution
-   - block force pushes and deletions; restrict who can push
-3. **Settings → Secrets and variables → Actions**: none needed for the gate. Only add
-   secrets if you later enable a deploy job — never production credentials for PRs.
-4. **Settings → Code security**: enable Dependabot alerts + security updates; enable private
-   vulnerability reporting (referenced by `SECURITY.md`).
-5. Set `CODEOWNERS` handles to real people/teams (currently placeholder).
-6. Optionally enable the `nightly` workflow as a required check after a few green runs.
+## Known gaps (fix before relying on CD, then delete this section)
 
-Until step 2 is done, CI runs but nothing stops a direct push to `main` — do it deliberately.
+- **`release` → `cd` handoff:** `trigger-cd` uses `if: always()`, so it fires even if `verify`
+  fails. It also passes the commit SHA as `ref`, which `cd` rejects for production (it wants a
+  `vX.Y.Z` tag), and it never sets `GH_TOKEN` / `GH_REPO` for `gh`.
+- **Staging dispatch:** `cd` skips both `gate` and `deploy` when the environment is `staging`
+  and the trigger is a manual dispatch, so nothing gets deployed to staging.
