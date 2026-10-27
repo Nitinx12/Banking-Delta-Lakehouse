@@ -1,0 +1,79 @@
+# Nightly workflow for extended testing and security audits
+# Runs weekly, hermetic only - no source secrets, disposable Postgres
+
+name: nightly
+
+on:
+  schedule:
+    - cron: "0 20 * * 1" # Mondays 20:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sql-smoke:
+    name: sql-smoke (extended tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_DB: banking_delta
+          POSTGRES_USER: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      ALLOW_SQL_SMOKE: "1"
+      PG_HOST: localhost
+      PG_PORT: "5432"
+      PG_DB: banking_delta
+      PG_USER: postgres
+      PG_PASS: test-only
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      - name: Run SQL smoke tests
+        run: uv run pytest -m smoke --sql-smoke
+
+  integration:
+    name: integration (dependency audit)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Full pip-audit
+        run: |
+          set -euo pipefail
+          uv export --frozen --no-hashes --no-emit-project -o "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"

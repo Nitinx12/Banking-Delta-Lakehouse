@@ -67,3 +67,22 @@ jobs:
             --verify-tag \
             --title "${GITHUB_REF_NAME}" \
             --generate-notes ${flags}
+
+  trigger-cd:
+    name: trigger cd deployment
+    needs: github-release
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Trigger cd workflow
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF_NAME}" == *-* ]]; then
+            environment="staging"
+          else
+            environment="production"
+          fi
+          gh workflow run cd.yml -f environment="$environment" -f ref="${GITHUB_SHA}"

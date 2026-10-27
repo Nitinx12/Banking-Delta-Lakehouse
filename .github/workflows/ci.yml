@@ -18,6 +18,25 @@ permissions:
   contents: read
 
 jobs:
+  workflow-lint:
+    name: workflow lint (actionlint + zizmor)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Install actionlint
+        run: |
+          set -euo pipefail
+          curl -sSfL https://github.com/rhysd/actionlint/releases/download/v1.6.8/actionlint_1.6.8_linux_amd64.tar.gz -o /tmp/actionlint.tar.gz
+          tar -xzf /tmp/actionlint.tar.gz -C /usr/local/bin actionlint
+
+      - name: Run actionlint
+        run: actionlint .github/workflows
+
+      - name: Run zizmor
+        run: zizmor .github/workflows
+
   gate:
     name: gate (lint + sql-lint + unit + smoke)
     runs-on: ubuntu-latest
@@ -196,7 +215,7 @@ jobs:
 
       - name: Upload pipeline audit artifacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@a180798ea5f5b2943e295ba72290c58751f1019c # v4.2.2
         with:
           name: pipeline-audit
           path: |

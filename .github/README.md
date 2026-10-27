@@ -151,25 +151,18 @@ Jobs:
 
 | Job | Runs when | Purpose |
 |---|---|---|
-| `gate` | Release event only | Re-verifies the release commit: `make lint`, `make contracts`, `make sql-lint`, `make cov`. |
-| `deploy` | Published release, or manual dispatch | Pulls the pipeline image from GHCR and runs it with the target environment's secrets. |
+| `resolve` | Always | Resolves ref, sha, environment and image tag. Production guard: ref must be a stable semver tag and commit must be on origin/main. |
+| `gate` | Release event or production dispatch | Re-verifies the release commit: `make lint`, `make contracts`, `make sql-lint`, `make cov`. |
+| `deploy` | Published release, or manual dispatch | Pulls the pipeline image from GHCR by digest and runs it with the target environment's secrets. |
 
 Key details:
 
-- `deploy` sets `environment:` to the input or the release tag. That is what gives a
-  production deployment its GitHub Environment protection and manual approval.
-- The deploy step runs the `pipeline` image with `--keep-going`. Since `main.py` now
-  returns `1` when a step fails, a failed deployment is visibly failed; it is no longer
-  masked.
-- Secrets consumed by the deploy step: `PG_HOST`, `PG_PORT`, `PG_DB`, `PG_USER`,
-  `PG_PASS`, `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_CATALOG`,
-  `DATABRICKS_MARTS_SCHEMA`, `PUBLISH_STAGE_VOLUME`.
-- The workflow pulls `ghcr.io/<owner>/pipeline:<ref-or-tag>`, connecting it to the images
-  built by `docker.yml`.
-- The final step is intentionally `if: failure()` — it prints the target and exits `1`,
-  so the job cannot be mistaken for a success.
-- Manual dispatch skips the `gate` job (`if: github.event_name == 'release'`); the
-  assumption is that a manually chosen ref was already gated.
+- `deploy` sets `environment:` to the resolved environment (`staging` or `production`), never the tag name. That is what gives a production deployment its GitHub Environment protection and manual approval.
+- The deploy step runs the `pipeline` image with `--keep-going`. Since `main.py` now returns `1` when a step fails, a failed deployment is visibly failed; it is no longer masked.
+- Secrets consumed by the deploy step: `PG_HOST`, `PG_PORT`, `PG_DB`, `PG_USER`, `PG_PASS`, `DATABRICKS_HOST`, `DATABRICKS_TOKEN`, `DATABRICKS_CATALOG`, `DATABRICKS_MARTS_SCHEMA`, `PUBLISH_STAGE_VOLUME`, `MONGO_URI`, `MONGO_DB_NAME`, `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_USER`, `MYSQL_PASSWORD`.
+- The workflow pulls `ghcr.io/<owner>/pipeline:sha-<first 7 chars of commit>` and runs by digest, connecting it to the images built by `docker.yml`.
+- The final step is intentionally `if: failure()` — it prints the target and exits `1`, so the job cannot be mistaken for a success.
+- Manual dispatch to `staging` skips the `gate` job; manual dispatch to `production` runs the gate. Release events always run the gate.
 
 ### `docker.yml` — container builds
 

@@ -53,9 +53,7 @@ flowchart TB
 | `.github/workflows/codeql.yml` | `codeql` | PR, push to `main`, weekly | CodeQL Python `security-and-quality` | recommended |
 | `.github/workflows/nightly.yml` | `nightly` | schedule 20:00 UTC, manual | `make sql-smoke` + `make integration` on a disposable Postgres; `spark-smoke` on manual dispatch; **optional** `make report-pdf` via Docker (`report-docker` target) | no |
 | `.github/workflows/release.yml` | `release` | tag `v*.*.*` | re-runs the gate, checks tag == `pyproject` version, creates a GitHub release | n/a |
-
-`.github/dependabot.yml` opens weekly, grouped update PRs for `uv` (repo), `pip`
-(`airflow/`, `dashboard/`), Docker (`airflow/`) and GitHub Actions.
+|.github/dependabot.yml opens weekly, grouped update PRs for `uv` (repo), `pip` (`airflow/`), Docker (`airflow/`) and GitHub Actions.
 
 ## Actions supply chain rules
 
@@ -97,9 +95,38 @@ git tag v0.1.0
 git push origin v0.1.0
 ```
 
-The `release` workflow re-runs the gate, asserts the tag matches the `pyproject.toml`
-version, then creates the GitHub release with generated notes. A release is only as good as
-the commit it points at, so it never publishes an unverified tree.
+The `release` workflow re-runs the gate, asserts the tag matches the `pyproject.toml` version,
+then creates the GitHub release with generated notes. A release is only as good as the commit
+it points at, so it never publishes an unverified tree.
+
+### Deploy path
+
+When a release is published:
+
+1. `resolve` job checks out the tag, determines the environment (`staging` for prereleases,
+   `production` for stable tags) and the image tag. Production also verifies the tag is a
+   stable semver and that the commit is on `origin/main`.
+2. `gate` job re-runs the quality gate on the resolved ref.
+3. `deploy` job waits for the image to finish building on `docker.yml`, pulls it by digest,
+   and runs the container against the target environment's secrets.
+
+### Manual dispatch
+
+Dispatch `cd` with `environment=staging` or `environment=production` and a `ref`. The
+GitHub Environment protection rules decide whether approval is required. Dispatching to
+`production` runs the gate before deploy; dispatching to `staging` skips the gate (the
+ref was already gated upstream).
+
+### Rollback
+
+Rolling back means dispatching `cd` with the previous stable tag. Redeploying code does not
+undo data side effects (watermarks, published marts). Any watermark reset is an owner
+approved action. See `docs/DESIGN.md` for data change responsibilities.
+
+### Code owners and permissions
+
+`CODEOWNERS` assigns review ownership by path. `.github/` needs a real handle before
+branch protection enables "Require review from Code Owners".
 
 ## Setup checklist (one-time, needs repo admin)
 
@@ -115,8 +142,7 @@ These cannot be done from a branch — a repository admin must:
    secrets if you later enable a deploy job — never production credentials for PRs.
 4. **Settings → Code security**: enable Dependabot alerts + security updates; enable private
    vulnerability reporting (referenced by `SECURITY.md`).
-5. Set `CODEOWNERS` handles to real people/teams (currently `@Nitinx12`).
-6. Optionally enable the `nightly` and `leaks` workflows as required checks after a few
-   green runs.
+5. Set `CODEOWNERS` handles to real people/teams (currently placeholder).
+6. Optionally enable the `nightly` workflow as a required check after a few green runs.
 
 Until step 2 is done, CI runs but nothing stops a direct push to `main` — do it deliberately.

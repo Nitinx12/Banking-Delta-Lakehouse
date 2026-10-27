@@ -21,26 +21,73 @@ on:
         required: true
         default: main
         type: string
+  workflow_call:
 
 concurrency:
-  group: cd-${{ github.event.inputs.environment || github.event.release.tag_name }}
+  group: cd-${{ needs.resolve.outputs.environment }}
   cancel-in-progress: false
 
 permissions:
   contents: read
   packages: read
-  id-token: write
 
 jobs:
+  resolve:
+    name: resolve ref and environment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      ref: ${{ steps.t.outputs.ref }}
+      sha: ${{ steps.t.outputs.sha }}
+      environment: ${{ steps.t.outputs.environment }}
+      image_tag: ${{ steps.t.outputs.image_tag }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - id: t
+        env:
+          EVENT: ${{ github.event_name }}
+          TAG: ${{ github.event.release.tag_name }}
+          PRERELEASE: ${{ github.event.release.prerelease }}
+          INPUT_REF: ${{ inputs.ref }}
+          INPUT_ENV: ${{ inputs.environment }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = "release" ]; then
+            ref="$TAG"
+            if [ "$PRERELEASE" = "true" ]; then target=staging; else target=production; fi
+          else
+            ref="$INPUT_REF"
+            target="$INPUT_ENV"
+          fi
+          sha="$(git rev-parse HEAD)"
+          if [ "$target" = "production" ]; then
+            [[ "$ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "production needs a stable semver tag"; exit 1; }
+            git merge-base --is-ancestor "$sha" origin/main || { echo "commit is not on origin/main"; exit 1; }
+          fi
+          # Determine image tag: docker.yml uses type=ref,event=branch and type=sha,
+          # so we always pull the SHA-based tag for reproducibility
+          image_tag="pipeline:sha-${sha:0:7}"
+          printf 'ref=%s\nsha=%s\nenvironment=%s\nimage_tag=%s\n' "$ref" "$sha" "$target" "$image_tag" >> "$GITHUB_OUTPUT"
+
   gate:
     name: verify release quality
-    if: github.event_name == 'release'
+    needs: resolve
+    if: >
+      needs.resolve.outputs.environment == 'production' ||
+      github.event_name == 'release'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ github.event.release.tag_name }}
+          ref: ${{ needs.resolve.outputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
@@ -67,18 +114,20 @@ jobs:
         run: make cov
 
   deploy:
-    name: deploy to ${{ inputs.environment || github.event.release.tag_name }}
-    needs: gate
+    name: deploy to ${{ needs.resolve.outputs.environment }}
+    needs: [resolve, gate]
     if: >
-      github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'release' && github.event.action == 'published')
+      needs.resolve.outputs.environment == 'production' ||
+      github.event_name == 'release'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    environment: ${{ inputs.environment || github.event.release.tag_name }}
+    timeout-minutes: 90
+    environment: ${{ needs.resolve.outputs.environment }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: ${{ inputs.ref || github.event.release.tag_name }}
+          ref: ${{ needs.resolve.outputs.ref }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Install uv
         uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
@@ -92,20 +141,36 @@ jobs:
       - name: Install dependencies
         run: make install
 
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Pull latest pipeline image
-        run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/pipeline:${{ inputs.ref || github.event.release.tag_name }}
-
-      - name: Run full daily pipeline against target environment
+      - name: Wait for docker run
         env:
-          CI: "true"
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 30); do
+            state="$(gh run list --workflow docker.yml --commit "$SHA" --json status,conclusion --jq '.[0] | "\(.status)/\(.conclusion)"' || true)"
+            case "$state" in
+              completed/success) exit 0 ;;
+              completed/*) echo "docker run ended as $state"; exit 1 ;;
+            esac
+            sleep 60
+          done
+          echo "docker run did not finish in time"
+          exit 1
+
+      - name: Pull pipeline image
+        env:
+          IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+          image="ghcr.io/${OWNER,,}/pipeline:${IMAGE_TAG}"
+          docker pull "$image"
+          digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$image")"
+          echo "Image digest: $digest" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Deploy by digest
+        env:
+          OWNER: ${{ github.repository_owner }}
           PG_HOST: ${{ secrets.PG_HOST }}
           PG_PORT: ${{ secrets.PG_PORT }}
           PG_DB: ${{ secrets.PG_DB }}
@@ -116,7 +181,17 @@ jobs:
           DATABRICKS_CATALOG: ${{ secrets.DATABRICKS_CATALOG }}
           DATABRICKS_MARTS_SCHEMA: ${{ secrets.DATABRICKS_MARTS_SCHEMA }}
           PUBLISH_STAGE_VOLUME: ${{ secrets.PUBLISH_STAGE_VOLUME }}
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          MONGO_DB_NAME: ${{ secrets.MONGO_DB_NAME }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_PORT: ${{ secrets.MYSQL_PORT }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          CI: "true"
         run: |
+          set -euo pipefail
+          IMAGE_TAG="${IMAGE_TAG}"
+          image="ghcr.io/${OWNER,,}/pipeline:${IMAGE_TAG}"
           docker run --rm \
             --env PG_HOST \
             --env PG_PORT \
@@ -128,12 +203,20 @@ jobs:
             --env DATABRICKS_CATALOG \
             --env DATABRICKS_MARTS_SCHEMA \
             --env PUBLISH_STAGE_VOLUME \
+            --env MONGO_URI \
+            --env MONGO_DB_NAME \
+            --env MYSQL_HOST \
+            --env MYSQL_PORT \
+            --env MYSQL_USER \
+            --env MYSQL_PASSWORD \
             --env CI \
-            ghcr.io/${{ github.repository_owner }}/pipeline:${{ inputs.ref || github.event.release.tag_name }} \
-            --keep-going
+            "$image" --keep-going
 
       - name: Notify on deployment failure
         if: failure()
+        env:
+          ENVIRONMENT: ${{ needs.resolve.outputs.environment }}
         run: |
-          echo "Deployment to ${{ inputs.environment || github.event.release.tag_name }} failed."
+          set -euo pipefail
+          echo "Deployment to $ENVIRONMENT failed."
           exit 1
