@@ -476,7 +476,9 @@ def tex_escape(value: object) -> str:
 
 def ident(value: object) -> RawTeX:
     text = tex_escape(value)
-    return RawTeX(text.replace(r"\_", r"\_\allowbreak{}").replace(".", r".\allowbreak{}"))
+    return RawTeX(
+        text.replace(r"\_", r"\_\allowbreak{}").replace(".", r".\allowbreak{}")
+    )
 
 
 def breakable(value: object) -> RawTeX:
@@ -484,8 +486,11 @@ def breakable(value: object) -> RawTeX:
     for part in re.split(r"([^A-Za-z0-9\s])", "" if value is None else str(value)):
         if not part:
             continue
-        parts.append(tex_escape(part) if part.isalnum() or part.isspace()
-                     else r"\allowbreak{}" + tex_escape(part))
+        parts.append(
+            tex_escape(part)
+            if part.isalnum() or part.isspace()
+            else r"\allowbreak{}" + tex_escape(part)
+        )
     return RawTeX("".join(parts))
 
 

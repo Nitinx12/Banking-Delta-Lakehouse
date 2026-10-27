@@ -717,6 +717,7 @@ This section documents the critical fixes applied to make Airflow orchestration 
 def report_command(kind: str = "daily") -> str:
     return f"python -m reports.scripts.build --kind {kind} ..."
 
+
 # AFTER (fixed)
 def report_command(kind: str = "daily") -> str:
     return f"-m reports.scripts.build --kind {kind} ..."
