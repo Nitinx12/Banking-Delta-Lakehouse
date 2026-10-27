@@ -240,6 +240,18 @@ jobs:
             PGPASSWORD="${PG_PASS}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f "$f"
           done
 
+      - name: Check required secrets are set
+        run: |
+          set -euo pipefail
+          missing=0
+          for v in MONGO_URI MONGO_DB_NAME MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASSWORD MYSQL_DB DATABRICKS_HOST DATABRICKS_TOKEN DATABRICKS_HTTP_PATH DATABRICKS_CATALOG DATABRICKS_SCHEMA_PUBLIC DATABRICKS_MARTS_SCHEMA; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Secret $v is empty or not set (Settings > Secrets and variables > Actions > Repository secrets)"
+              missing=1
+            fi
+          done
+          exit $missing
+
       - name: Run full daily pipeline (real sources)
         run: uv run main.py --keep-going
 
