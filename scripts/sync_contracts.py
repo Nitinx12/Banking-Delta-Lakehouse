@@ -20,6 +20,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.utils.logger import get_logger  # noqa: E402
+
+logger = get_logger("sync_contracts")
+
 CONTRACTS_DIR = ROOT / "contracts"
 REGISTRY_PATH = CONTRACTS_DIR / "registry.json"
 SOURCE_TO_DIR = {
@@ -268,11 +272,11 @@ def main(argv: list[str] | None = None) -> int:
             contract = _build_contract(entry)
             validate_contract(contract, path=str(path))
         except Exception as exc:  # noqa: BLE001 - report and continue
-            print(f"ERROR {path}: {exc}", file=sys.stderr)
+            logger.error("%s: %s", path, exc)
             continue
         action = "update" if path.exists() else "create"
         if args.dry_run:
-            print(f"[dry-run] {action}: {path}")
+            logger.info("[dry-run] %s: %s", action, path)
             continue
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -282,8 +286,8 @@ def main(argv: list[str] | None = None) -> int:
             created += 1
         else:
             updated += 1
-        print(f"{action}: {path}")
-    print(f"done: created={created} updated={updated} skipped={skipped}")
+        logger.info("%s: %s", action, path)
+    logger.info("done: created=%d updated=%d skipped=%d", created, updated, skipped)
     return 0
 
 

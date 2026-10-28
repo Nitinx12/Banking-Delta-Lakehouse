@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from src.utils.logger import get_logger  # noqa: E402
+
+logger = get_logger("list_raw_columns")
+
 conn = psycopg2.connect(
     host=os.getenv("PG_HOST", "localhost"),
     port=os.getenv("PG_PORT", "5432"),
@@ -28,5 +32,6 @@ current = None
 for table, column in rows:
     if table != current:
         current = table
-        print(f"\n{table}")
-    print(f"  - {column}")
+        logger.info("")
+        logger.info(table)
+    logger.info("  - %s", column)
