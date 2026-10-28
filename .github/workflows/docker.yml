@@ -97,10 +97,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
-<<<<<<< HEAD
-          sbom: true
-=======
           sbom: skip
->>>>>>> e1c6475 (fix(docker): skip SBOM to fix 80MB limit on ubuntu-latest runners)
           cache-from: type=gha,scope=${{ matrix.image.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
