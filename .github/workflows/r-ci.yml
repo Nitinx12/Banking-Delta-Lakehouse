@@ -1,0 +1,43 @@
+name: r-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "r/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  r-check:
+    name: R lint, test and check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          r-version: "4.4.1"
+
+      - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
+        with:
+          working-directory: r
+          extra-packages: any::testthat, any::lintr, any::rcmdcheck, any::duckdb, any::yaml, any::jsonlite, any::logger, any::withr, any::rlang, any::fs, any::cli, any::digest, any::dplyr, any::dbplyr, any::DBI, any::RPostgres, any::ggplot2, any::quarto
+
+      - name: Lint
+        run: Rscript -e 'lintr::lint_package("r")'
+        working-directory: r
+
+      - name: Test
+        run: Rscript -e 'testthat::test_local(".")'
+        working-directory: r
+
+      - name: R CMD check
+        run: Rscript -e 'rcmdcheck::rcmdcheck(".", args = "--no-manual")'
+        working-directory: r
