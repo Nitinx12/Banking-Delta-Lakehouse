@@ -231,3 +231,26 @@ if exist reports\build rmdir /s /q reports\build
 if exist reports\output rmdir /s /q reports\output
 if exist reports\figures\*.pdf del /q reports\figures\*.pdf
 exit /b 0
+:t_r-restore
+Rscript -e "renv::restore(project = 'r')" || exit /b 1
+exit /b 0
+
+:t_r-lint
+Rscript -e "lintr::lint_package('r')" || exit /b 1
+exit /b 0
+
+:t_r-test
+Rscript -e "testthat::test_local('r')" || exit /b 1
+exit /b 0
+
+:t_r-run
+Rscript r\main.R || exit /b 1
+exit /b 0
+
+:t_r-docker-build
+docker build -t banking-delta-r --build-arg GIT_SHA=unknown r/ || exit /b 1
+exit /b 0
+
+:t_r-docker-run
+docker run --rm --env-file r/.env.r -v "%cd%\r\output:/app/output" banking-delta-r || exit /b 1
+exit /b 0
