@@ -1,4 +1,7 @@
 # Applies labels from .github/labeler.yml based on the files a PR touches.
+# Note: with `pull_request`, PRs from forks get a read-only token and labeling is
+# skipped. That is fine for a private repo; for public forks see the actions/labeler
+# README (pull_request_target is safe here only because no PR code is checked out).
 name: labeler
 
 on:
@@ -21,6 +24,6 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-      - uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5
+      - uses: actions/labeler@8558fd74291d67161a8a78ce36a881fa63b766a9 # v5.0.0
         with:
           sync-labels: true # remove a label if its files are no longer in the PR

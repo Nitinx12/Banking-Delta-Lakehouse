@@ -1,13 +1,17 @@
-# Continuous Deployment. Runs on every published release and on manual
-# dispatch (release.yml dispatches it after a verified tag).
+# Continuous Deployment. Triggered ONLY by workflow_dispatch:
+#   - automatically by release.yml after a verified tag (the normal path), or
+#   - manually from the Actions tab (deploy, or roll back by passing an older tag).
+#
+# There is deliberately no `release: published` trigger. Releases created by
+# release.yml use GITHUB_TOKEN, which never fires that event, and a release
+# published by hand would deploy a tag that release.yml has not verified.
+#
 #   staging    -> deploys straight away (the tag was already gated by release.yml)
 #   production -> re-runs the quality gate first, then waits for manual approval
 #                 via GitHub environment protection rules (configure in repo settings).
 name: cd
 
 on:
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       environment:
@@ -19,18 +23,20 @@ on:
           - staging
           - production
       ref:
-        description: Git ref to deploy (branch, tag, or SHA)
+        description: Git ref to deploy (must be on main; production needs a vX.Y.Z tag)
         required: true
         default: main
         type: string
+
+# One deploy at a time PER ENVIRONMENT (the original grouped by branch, so a
+# staging and a production run could queue behind each other, and a third run
+# would silently replace a queued one).
 concurrency:
-  group: cd-${{ github.ref }}
+  group: cd-${{ inputs.environment }}
   cancel-in-progress: false
 
 permissions:
-  actions: read
   contents: read
-  packages: read
 
 jobs:
   resolve:
@@ -43,58 +49,56 @@ jobs:
       environment: ${{ steps.t.outputs.environment }}
       image_tag: ${{ steps.t.outputs.image_tag }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ github.event.release.tag_name || github.event.inputs.ref }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
           persist-credentials: false
 
       - id: t
         env:
-          EVENT: ${{ github.event_name }}
-          TAG: ${{ github.event.release.tag_name }}
-          PRERELEASE: ${{ github.event.release.prerelease }}
-          INPUT_REF: ${{ github.event.inputs.ref }}
-          INPUT_ENV: ${{ github.event.inputs.environment }}
+          INPUT_REF: ${{ inputs.ref }}
+          INPUT_ENV: ${{ inputs.environment }}
         run: |
           set -euo pipefail
-          if [ "$EVENT" = "release" ]; then
-            ref="$TAG"
-            if [ "$PRERELEASE" = "true" ]; then target=staging; else target=production; fi
-          else
-            ref="$INPUT_REF"
-            target="$INPUT_ENV"
-          fi
+          ref="$INPUT_REF"
+          target="$INPUT_ENV"
+          case "$target" in staging|production) ;; *) echo "::error::unknown environment '$target'"; exit 1 ;; esac
+
           sha="$(git rev-parse HEAD)"
+
+          # docker.yml only builds images for main and v* tags, so anything that
+          # is not on main can never have an image. Fail now, not after a 30 minute wait.
+          git merge-base --is-ancestor "$sha" origin/main || { echo "::error::$ref ($sha) is not on origin/main"; exit 1; }
+
           if [ "$target" = "production" ]; then
-            [[ "$ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "production needs a stable semver tag"; exit 1; }
-            git merge-base --is-ancestor "$sha" origin/main || { echo "commit is not on origin/main"; exit 1; }
+            [[ "$ref" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::production needs a stable semver tag (vX.Y.Z), got '$ref'"; exit 1; }
           fi
-          # Determine image tag: docker.yml uses type=ref,event=branch and type=sha,
-          # so we always pull the SHA-based tag for reproducibility
+
+          # docker.yml tags images with type=sha (sha-<7 chars>); deploy by that
+          # tag for reproducibility, then pin to the digest.
           image_tag="sha-${sha:0:7}"
           printf 'ref=%s\nsha=%s\nenvironment=%s\nimage_tag=%s\n' "$ref" "$sha" "$target" "$image_tag" >> "$GITHUB_OUTPUT"
+          echo "Resolved $ref -> $sha for $target (image tag $image_tag)" >> "$GITHUB_STEP_SUMMARY"
 
   gate:
     name: verify release quality
     needs: resolve
-    # Production (and release events) re-run the gate. Staging dispatches skip it.
-    if: >
-      needs.resolve.outputs.environment == 'production' ||
-      github.event_name == 'release'
+    # Production re-runs the gate. Staging skips it.
+    if: needs.resolve.outputs.environment == 'production'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
-          ref: ${{ needs.resolve.outputs.ref }}
+          ref: ${{ needs.resolve.outputs.sha }}
           fetch-depth: 0
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
-          enable-cache: false
+          enable-cache: false # no cache in a deploy path (cache poisoning)
 
       - name: Set up Python (from pyproject)
         run: uv python install
@@ -111,6 +115,9 @@ jobs:
       - name: SQL lint (sqlfluff)
         run: make sql-lint
 
+      - name: Smoke tests
+        run: make smoke
+
       - name: Unit tests + coverage gate
         run: make cov
 
@@ -123,24 +130,39 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ needs.resolve.outputs.environment }}
+    permissions:
+      actions: read   # gh run list (wait for docker.yml)
+      packages: read  # docker pull from ghcr.io
     steps:
-      - name: Wait for docker run
+      - name: Wait for docker build
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           SHA: ${{ needs.resolve.outputs.sha }}
         run: |
           set -euo pipefail
+          # docker.yml can have several runs for one commit (the push to main AND
+          # the tag push), so succeed if ANY finished green; fail once all finished
+          # and none did; and give up early if no run ever appears.
           for attempt in $(seq 1 30); do
-            state="$(gh run list --workflow docker.yml --commit "$SHA" --json status,conclusion --jq '.[0] | "\(.status)/\(.conclusion)"' || true)"
-            case "$state" in
-              completed/success) exit 0 ;;
-              completed/*) echo "docker run ended as $state"; exit 1 ;;
-            esac
-            echo "Attempt $attempt/30: docker run state is '${state:-none}', waiting..."
+            runs="$(gh run list --workflow docker.yml --commit "$SHA" --limit 20 --json status,conclusion)"
+            if jq -e 'any(.[]; .conclusion == "success")' <<<"$runs" >/dev/null; then
+              echo "docker.yml succeeded for $SHA"
+              exit 0
+            fi
+            count="$(jq 'length' <<<"$runs")"
+            if [ "$count" -gt 0 ] && jq -e 'all(.[]; .status == "completed")' <<<"$runs" >/dev/null; then
+              echo "::error::docker.yml finished for $SHA but no run succeeded"
+              exit 1
+            fi
+            if [ "$count" -eq 0 ] && [ "$attempt" -ge 5 ]; then
+              echo "::error::no docker.yml run found for $SHA after 5 minutes"
+              exit 1
+            fi
+            echo "Attempt $attempt/30: $count run(s) for $SHA, none green yet, waiting..."
             sleep 60
           done
-          echo "docker run did not finish in time"
+          echo "::error::docker.yml did not finish in time"
           exit 1
 
       - name: Log in to GitHub Container Registry
@@ -156,10 +178,18 @@ jobs:
         env:
           OWNER: ${{ github.repository_owner }}
           IMAGE_TAG: ${{ needs.resolve.outputs.image_tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
         run: |
           set -euo pipefail
           image="ghcr.io/${OWNER,,}/pipeline:${IMAGE_TAG}"
           docker pull "$image"
+          # The 7-char tag is a convenience; the OCI revision label is the proof
+          # that this image really was built from the commit we resolved.
+          revision="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "$image")"
+          if [ "$revision" != "$SHA" ]; then
+            echo "::error::image revision '$revision' does not match $SHA"
+            exit 1
+          fi
           digest="$(docker inspect --format '{{index .RepoDigests 0}}' "$image")"
           echo "Image digest: $digest" >> "$GITHUB_STEP_SUMMARY"
           echo "image=$digest" >> "$GITHUB_OUTPUT"
@@ -174,7 +204,9 @@ jobs:
           PG_PASS: ${{ secrets.PG_PASS }}
           DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
           DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_HTTP_PATH: ${{ secrets.DATABRICKS_HTTP_PATH }}
           DATABRICKS_CATALOG: ${{ secrets.DATABRICKS_CATALOG }}
+          DATABRICKS_SCHEMA_PUBLIC: ${{ secrets.DATABRICKS_SCHEMA_PUBLIC }}
           DATABRICKS_MARTS_SCHEMA: ${{ secrets.DATABRICKS_MARTS_SCHEMA }}
           PUBLISH_STAGE_VOLUME: ${{ secrets.PUBLISH_STAGE_VOLUME }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
@@ -183,35 +215,63 @@ jobs:
           MYSQL_PORT: ${{ secrets.MYSQL_PORT }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DB: ${{ secrets.MYSQL_DB }}
           CI: "true"
         run: |
           set -euo pipefail
-          # $IMAGE is repo@sha256:..., so exactly the pulled bytes are run
-          docker run --rm \
-            --env PG_HOST \
-            --env PG_PORT \
-            --env PG_DB \
-            --env PG_USER \
-            --env PG_PASS \
-            --env DATABRICKS_HOST \
-            --env DATABRICKS_TOKEN \
-            --env DATABRICKS_CATALOG \
-            --env DATABRICKS_MARTS_SCHEMA \
-            --env PUBLISH_STAGE_VOLUME \
-            --env MONGO_URI \
-            --env MONGO_DB_NAME \
-            --env MYSQL_HOST \
-            --env MYSQL_PORT \
-            --env MYSQL_USER \
-            --env MYSQL_PASSWORD \
-            --env CI \
-            "$IMAGE" --keep-going
+          # Fail fast with a clear message instead of a half-configured deploy.
+          required=(PG_HOST PG_PORT PG_DB PG_USER PG_PASS
+                    DATABRICKS_HOST DATABRICKS_TOKEN DATABRICKS_CATALOG DATABRICKS_MARTS_SCHEMA
+                    PUBLISH_STAGE_VOLUME MONGO_URI MONGO_DB_NAME
+                    MYSQL_HOST MYSQL_PORT MYSQL_USER MYSQL_PASSWORD)
+          # ci.yml's full pipeline also needs these; the original deploy never passed them.
+          # Passed through if set, warned about if not.
+          optional=(DATABRICKS_HTTP_PATH DATABRICKS_SCHEMA_PUBLIC MYSQL_DB)
 
-      - name: Notify on deployment failure
-        if: failure()
-        env:
-          ENVIRONMENT: ${{ needs.resolve.outputs.environment }}
+          args=()
+          missing=0
+          for v in "${required[@]}"; do
+            if [ -z "${!v:-}" ]; then
+              echo "::error::Secret $v is empty or not set for this environment"
+              missing=1
+            fi
+            args+=(--env "$v")
+          done
+          for v in "${optional[@]}"; do
+            if [ -z "${!v:-}" ]; then
+              echo "::warning::Secret $v is not set for this environment (ci.yml's pipeline requires it)"
+            fi
+            args+=(--env "$v")
+          done
+          [ "$missing" -eq 0 ] || exit 1
+
+          # $IMAGE is repo@sha256:..., so exactly the pulled bytes are run.
+          docker run --rm --pull=never "${args[@]}" --env CI "$IMAGE" --keep-going
+
+  # The original "notify" step only echoed and exited 1, which tells nobody anything.
+  # For production, open an issue so a failed deploy cannot go unnoticed.
+  notify-failure:
+    name: open incident issue
+    needs: [resolve, gate, deploy]
+    if: ${{ always() && inputs.environment == 'production' && (needs.resolve.result == 'failure' || needs.gate.result == 'failure' || needs.deploy.result == 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      REF: ${{ inputs.ref }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      ACTOR: ${{ github.actor }}
+    steps:
+      - name: Open issue
         run: |
           set -euo pipefail
-          echo "Deployment to $ENVIRONMENT failed."
-          exit 1
+          gh issue create \
+            --title "Production deploy of ${REF} failed" \
+            --body "The production deployment of \`${REF}\` (started by @${ACTOR}) failed or was blocked by the quality gate.
+
+          Run: ${RUN_URL}
+
+          Production may be on the previous release. To roll back, run the \`cd\` workflow with environment=production and the last good vX.Y.Z tag."

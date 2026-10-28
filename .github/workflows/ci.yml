@@ -1,7 +1,12 @@
-# CI gate. Mirrors `make ci` (lint + contracts + sql-lint + unit + smoke).
-# Runs on every push to main and every PR. The `pipeline` job additionally runs
-# the full daily pipeline on main so a red commit blocks merge via branch
-# protection (which you configure in repo settings).
+# CI gate. Mirrors `make ci` (lint + contracts + sql-lint + unit + smoke) and adds
+# workflow linting, a dependency audit and a Windows parity run.
+#
+# Branch protection: require ONLY the `ci-success` check. It aggregates every job
+# below, so adding or renaming a job never needs a settings change.
+#
+# The `pipeline` job runs the real daily pipeline, and only on pushes to main
+# (never on PRs, so source secrets are never exposed to PR code). It runs AFTER
+# merge: it flags a red main, it cannot block a merge.
 name: ci
 
 on:
@@ -12,7 +17,9 @@ on:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  # Cancel superseded PR runs, but never a run on main: the pipeline job talks to
+  # real source systems and should not be killed half way through.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -23,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
@@ -43,27 +50,33 @@ jobs:
       - name: Run actionlint
         run: actionlint
 
-      - name: Install zizmor
+      # Installed under RUNNER_TEMP: /usr/local/bin is not writable without sudo.
+      - name: Install zizmor (checksum-verified)
         run: |
           set -euo pipefail
-          curl -sSfL https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz -o /tmp/zizmor.tar.gz
-          echo "d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99  /tmp/zizmor.tar.gz" | sha256sum -c -
-          tar -xzf /tmp/zizmor.tar.gz -C /usr/local/bin zizmor
+          mkdir -p "$RUNNER_TEMP/zizmor"
+          curl -sSfL https://github.com/zizmorcore/zizmor/releases/download/v1.31.1/zizmor-x86_64-unknown-linux-gnu.tar.gz -o "$RUNNER_TEMP/zizmor.tar.gz"
+          echo "d185f726bdaf92df78273217dfdd24ebcd6b0ef48cf3ce776ff5762b6e138c99  $RUNNER_TEMP/zizmor.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/zizmor.tar.gz" -C "$RUNNER_TEMP/zizmor" zizmor
+          echo "$RUNNER_TEMP/zizmor" >> "$GITHUB_PATH"
 
+      # GH_TOKEN enables zizmor's online audits (impostor commits, known-vulnerable actions).
       - name: Run zizmor
-        run: zizmor .github/workflows
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: zizmor .github
 
   gate:
     name: gate (lint + sql-lint + unit + smoke)
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -100,12 +113,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -114,7 +127,7 @@ jobs:
         run: |
           set -euo pipefail
           uv export --frozen --no-hashes --no-emit-project -o "$RUNNER_TEMP/requirements.txt"
-          uvx pip-audit --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit@2.10.1 --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
 
   windows-gate:
     name: windows-gate (batch runner parity)
@@ -124,12 +137,12 @@ jobs:
       run:
         shell: pwsh
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -158,12 +171,33 @@ jobs:
       - name: Report fixtures render (no TeX, no database)
         run: .\tasks.bat report-fixture
 
+  # The `secrets` context is NOT allowed in a job-level `if`, so the original
+  # `secrets.MONGO_URI != ''` condition made this whole workflow invalid.
+  # Instead, a tiny job reads the secret and exposes a boolean output.
+  secrets-check:
+    name: source secrets configured?
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      available: ${{ steps.check.outputs.available }}
+    steps:
+      - id: check
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: |
+          set -euo pipefail
+          if [ -n "$MONGO_URI" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Source secrets are not configured; skipping the full pipeline run."
+          fi
+
   pipeline:
     name: full pipeline (uv run main.py)
-    needs: [gate, dep-audit, windows-gate]
-    # Runs only on pushes to main, never on PRs, so secrets are never
-    # exposed to PR code. Skipped entirely while source secrets are unset.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.MONGO_URI != ''
+    needs: [gate, dep-audit, windows-gate, secrets-check]
+    if: needs.secrets-check.outputs.available == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     services:
@@ -206,12 +240,12 @@ jobs:
       DATABRICKS_SCHEMA_PUBLIC: ${{ secrets.DATABRICKS_SCHEMA_PUBLIC }}
       DATABRICKS_MARTS_SCHEMA: ${{ secrets.DATABRICKS_MARTS_SCHEMA }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -223,7 +257,7 @@ jobs:
         run: make install
 
       - name: Set up Java 17 for Spark
-        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4.9.1
         with:
           distribution: temurin
           java-version: "17"
@@ -252,8 +286,9 @@ jobs:
           done
           exit $missing
 
+      # Kill switch: set the repository VARIABLE SKIP_MAIN_PY=true to skip this step.
       - name: Run full daily pipeline (real sources)
-        if: ${{ env.SKIP_MAIN_PY != 'true' }}
+        if: ${{ vars.SKIP_MAIN_PY != 'true' }}
         run: uv run main.py --keep-going
 
       - name: Upload pipeline audit artifacts
@@ -265,4 +300,23 @@ jobs:
             **/audit/**
             **/test-results.xml
             **/coverage.xml
+          if-no-files-found: ignore
           retention-days: 7
+
+  # Single status for branch protection. Skipped jobs (pipeline on PRs) count as
+  # passing; failed or cancelled jobs fail it.
+  ci-success:
+    name: ci-success
+    if: always()
+    needs: [workflow-lint, gate, dep-audit, windows-gate, pipeline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Fail if any required job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: |
+          echo "::error::One or more required CI jobs did not succeed."
+          exit 1
+
+      - name: All required jobs passed
+        run: echo "ci OK"

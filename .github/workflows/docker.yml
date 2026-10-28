@@ -1,32 +1,45 @@
+# Builds and pushes the four images to ghcr.io.
+#   push to main / v* tag -> build, push, attach provenance + SBOM
+#   pull request          -> build only (no push), so a broken Dockerfile fails
+#                            in review instead of after merge
+# cd.yml deploys the sha-<7> tag produced here and waits for this workflow.
 name: docker
 
 on:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ["v*"]
+  pull_request:
+    paths:
+      - "**/Dockerfile*"
+      - ".dockerignore"
+      - "pyproject.toml"
+      - "uv.lock"
+      - ".github/workflows/docker.yml"
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Deploy target
-        required: true
-        default: staging
-        type: choice
-        options:
-          - staging
-          - production
+
+# Never cancel a push build: cd.yml waits for the sha-<7> image of every
+# deployable commit, so a cancelled build would strand a deploy.
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   build:
+    name: build (${{ matrix.image.name }})
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      packages: write
     strategy:
       fail-fast: false
       max-parallel: 4
       matrix:
-        images:
+        image:
           - name: airflow
             build-context: .
             file: airflow/Dockerfile
@@ -47,15 +60,16 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
       - name: Log in to GitHub Container Registry
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -63,21 +77,26 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051
+        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5.10.0
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.images.name }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.name }}
           tags: |
             type=ref,event=branch
+            type=ref,event=pr
             type=sha
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Build and push
-        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
-          context: ${{ matrix.images.build-context }}
-          file: ${{ matrix.images.file }}
-          build-args: ${{ matrix.images.build-args }}
-          push: true
+          context: ${{ matrix.image.build-context }}
+          file: ${{ matrix.image.file }}
+          build-args: ${{ matrix.image.build-args }}
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.images.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.images.name }}
+          provenance: mode=max
+          sbom: true
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}

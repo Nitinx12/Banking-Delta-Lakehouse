@@ -69,6 +69,20 @@ dashboard:
       - any-glob-to-any-file:
           - dashboard/**
 
+# NEW: reports/ had no label at all.
+reports:
+  - changed-files:
+      - any-glob-to-any-file:
+          - reports/**
+
+# NEW: Dockerfiles. Dependabot also applies a "docker" label; because the labeler
+# runs with sync-labels, it must be defined here or the labeler would strip it.
+docker:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/Dockerfile*"
+          - .dockerignore
+
 ci:
   - changed-files:
       - any-glob-to-any-file:
@@ -76,7 +90,11 @@ ci:
           - Makefile
           - tasks.bat
 
+# FIXED: Dependabot adds "dependencies" to its PRs, but with sync-labels the labeler
+# removed it again whenever the PR touched only workflows or Dockerfiles (not
+# pyproject.toml / uv.lock). Matching on Dependabot's branch name keeps it.
 dependencies:
+  - head-branch: ["^dependabot/"]
   - changed-files:
       - any-glob-to-any-file:
           - pyproject.toml

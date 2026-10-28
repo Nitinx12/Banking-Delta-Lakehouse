@@ -1,5 +1,7 @@
-# Nightly workflow for extended testing and security audits
-# Runs weekly, hermetic only - no source secrets, disposable Postgres
+# Scheduled extended checks (currently WEEKLY, Mondays; change the cron for nightly).
+# Hermetic only: no source secrets, disposable Postgres.
+# A failed scheduled run opens (or comments on) an issue, because scheduled-run
+# failures otherwise only notify whoever last edited the cron line.
 
 name: nightly
 
@@ -8,8 +10,9 @@ on:
     - cron: "0 20 * * 1" # Mondays 20:00 UTC
   workflow_dispatch:
 
+# The original group used run_id, which is unique per run and so limited nothing.
 concurrency:
-  group: nightly-${{ github.run_id }}
+  group: nightly
   cancel-in-progress: false
 
 permissions:
@@ -42,12 +45,12 @@ jobs:
       PG_USER: postgres
       PG_PASS: test-only
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -55,23 +58,24 @@ jobs:
       - name: Set up Python
         run: uv python install
 
+      # --locked: fail if uv.lock is out of date instead of silently re-resolving
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --locked --group dev
 
       - name: Run SQL smoke tests
         run: uv run pytest -m smoke --sql-smoke
 
   integration:
-    name: integration (dependency audit)
+    name: full dependency audit (pip-audit)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
         with:
           enable-cache: true
           cache-dependency-glob: uv.lock
@@ -80,4 +84,28 @@ jobs:
         run: |
           set -euo pipefail
           uv export --frozen --no-hashes --no-emit-project -o "$RUNNER_TEMP/requirements.txt"
-          uvx pip-audit --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
+          uvx pip-audit@2.10.1 --disable-pip --no-deps -r "$RUNNER_TEMP/requirements.txt"
+
+  notify-failure:
+    name: open issue on scheduled failure
+    needs: [sql-smoke, integration]
+    if: ${{ always() && github.event_name == 'schedule' && contains(needs.*.result, 'failure') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Open or update issue
+        run: |
+          set -euo pipefail
+          title="Scheduled extended checks are failing"
+          existing="$(gh issue list --state open --search "\"$title\" in:title" --json number --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "Failed again: ${RUN_URL}"
+          else
+            gh issue create --title "$title" --body "The scheduled nightly workflow failed: ${RUN_URL}"
+          fi

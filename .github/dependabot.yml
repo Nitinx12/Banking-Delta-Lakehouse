@@ -1,5 +1,7 @@
 # Dependabot configuration for automated dependency updates
-# Updates grouped by ecosystem and scheduled weekly
+# Updates grouped by ecosystem and scheduled weekly.
+# cooldown: a release must be public for 7 days before Dependabot proposes it
+# (supply-chain hardening). Security updates ignore the cooldown.
 
 version: 2
 updates:
@@ -10,6 +12,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "github-actions"
@@ -32,6 +36,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "python"
@@ -54,6 +60,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "docker"
@@ -70,6 +78,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "docker"
@@ -86,6 +96,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "docker"
@@ -102,6 +114,8 @@ updates:
       day: "monday"
       time: "02:00"
       timezone: "UTC"
+    cooldown:
+      default-days: 7
     labels:
       - "dependencies"
       - "docker"
