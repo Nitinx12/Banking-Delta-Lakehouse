@@ -253,6 +253,7 @@ jobs:
           exit $missing
 
       - name: Run full daily pipeline (real sources)
+        if: ${{ env.SKIP_MAIN_PY != 'true' }}
         run: uv run main.py --keep-going
 
       - name: Upload pipeline audit artifacts
