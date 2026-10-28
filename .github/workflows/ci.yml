@@ -162,8 +162,8 @@ jobs:
     name: full pipeline (uv run main.py)
     needs: [gate, dep-audit, windows-gate]
     # Runs only on pushes to main, never on PRs, so secrets are never
-    # exposed to PR code.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # exposed to PR code. Skipped entirely while source secrets are unset.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.MONGO_URI != ''
     runs-on: ubuntu-latest
     timeout-minutes: 60
     services:
