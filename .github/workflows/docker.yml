@@ -1,5 +1,5 @@
 # Builds and pushes the four images to ghcr.io.
-#   push to main / v* tag -> build, push, attach provenance + SBOM
+#   push to main / v* tag -> build, push, attach provenance (SBOM skipped: airflow SBOM exceeds the 80MB attestation limit)
 #   pull request          -> build only (no push), so a broken Dockerfile fails
 #                            in review instead of after merge
 # cd.yml deploys the sha-<7> tag produced here and waits for this workflow.
@@ -97,6 +97,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
-          sbom: true
+          sbom: skip
           cache-from: type=gha,scope=${{ matrix.image.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
