@@ -23,12 +23,12 @@ jobs:
 
       - uses: r-lib/actions/setup-r@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
-          r-version: "4.4.1"
+          r-version: "4.5.1"
 
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
           working-directory: r
-          extra-packages: any::testthat, any::lintr, any::rcmdcheck, any::duckdb, any::yaml, any::jsonlite, any::logger, any::withr, any::rlang, any::fs, any::cli, any::digest, any::dplyr, any::dbplyr, any::DBI, any::RPostgres, any::ggplot2, any::quarto
+          extra-packages: any::testthat, any::lintr, any::rcmdcheck, any::duckdb, any::ggplot2
 
       - name: Lint
         run: Rscript -e 'lintr::lint_package("r")'

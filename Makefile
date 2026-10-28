@@ -33,7 +33,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
         report-fixture report-pdf report-tex report-docker report-clean report \
         report-incident report-weekly \
-        r-restore r-lint r-test r-run r-docker-build r-docker-run
+        r-restore r-lint r-test r-run r-docker-build r-docker-run ## @see R.md §8.4
 
 ##@ Setup
 help: ## Show this help
@@ -207,5 +207,24 @@ report-clean: ## Delete generated report artefacts
 
 ##@ Housekeeping
 clean: ## Remove caches and coverage output (keeps .spark/ jar cache)
-	rm -rf .pytest_cache .ruff_cache .coverage coverage.xml htmlcov
+	rm -rf .pytest_cache .ruff_cache .coverage htmlcov
 	find . -type d -name __pycache__ -not -path "./.venv/*" -prune -exec rm -rf {} +
+
+##@ R targets (R.md §8.4)
+r-restore: ## install pinned packages
+	Rscript -e 'renv::restore(project = "r")'
+
+r-lint:      ## style + static checks
+	Rscript -e 'lintr::lint_package("r")'
+
+r-test:      ## hermetic unit + contract tests — safe for ci
+	Rscript -e 'testthat::test_local("r")'
+
+r-run:       ## full analysis against the real warehouse — NOT part of ci
+	Rscript r/main.R
+
+r-docker-build:  ## build the image (needs Docker) — NOT part of ci
+	docker build -t banking-delta-r --build-arg GIT_SHA=$$(git rev-parse --short HEAD) r/
+
+r-docker-run:    ## run in the container against the real warehouse — NOT part of ci
+	docker run --rm --env-file r/.env.r -v "$(CURDIR)/r/output:/app/output" banking-delta-r

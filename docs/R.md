@@ -618,12 +618,14 @@ What exists in `r/` today versus what this guide still describes as the target s
 |---|---|
 | `main.R`, `Dockerfile`, `.dockerignore`, `.env.r.example`, `.gitignore`, `.lintr` | Done |
 | `DESCRIPTION`, `NAMESPACE` (export-all pattern until roxygen2 is introduced) | Done |
-| `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils` | Done |
-| `config/analysis.yml`, `config/contracts.yml` | Done, **but `freshness_col` and every contract are still empty** - fill from `MART_CONFIG` and the data dictionary |
-| `tests/testthat/` (config, run_context, contracts, cross_mart, gate) | Done |
-| `renv.lock`, `scripts/dump_mart_schema.R`, `docs/DATA-DICTIONARY.md` | **To do** |
-| `_targets.R`, Quarto reports, per-mart analyses (`R/mart_*.R`), `privacy.R`, `stats_helpers.R`, `plot_theme.R` | **To do** (section 5 is the catalogue) |
-| Makefile / `tasks.bat` `r-*` targets, `r-ci.yml` | **To do** (section 8.4) |
+| `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils`, `privacy`, `stats_helpers`, `plot_theme`, `figures`, `reconciliation`, `monitoring`, all 7 `mart_*` | Done |
+| `config/analysis.yml` (`freshness_col`, thresholds, seed), `config/contracts.yml` (all 7 marts) | Done |
+| `tests/testthat/` — one test file per `R/` file (config, run_context, contracts, cross_mart, gate, reconciliation, utils, privacy, monitoring, plot_theme, stats_helpers, all `mart_*`) | Done |
+| `_targets.R`, Quarto `analyses/*/` (00–07), `docs/DATA-DICTIONARY.md`, `docs/METHODS.md` | Done |
+| `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done (cards marked *planned* until models are trained) |
+| Makefile / `tasks.bat` `r-*` targets, `.github/workflows/r-ci.yml` | Done |
+| `scripts/dump_mart_schema.R`, `scripts/check_gate.R`, `scripts/prune_runs.R`, `scripts/snapshot_renv.R` | Done |
+| `renv.lock` | **To do** — run `Rscript r/scripts/snapshot_renv.R` on a machine with R (or via the rocker image) and commit the lockfile |
 
 What was verified when the scaffold was written: all `R/`, test and `main.R` files parse; the
 15 hermetic tests pass (R 4.3.3, with `RPostgres` stubbed and the DuckDB-based gate tests
@@ -1098,16 +1100,19 @@ a smaller `renv.lock` is a more maintainable one.
 
 ## Appendix B — First-week checklist
 
-1. Copy the scaffold into the repo as `r/`; from `r/` run `renv::init()` then `renv::snapshot()`
-   and commit `renv.lock` (add `duckdb`, `testthat`, `withr` so tests never skip).
-2. Create the `r_reader` role (section 4.2); copy `r/.env.r.example` to `r/.env.r` and fill it in.
-3. `Rscript r/main.R --list`, then `Rscript r/main.R --only=preflight,gate` against the real warehouse.
-4. Write `scripts/dump_mart_schema.R`, generate `docs/DATA-DICTIONARY.md`, and review it.
-5. Fill `config/analysis.yml` (`freshness_col`, `max_age_hours`) from `MART_CONFIG`, and
-   `config/contracts.yml` from the data dictionary.
-6. Run the full `Rscript r/main.R`; inspect `output/runs/<run_key>/manifest.json` and the profiles.
-7. Add the `r-*` targets to **both** `Makefile` and `tasks.bat`; add `r-ci.yml`.
-8. Build and run the image (section 4.8).
+1. ~~Copy the scaffold into the repo as `r/`~~ **Done.** Remaining: from `r/` run
+   `Rscript scripts/snapshot_renv.R` (or `renv::init()` + `renv::snapshot()`) and commit
+   `renv.lock` (includes `duckdb`, `testthat`, `withr` so tests never skip).
+2. ~~Create the `r_reader` role; copy `r/.env.r.example` to `r/.env.r`~~ **Done** (role
+   creation is a DBA step — confirm it exists in the target environment).
+3. `Rscript r/main.R --list`, then `Rscript r/main.R --only=preflight,gate` against the real
+   warehouse. *(Not run here — needs a live PostgreSQL.)*
+4. ~~Write `scripts/dump_mart_schema.R`, generate `docs/DATA-DICTIONARY.md`~~ **Done.**
+5. ~~Fill `config/analysis.yml` and `config/contracts.yml`~~ **Done** (all seven marts).
+6. Run the full `Rscript r/main.R`; inspect `output/runs/<run_key>/manifest.json` and the
+   profiles. *(Needs a live warehouse.)*
+7. ~~Add the `r-*` targets to both `Makefile` and `tasks.bat`; add `r-ci.yml`~~ **Done.**
+8. Build and run the image (section 4.8). *(Needs Docker daemon.)*
 9. Ship the first real analysis: `R/mart_kpi_monthly.R` + a `step_kpi` in `main.R`.
-10. Add a pointer to `ARCHITECTURE.md` section 15 ("Where to go next") and record the `r/` subsystem
-    in section 3 (repository map) and section 5 (consumers).
+   *(Helpers exist; the Quarto narrative is scaffolded.)*
+10. ~~Add a pointer to `ARCHITECTURE.md` and record the `r/` subsystem~~ **Done.**
