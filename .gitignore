@@ -29,3 +29,4 @@ airflow/.env.airflow
 airflow/logs/
 airflow/.spark/
 airflow/__pycache__/
+file.txt
