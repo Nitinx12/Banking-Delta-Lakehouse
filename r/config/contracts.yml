@@ -1,41 +1,240 @@
 mart_monthly_transactions:
-  required_cols: [month_start, txn_type, channel, merchant_category, txn_direction, region, state]
-  key: [month_start, txn_type, channel, merchant_category, txn_direction, region, state]
-  not_null: [month_start]
+  required_cols:
+    [
+      "month_start",
+      "txn_type",
+      "channel",
+      "merchant_category",
+      "txn_direction",
+      "region",
+      "state",
+      "txn_count",
+      "active_accounts",
+      "total_amount",
+      "avg_amount",
+      "min_amount",
+      "max_amount",
+      "mart_refreshed_at",
+    ]
+  key:
+    [
+      "month_start",
+      "txn_type",
+      "channel",
+      "merchant_category",
+      "txn_direction",
+      "region",
+      "state",
+    ]
+  not_null:
+    [
+      "month_start",
+      "txn_type",
+      "channel",
+      "merchant_category",
+      "txn_direction",
+      "region",
+      "state",
+    ]
   ranges: {}
 
 mart_kpi_monthly:
-  required_cols: [month_start]
-  key: [month_start]
-  not_null: [month_start]
+  required_cols:
+    [
+      "month_start",
+      "year",
+      "quarter",
+      "new_customers",
+      "new_accounts",
+      "loans_disbursed",
+      "loan_amount_disbursed",
+      "avg_interest_rate",
+      "loan_payment_count",
+      "loan_collections",
+      "interest_income",
+      "late_payment_rate_pct",
+      "txn_count",
+      "txn_amount",
+      "transacting_accounts",
+      "avg_txn_amount",
+      "card_txn_count",
+      "card_spend",
+      "fraud_txn_count",
+      "fraud_amount",
+      "fraud_rate_pct",
+      "tickets_opened",
+      "tickets_resolved",
+      "ticket_resolution_rate_pct",
+      "avg_resolution_days",
+      "avg_satisfaction_score",
+      "cumulative_customers",
+      "cumulative_accounts",
+      "cumulative_loan_amount",
+      "txn_amount_mom_pct",
+      "card_spend_mom_pct",
+      "loan_collections_mom_pct",
+      "mart_refreshed_at",
+    ]
+  key: ["month_start"]
+  not_null: ["month_start"]
   ranges: {}
 
 mart_card_fraud:
-  required_cols: [month_start, card_type, card_category, card_tier, merchant_category]
-  key: [month_start, card_type, card_category, card_tier, merchant_category]
-  not_null: [month_start]
+  required_cols:
+    [
+      "month_start",
+      "card_type",
+      "card_category",
+      "card_tier",
+      "merchant_category",
+      "txn_count",
+      "active_cards",
+      "total_amount",
+      "avg_txn_amount",
+      "fraud_txn_count",
+      "fraud_amount",
+      "fraud_rate_pct",
+      "mart_refreshed_at",
+    ]
+  key:
+    [
+      "month_start",
+      "card_type",
+      "card_category",
+      "card_tier",
+      "merchant_category",
+    ]
+  not_null:
+    [
+      "month_start",
+      "card_type",
+      "card_category",
+      "card_tier",
+      "merchant_category",
+    ]
   ranges: {}
 
 mart_support_performance:
-  required_cols: [month_opened, issue_type, status, customer_state, income_band]
-  key: [month_opened, issue_type, status, customer_state, income_band]
-  not_null: [month_opened]
+  required_cols:
+    [
+      "month_opened",
+      "issue_type",
+      "status",
+      "customer_state",
+      "income_band",
+      "ticket_count",
+      "customers_affected",
+      "resolved_count",
+      "resolution_rate_pct",
+      "avg_resolution_days",
+      "max_resolution_days",
+      "avg_satisfaction_score",
+      "low_satisfaction_count",
+      "mart_refreshed_at",
+    ]
+  key: ["month_opened", "issue_type", "status", "customer_state", "income_band"]
+  not_null:
+    ["month_opened", "issue_type", "status", "customer_state", "income_band"]
   ranges: {}
 
 mart_customer_360:
-  required_cols: [customer_key]
-  key: [customer_key]
-  not_null: [customer_key]
+  required_cols:
+    [
+      "customer_key",
+      "customer_id",
+      "customer_name",
+      "gender",
+      "age_band",
+      "city",
+      "state",
+      "occupation",
+      "income_band",
+      "annual_income",
+      "join_date",
+      "credit_score",
+      "credit_band",
+      "total_accounts",
+      "active_accounts",
+      "total_cards",
+      "active_cards",
+      "total_credit_limit",
+      "total_loans",
+      "active_loans",
+      "total_loan_amount",
+      "loan_to_income_ratio",
+      "txn_count",
+      "txn_amount",
+      "last_txn_date",
+      "card_txn_count",
+      "card_spend",
+      "card_fraud_txn_count",
+      "total_tickets",
+      "resolved_tickets",
+      "avg_resolution_days",
+      "avg_satisfaction_score",
+      "products_held",
+      "mart_refreshed_at",
+    ]
+  key: ["customer_key"]
+  not_null: ["customer_key"]
   ranges: {}
 
 mart_branch_performance:
-  required_cols: [branch_key]
-  key: [branch_key]
-  not_null: [branch_key]
+  required_cols:
+    [
+      "branch_key",
+      "branch_id",
+      "branch_name",
+      "city",
+      "state",
+      "region",
+      "ifsc_code",
+      "opened_year",
+      "branch_age_band",
+      "total_customers",
+      "total_accounts",
+      "active_accounts",
+      "employee_count",
+      "total_salary_cost",
+      "avg_salary",
+      "total_loans",
+      "active_loans",
+      "total_loan_amount",
+      "avg_interest_rate",
+      "total_loan_collected",
+      "late_payment_rate_pct",
+      "txn_count",
+      "txn_amount",
+      "accounts_per_employee",
+      "mart_refreshed_at",
+    ]
+  key: ["branch_key"]
+  not_null: ["branch_key"]
   ranges: {}
 
 mart_loan_portfolio:
-  required_cols: [loan_type, status, loan_amount_band, term_band, start_year]
-  key: [loan_type, status, loan_amount_band, term_band, start_year]
-  not_null: [loan_type]
+  required_cols:
+    [
+      "loan_type",
+      "status",
+      "loan_amount_band",
+      "term_band",
+      "start_year",
+      "loan_count",
+      "total_loan_amount",
+      "avg_loan_amount",
+      "avg_interest_rate",
+      "avg_term_months",
+      "payment_count",
+      "total_paid",
+      "principal_paid",
+      "interest_paid",
+      "late_payments",
+      "late_payment_rate_pct",
+      "estimated_outstanding_principal",
+      "mart_refreshed_at",
+    ]
+  key: ["loan_type", "status", "loan_amount_band", "term_band", "start_year"]
+  not_null:
+    ["loan_type"]
   ranges: {}

@@ -42,7 +42,7 @@ suppressPackageStartupMessages({
 cfg <- bankinganalytics::cfg_analysis()
 contracts <- bankinganalytics::cfg_contracts()
 
-ctx <- bankinganalytics::run_context(run_key)
+ctx <- list2env(bankinganalytics::run_context(run_key), parent = emptyenv())
 
 # dependency check: profile needs extract in same invocation
 if (!is.null(only) && "profile" %in% only && !"extract" %in% only) {
@@ -61,7 +61,7 @@ run_step <- function(name) {
   }, error = function(e) {
     list(status = "FAILED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
   })
-  ctx$steps[[name]] <<- res
+  ctx$steps[[name]] <- res
   bankinganalytics::write_manifest(ctx, if (res$status == "FAILED") "RUNNING" else "RUNNING")
   res
 }
@@ -114,7 +114,7 @@ step_report <- function(ctx) {
     stop("quarto package missing", call. = FALSE)
   }
   for (q in qmds) {
-    quarto::quarto_render(q, output_dir = file.path(ctx$run_dir, "reports"))
+    quarto::quarto_render(q, quarto_args = c("--output-dir", file.path(ctx$run_dir, "reports")), quiet = TRUE)
   }
   invisible(TRUE)
 }
