@@ -32,6 +32,7 @@ dependencies = [
 dev = [
     "apache-airflow-providers-standard>=1.0.0",
     "apache-airflow==3.3.2",
+    "ipykernel>=7.4.0",
     "pytest-cov>=7.1.0",
     "pytest>=8.3",
     "ruff==0.12.0",
