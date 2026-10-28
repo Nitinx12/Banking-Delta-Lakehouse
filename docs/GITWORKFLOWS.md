@@ -1,20 +1,20 @@
-# Git workflows — Banking-Delta-Lakehouse
+# CI/CD and Git workflow — Banking-Delta-Lakehouse
 
-How this repository manages git: branches, commits, hooks, the change loop and PR rules.
-Rules for AI agents (`AGENTS.md`) always win on conflict.
+How a change travels from a branch to production. CI runs the same `make` targets you run
+locally (`tasks.bat` on Windows), so **green locally means green in CI**. Workflows live in
+`.github/workflows/`. Rules for AI agents (`AGENTS.md`) always win on conflict.
 
-## Ground rules
+## 1. Git workflow
 
-1. One concern per branch, one logical change per commit, small diffs.
-2. Branch from an up-to-date `main`; keep branches short-lived (days, not weeks).
-3. Conventional Commits; hooks always on — `--no-verify` is forbidden.
-4. Never commit `.env`, tokens, `*.pem`, `*.key`, `id_rsa`, `file.txt`.
-5. Never force-push; never edit an already-merged SQL migration (add a new numbered file).
-6. Never weaken, skip or delete a test to get CI green — fix the code or ask.
-7. Tests go in the same commit (or PR) as the behaviour they cover; a bug fix ships with a
-   regression test that fails before the fix.
+### Ground rules
 
-## Branching
+1. One concern per branch, one logical change per commit, small diffs. Branches live days, not weeks.
+2. Conventional Commits, hooks always on. `--no-verify` is forbidden.
+3. Never commit `.env`, tokens, `*.pem`, `*.key`, `id_rsa`, `file.txt`.
+4. Never force-push. Never edit an already-merged SQL migration; add a new numbered file.
+5. Never weaken, skip or delete a test to get CI green. Tests ship with the behaviour they cover; a bug fix includes a regression test that fails first.
+
+### Branches and setup
 
 | Prefix | Use | Example |
 |---|---|---|
@@ -22,122 +22,178 @@ Rules for AI agents (`AGENTS.md`) always win on conflict.
 | `fix/` | bug fix | `fix/summary-task-states` |
 | `chore/` | tooling, deps, config, test scaffolding | `chore/test-scaffold` |
 | `docs/` | documentation only | `docs/project-docs` |
-| `test/` | tests only (fall back to `chore/` if the prefix is disallowed) | `test/audit-redact-unit` |
+| `test/` | tests only (use `chore/` if disallowed) | `test/audit-redact-unit` |
 
-Lowercase kebab-case. Sync first:
-
-```bash
-git fetch origin
-git switch main && git pull --ff-only
-git switch -c fix/summary-task-states
-```
-
-Windows `cmd`/PowerShell use the same commands.
-
-## One-time setup
+Lowercase kebab-case, always from an up-to-date `main` (`git pull --ff-only`). One-time setup per clone:
 
 ```bash
-make install        # uv sync --group dev
-make hooks          # git config core.hooksPath .githooks   (mandatory)
-git config --get core.hooksPath   # must print .githooks
+make install   # uv sync --group dev
+make hooks     # git config core.hooksPath .githooks (mandatory; verify it prints .githooks)
 ```
 
-### Hooks (`.githooks/`)
+Hooks (`.githooks/`): `commit-msg` enforces Conventional Commits; `pre-commit` blocks secrets and key
+files and runs `ruff check` + `ruff format --check` on staged Python; `pre-push` runs a fast gate.
+If a hook fails, fix the cause. `.pre-commit-config.yaml` (optional) adds sqlfluff and hygiene checks.
 
-| Hook | Enforces |
-|---|---|
-| `commit-msg` | Conventional Commits `type(scope): summary` |
-| `pre-commit` | blocks `.env`/`*.pem`/`*.key`/`id_rsa`; `ruff check` + `ruff format --check` on staged Python |
-| `pre-push` | fast gate before a push leaves the machine |
+### Commits
 
-`.pre-commit-config.yaml` (the `pre-commit` framework, if you use it) adds whitespace
-hygiene, ruff (pinned 0.12.0), sqlfluff (postgres dialect, `sql/` + `tests/`) and a
-conventional-commits check. If a hook fails, fix the cause — never bypass it.
+Format `type(scope): imperative summary`, at most 72 chars, no trailing period; the body
+explains *why*.
 
-## Commit messages
+- **Types:** `feat fix refactor perf test docs chore build ci style revert`
+- **Scopes:** `extract audit spark-io engine publish main airflow dags sql staging analytics
+  marts dq dashboard make batch hooks deps tests repo reports`
 
-Format: `type(scope): imperative summary` — ≤ 72 chars, no trailing period.
-Body explains *why*; reference the issue if any.
+Stage explicitly (`git add <paths>`, never blind `-A`) and review with `git diff --staged`.
+Never commit scratch dirs (`.spark/ logs/ airflow/logs/ .venv/ .coverage htmlcov/ __pycache__/`).
 
-Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`, `build`, `ci`, `style`,
-`revert`.
-
-Scopes used here: `extract`, `audit`, `spark-io`, `engine`, `publish`, `main`, `airflow`,
-`dags`, `sql`, `staging`, `analytics`, `marts`, `dq`, `dashboard`, `make`, `batch`,
-`hooks`, `deps`, `tests`, `repo`, `reports`.
+### The change loop
 
 ```text
-fix(airflow): read task states via TaskInstance.get_task_states
-
-summary.py read context["task_states"], which Airflow 3 does not provide,
-so green runs emailed a false [FAILED] banner. Fetch states by
-(dag_id, run_id) and pass env/git_sha into the summary.
-
-Tests: unit tests for decide_status with real state maps.
+ 1  Read AGENTS.md and the relevant docs/ page; sync main; create branch
+ 2  Write or adjust the test FIRST (red, see docs/TESTING.md)
+ 3  Implement the smallest change (green)
+ 4  Narrow test:  uv run pytest path/to/test_x.py -q
+ 5  Fast gate:    make unit smoke        Full gate: make ci (lint + sql-lint + unit + smoke)
+ 6  Extra tiers the change needs (DB/Spark/live: ask first)
+ 7  Update docs and Makefile together if targets changed
+ 8  git add <paths>; git commit          (hooks must pass)
+ 9  git fetch origin; git merge origin/main; re-run make ci
+10  git push -u origin <branch>; open PR; STOP. Do not merge.
 ```
 
-Hygiene: stage explicitly (`git add <paths>`), review with `git diff --staged`. Never
-`git add -A` blindly. Never commit scratch dirs: `.spark/`, `logs/`, `airflow/logs/`,
-`.venv/`, `.coverage`, `htmlcov/`, `__pycache__/`.
+Keep a branch current by **merging** `origin/main`; rebasing needs a force-push, which is
+forbidden. If history is messy, ask a human.
 
-## The change loop
+**Pull requests:** title is the Conventional Commit summary; aim for one concern under ~400 changed lines. Body:
+what and why, how tested (commands and real results), risk, rollback, and any approval used.
+Agents open the PR and stop; merging or pushing to `main` needs a human.
 
-```text
-1  Read AGENTS.md and the relevant docs/ page
-2  Sync main, create branch
-3  Write/adjust the test FIRST (see docs/TESTING.md — red)
-4  Implement the smallest change (green)
-5  Narrow test:   uv run pytest path/to/test_x.py -q
-6  Fast gate:     make unit smoke   (or: make test)
-7  Full gate:     make ci           (= lint + sql-lint + unit + smoke)
-8  Extra tiers the change requires (ask first for DB/Spark/live — see docs/TESTING.md)
-9  Update docs/Makefile if targets changed (keep Makefile ↔ docs in sync)
-10 git add <paths>; git commit   (hooks must pass)
-11 git fetch origin; git merge origin/main   (resolve, re-run make ci)
-12 git push -u origin <branch>
-13 Open PR, then STOP. Do not merge.
-```
+### Permissions
 
-To keep a branch current, **merge `origin/main` into your branch** — rebasing needs
-force-push, which is forbidden. If history is messy, ask the human.
-
-## Pull requests
-
-- Title = the Conventional Commit summary.
-- Includes: what/why, how tested (commands + real results), risk, rollback, any approval
-  used for restricted actions.
-- Aim for one concern, ideally < 400 changed lines excluding generated files.
-- Agents open the PR and stop. Merging or pushing to `main` needs a human.
-
-## Permissions
-
-| Action | Allowed without asking | Ask first | Never |
+| Action | Allowed | Ask first | Never |
 |---|---|---|---|
-| Read; `make lint / sql-lint / unit / cov / smoke / test / ci` | yes | | |
-| Code/tests/docs on a `feature|fix|chore|docs` branch | yes | | |
-| `git add`, `git commit`, push **your own branch**, open PR | yes | | |
-| `make spark-smoke`, `make sql-smoke`, `make integration`, `make smoke-live` | | yes | |
-| `make daily`, `python main.py`, Airflow trigger (writes to warehouse) | | yes | |
-| Merge/push to `main`, tag, release | | yes | |
-| Commit `.env`/tokens/keys, write to Databricks `public`, edit a merged migration, force-push, run tests against production | | | never |
+| Read; `make lint / sql-lint / unit / cov / smoke / test / ci`; code, tests, docs on a branch; commit; push your own branch; open PR | yes | | |
+| `make spark-smoke / sql-smoke / integration / smoke-live`, `make daily`, `python main.py`, Airflow trigger | | yes | |
+| Merge or push to `main`, tag, release, manual `cd` dispatch | | yes | |
+| Commit secrets, write to Databricks `public`, edit a merged migration, force-push, test against production | | | never |
 
-## SQL changes
+### SQL changes and invariants
 
-- Schema/procedure changes that affect an existing database go in a **new numbered file**
-  (`sql/scripts/NN_<what>.sql`), idempotent, in numeric order. Never edit `00`–`06` once
-  merged.
-- Procedure files (`sql/{staging,analytics,marts}/NN_*.sql`) are `CREATE OR REPLACE`:
-  editing the current file on a branch is fine, but `00_master_load.sql` order must stay
-  parent → child.
-- Always `make sql-lint`; run `make sql-smoke` (disposable PG, `ALLOW_SQL_SMOKE=1`, ask
-  first) when you change procedures.
-- New/changed DQ check → `docs/DATA-QUALITY.md`.
+- Changes to an existing database go in a **new numbered file** (`sql/scripts/NN_<what>.sql`),
+  idempotent, applied in order; never edit `00`–`06` once merged. Procedure files
+  (`sql/{staging,analytics,marts}/NN_*.sql`) are `CREATE OR REPLACE`; keep `00_master_load.sql`
+  order parent → child.
+- Run `make sql-lint`, and `make sql-smoke` (disposable PG, `ALLOW_SQL_SMOKE=1`, ask first) when
+  procedures change. New or changed DQ checks go in `docs/DATA-QUALITY.md`.
+- **Must not break:** watermarks advance only inside the load/extract transaction
+  (`audit.extract_watermarks` vs `audit.etl_watermarks`, never mixed, see `docs/AUDIT.md`); every
+  load is idempotent; a critical DQ failure blocks publish; each layer is written only by its owner.
 
-## What must not break
+## 2. CI/CD
 
-- Watermarks advance only inside the load/extract transaction
-  (`audit.extract_watermarks` vs `audit.etl_watermarks` — never mix them, `docs/AUDIT.md`).
-- Every load is safe to run twice with the same input (idempotent).
-- A critical DQ failure blocks publish.
-- `raw`, `staging`, `analytics`, `marts` are written only by their owners
-  (extracts → raw; `sp_load_*` → staging/analytics/marts; `publish_marts.py` → Databricks).
+### How it flows
+
+```mermaid
+flowchart LR
+    subgraph PR["Pull request"]
+        A["ci<br/>workflow-lint · gate · dep-audit · windows-gate"]
+        B["leaks · codeql · labeler<br/>docker (build only)"]
+    end
+    subgraph MAIN["Push to main"]
+        E["ci (same jobs)"]
+        F["pipeline<br/>uv run main.py · real sources"]
+        G["docker<br/>build + push 4 images"]
+    end
+    subgraph TAG["Tag vX.Y.Z"]
+        H["release<br/>verify → GitHub release"]
+        I["cd<br/>resolve → gate → deploy"]
+    end
+    J["Weekly: nightly · leaks · codeql"]
+    A --> E --> F
+    E --> G
+    H -->|workflow_dispatch| I
+    G -.->|image sha-xxxxxxx| I
+```
+
+### Workflows at a glance
+
+| Workflow | Runs on | What it does | Blocks merge |
+|---|---|---|---|
+| `ci` | PR, push to `main`, manual | Lint, tests, audits, Windows parity; full pipeline on `main` | **yes** (`ci-success`) |
+| `leaks` | PR, push to `main`, Mon 03:00 UTC | gitleaks over full git history | yes |
+| `codeql` | PR, push to `main`, Mon 04:00 UTC | CodeQL Python `security-and-quality` | yes |
+| `labeler` | PR opened / updated | Labels by changed paths (`.github/labeler.yml`) | no |
+| `docker` | PR (Dockerfile or deps change), push to `main`, tag `v*`, manual | Builds `airflow`, `dashboard`, `reports`, `pipeline`; pushes to GHCR except on PRs | no |
+| `nightly` | Mon 20:00 UTC, manual | `sql-smoke` on disposable Postgres + full `pip-audit`; opens an issue on failure | no |
+| `release` | tag `v*.*.*` | Verifies the tag, creates the GitHub release, dispatches `cd` | n/a |
+| `cd` | `workflow_dispatch` only | Gate (production), then deploy the `pipeline` image | n/a |
+| `dependabot` | Mon 02:00 UTC | Grouped PRs for Actions, `uv`, four Dockerfiles; 7-day cooldown | no |
+
+### `ci` jobs
+
+| Job | What it checks |
+|---|---|
+| `workflow-lint` | `actionlint` + `zizmor` on `.github` (checksum-verified installs) |
+| `gate` | `uv lock --check`, ruff, contracts, sqlfluff, smoke, unit + coverage gate, report fixture |
+| `dep-audit` | `pip-audit` on the locked dependencies |
+| `windows-gate` | The same checks via `tasks.bat` |
+| `secrets-check` | Push to `main` only: are the source secrets configured? |
+| `pipeline` | Full `uv run main.py --keep-going` on a GitHub-hosted runner with a disposable Postgres |
+| `ci-success` | Aggregates every job above; **the one required check for branch protection** |
+
+`pipeline` runs only on push to `main` (never on PRs, so PR code never sees secrets) and is
+skipped while secrets are unset. Set the repo **variable** `SKIP_MAIN_PY=true` to skip it in an
+emergency. It runs after the merge, so it flags a broken `main` but cannot stop the merge.
+Superseded PR runs are cancelled; runs on `main` never are. The PR gate stays fast and
+external-free; `tests/smoke/test_make_parity.py` fails if a Makefile target is missing from
+`tasks.bat` or `ci` picks up a non-hermetic target. `smoke-live` and Airflow triggers never run in CI.
+
+### Release and deploy
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0   # on main, green ci; needs approval
+```
+
+1. **`release`** checks the tag matches `pyproject.toml`, the commit is on `main`, and `make ci`
+   passes, then creates the GitHub release (a tag with `-`, like `v0.2.0-rc1`, is a prerelease;
+   re-runs are safe) and dispatches `cd`: prerelease → `staging`, stable → `production`.
+2. **`docker`** also fires on the tag and pushes `sha-xxxxxxx`, version (`1.2.3`, `1.2`) and branch
+   tags, with provenance and SBOM.
+3. **`cd`** runs one deploy at a time per environment:
+   - `resolve`: the commit must be on `origin/main`; production also needs a stable `vX.Y.Z` tag.
+   - `gate`: **production only**; re-runs lint, contracts, sql-lint, smoke and coverage.
+   - `deploy`: waits for a green `docker` run on the same commit (fails after 5 minutes if none
+     exists), pulls the image, checks its revision label matches the commit, checks required
+     secrets, and runs the container by digest with `--keep-going`.
+4. Production needs manual approval via GitHub Environment protection rules. A failed production
+   deploy or gate opens an issue.
+
+**Manual deploy:** run `cd` from the Actions tab with `environment` and `ref` (staging skips the gate).
+**Rollback:** run `cd` with `production` and the previous stable tag. This redeploys code only;
+it does not undo data side effects (watermarks, published marts), and a watermark reset needs
+owner approval (`docs/DESIGN.md`). There is no `release: published` trigger, because a hand-made
+release would deploy a tag that `release` never verified.
+
+### Security rules
+
+- Least-privilege `permissions:` everywhere (`contents: read` by default, widened per job).
+- No `pull_request_target`, so fork PRs never get secrets. Secrets reach only `pipeline` and `cd`.
+- Third-party actions are pinned by **full commit SHA** with a version comment; Dependabot bumps
+  them. Copy SHAs from the releases page, since a wrong SHA fails with "unable to find version".
+- No caches in the `release` and `cd` paths; downloaded tools are checksum-verified. `labeler` keeps
+  the `dependencies` label on Dependabot PRs by matching the `dependabot/` branch.
+
+### One-time setup (repo admin)
+
+1. **Branch protection on `main`**: require a PR (1 approval, dismiss stale approvals), up-to-date
+   branches, resolved conversations; block force pushes and deletions. Required checks:
+   `ci-success`, `gitleaks`, `analyze (python)`. Until then, nothing stops a direct push.
+2. **Secrets**: repository secrets for `pipeline` (`MONGO_*`, `MYSQL_*` incl. `MYSQL_DB`,
+   `DATABRICKS_*` incl. `HTTP_PATH`, `SCHEMA_PUBLIC`). Environment secrets for `cd`: `PG_*`,
+   `DATABRICKS_*`, `PUBLISH_STAGE_VOLUME`, `MONGO_*`, `MYSQL_*`. Point the pipeline's
+   `DATABRICKS_MARTS_SCHEMA` at a CI-only schema if `publish_marts` writes there.
+3. **Environments**: create `staging` and `production`, require reviewers on `production`, and
+   restrict both to `main` and `v*` tags.
+4. **Code security**: enable Dependabot alerts and security updates, and private vulnerability
+   reporting (used by `SECURITY.md`). Replace placeholder handles in `CODEOWNERS`.
