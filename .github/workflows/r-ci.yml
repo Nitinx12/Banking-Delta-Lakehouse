@@ -28,7 +28,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@f9a764fea8d5c63df6ef9a5c7795bf7deb5d7e05 # v2
         with:
           working-directory: r
-          extra-packages: any::testthat, any::lintr, any::rcmdcheck, any::duckdb, any::ggplot2
+          extra-packages: any::testthat, any::lintr, any::rcmdcheck, any::duckdb, any::ggplot2, any::covr
 
       - name: Lint
         run: Rscript -e 'lintr::lint_package("r")'
@@ -36,6 +36,10 @@ jobs:
 
       - name: Test
         run: Rscript -e 'testthat::test_local(".")'
+        working-directory: r
+
+      - name: Coverage
+        run: Rscript -e 'cov <- covr::package_coverage(".", type = "tests"); pct <- covr::percent_coverage(cov); message(sprintf("coverage: %.1f%%", pct)); if (pct < 60) quit(status = 1)'
         working-directory: r
 
       - name: R CMD check

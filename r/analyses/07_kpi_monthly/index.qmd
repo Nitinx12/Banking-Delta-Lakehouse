@@ -1,7 +1,55 @@
 ---
-title: "07_kpi_monthly"
+title: "07 · KPI monthly"
 format: html
 ---
 
-# 07_kpi_monthly
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Executive KPIs
+
+Trend, growth and seasonality for `mart_kpi_monthly`.
+KPIs are ratios — averages are re-computed from numerators and denominators,
+never by averaging the ratio column.
+
+## MoM / YoY growth (txn_amount)
+
+```{r}
+#| echo: false
+g <- read_table("kpi_growth_txn_amount")
+if (!is.null(g)) print(utils::tail(g, 24)) else cat("No growth table in this run.\n")
+```
+
+## Seasonal profile
+
+Mean value and share of annual total per calendar month.
+
+```{r}
+#| echo: false
+sp <- read_table("kpi_seasonal_txn_amount")
+if (!is.null(sp)) print(sp) else cat("No seasonal profile in this run.\n")
+```
+
+## Process control
+
+Individuals chart limits for `txn_amount` are written by the `monitoring` step
+to `tables/control_chart_kpi.csv`. Points outside 3σ are special-cause signals.
+
+```{r}
+#| echo: false
+cc <- read_table("control_chart_kpi")
+if (!is.null(cc)) {
+  flagged <- cc[cc$out_of_control, , drop = FALSE]
+  if (nrow(flagged)) print(flagged) else cat("No out-of-control points.\n")
+} else {
+  cat("No control-chart table in this run.\n")
+}
+```
+
+## Variance bridge
+
+`kpi_variance_bridge()` decomposes a KPI move into volume / mix / rate effects
+for a waterfall chart. See `R/mart_kpi_monthly.R`.

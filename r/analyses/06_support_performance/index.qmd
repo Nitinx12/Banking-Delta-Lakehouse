@@ -1,7 +1,36 @@
 ---
-title: "06_support_performance"
+title: "06 · Support performance"
 format: html
 ---
 
-# 06_support_performance
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Support performance
+
+SLA compliance and resolution-time analysis for `mart_support_performance`
+(MongoDB-sourced). Tickets still open are censored, not "slow" — dropping them
+biases every average.
+
+## SLA trend
+
+Compliance rate per month with Wilson intervals.
+
+```{r}
+#| echo: false
+trend <- read_table("support_sla_trend")
+if (!is.null(trend)) print(trend) else cat("No SLA trend table in this run.\n")
+```
+
+## Resolution times
+
+Resolution times are right-skewed; summaries use log-scale geometric mean and
+median (`log_time_summary()`). Open tickets require survival methods.
+
+## Workload
+
+`workload_balance()` flags agents with robust z-scores on load. Mixed models
+(`lme4::lmer`) are the next step for agent/queue effects.

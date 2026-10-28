@@ -1,7 +1,53 @@
 ---
-title: "03_monthly_transactions"
+title: "03 · Monthly transactions"
 format: html
 ---
 
-# 03_monthly_transactions
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Monthly transactions
+
+Volumes, values, mix and anomaly flags for `mart_monthly_transactions`.
+
+## Monthly totals
+
+```{r}
+#| echo: false
+tot <- read_table("txn_monthly_totals")
+if (!is.null(tot)) print(utils::tail(tot, 24)) else cat("No monthly totals in this run.\n")
+```
+
+## Channel mix over time
+
+Shares are compositional; they sum to 1 per month. When modelling shares use
+log-ratio transforms, not raw percentages.
+
+```{r}
+#| echo: false
+mix <- read_table("txn_mix_channel")
+if (!is.null(mix)) print(utils::head(mix, 30)) else cat("No mix table in this run.\n")
+```
+
+## Anomaly flags
+
+Period-over-period changes with robust z-scores. Points are **flagged, never deleted**.
+
+```{r}
+#| echo: false
+anom <- read_table("txn_anomaly_flags")
+if (!is.null(anom)) {
+  flagged <- anom[anom$flag, , drop = FALSE]
+  if (nrow(flagged)) print(flagged) else cat("No flagged anomalies in this run.\n")
+} else {
+  cat("No anomaly table in this run.\n")
+}
+```
+
+## Forecast
+
+A forecast is only reported if it beats seasonal-naive on a rolling-origin
+backtest (`backtest_forecast()`). Requires `tsibble`/`fable` installed.

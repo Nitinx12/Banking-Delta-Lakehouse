@@ -1,7 +1,41 @@
 ---
-title: "01_customer_360"
+title: "01 · Customer 360"
 format: html
 ---
 
-# 01_customer_360
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Customer 360
+
+Concentration, RFM segmentation and product holding for `mart_customer_360`.
+All outputs are aggregated; small cells are suppressed before export.
+
+## Concentration
+
+"X% of customers hold Y% of balances" — Gini and top-decile share.
+
+```{r}
+#| echo: false
+conc <- read_table("customer_concentration")
+if (!is.null(conc)) print(conc) else cat("No concentration table in this run.\n")
+```
+
+## RFM segment profile
+
+Segments are quantile-scored on recency, frequency and monetary value.
+Scores are sample-relative — do not compare across runs without freezing cut points.
+
+```{r}
+#| echo: false
+prof <- read_table("customer_rfm_profile")
+if (!is.null(prof)) print(utils::head(prof, 30)) else cat("No RFM profile in this run.\n")
+```
+
+## Methods
+
+See `docs/METHODS.md` for Gini, concentration and RFM assumptions and limits.
+PII note: this mart is the most identifier-heavy — IDs are hashed before any export.

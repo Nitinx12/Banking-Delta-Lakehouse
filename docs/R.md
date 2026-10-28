@@ -618,14 +618,15 @@ What exists in `r/` today versus what this guide still describes as the target s
 |---|---|
 | `main.R`, `Dockerfile`, `.dockerignore`, `.env.r.example`, `.gitignore`, `.lintr` | Done |
 | `DESCRIPTION`, `NAMESPACE` (export-all pattern until roxygen2 is introduced) | Done |
-| `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils`, `privacy`, `stats_helpers`, `plot_theme`, `figures`, `reconciliation`, `monitoring`, all 7 `mart_*` | Done |
+| `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils`, `privacy`, `stats_helpers`, `plot_theme`, `figures`, `reconciliation`, `monitoring`, all 7 `mart_*` (Tier 1 descriptive functions wired into `main.R` `step_analyses`) | Done |
 | `config/analysis.yml` (`freshness_col`, thresholds, seed), `config/contracts.yml` (all 7 marts) | Done |
 | `tests/testthat/` — one test file per `R/` file (config, run_context, contracts, cross_mart, gate, reconciliation, utils, privacy, monitoring, plot_theme, stats_helpers, all `mart_*`) | Done |
-| `_targets.R`, Quarto `analyses/*/` (00–07), `docs/DATA-DICTIONARY.md`, `docs/METHODS.md` | Done |
+| `_targets.R` (fingerprint → read → contract → analysis targets), Quarto `analyses/*/` (00–07 thin narratives + `_shared/_setup.R`), `docs/DATA-DICTIONARY.md`, `docs/METHODS.md` | Done |
 | `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done (cards marked *planned* until models are trained) |
-| Makefile / `tasks.bat` `r-*` targets, `.github/workflows/r-ci.yml` | Done |
+| Makefile / `tasks.bat` `r-*` targets (incl. `r-cov`), `.github/workflows/r-ci.yml` (lint + test + covr floor 60 + R CMD check) | Done |
 | `scripts/dump_mart_schema.R`, `scripts/check_gate.R`, `scripts/prune_runs.R`, `scripts/snapshot_renv.R` | Done |
 | `renv.lock` | **To do** — run `Rscript r/scripts/snapshot_renv.R` on a machine with R (or via the rocker image) and commit the lockfile |
+| Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **To do** — helpers and model cards are in place; full models need live data + pinned packages (Phases 4–5 of section 12) |
 
 What was verified when the scaffold was written: all `R/`, test and `main.R` files parse; the
 15 hermetic tests pass (R 4.3.3, with `RPostgres` stubbed and the DuckDB-based gate tests

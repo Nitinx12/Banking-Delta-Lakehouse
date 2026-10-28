@@ -1,7 +1,29 @@
 ---
-title: "02_branch_performance"
+title: "02 · Branch performance"
 format: html
 ---
 
-# 02_branch_performance
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Branch performance
+
+Fair ranking with empirical-Bayes shrinkage so small branches are not over-ranked
+on noise. Never rank on raw ratios without showing uncertainty.
+
+## Shrunk ranking (active / total accounts)
+
+```{r}
+#| echo: false
+rank <- read_table("branch_shrink_rank")
+if (!is.null(rank)) print(utils::head(rank, 30)) else cat("No shrink-rank table in this run.\n")
+```
+
+## Methods
+
+`shrink_rank()` applies a beta-binomial prior (uniform default). Raw rate is shown
+alongside the shrunk rate. Funnel plots and robust z-scores are available in
+`R/mart_branch_performance.R` for outlier detection.

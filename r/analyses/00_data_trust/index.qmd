@@ -1,7 +1,59 @@
 ---
-title: "00_data_trust"
+title: "00 · Data trust"
 format: html
 ---
 
-# 00_data_trust
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Cross-mart data trust
+
+This report is produced after the gate (`assert_marts_ready`), contracts and
+reconciliation steps have passed. It summarises Tier 0 trust signals only.
+
+## Profile
+
+Per-mart column profiles (row counts, nulls, distincts) are written to
+`tables/profile_<mart>.csv` by the `profile` step.
+
+```{r}
+#| echo: false
+if (has_run) {
+  profs <- list.files(file.path(run_dir, "tables"), pattern = "^profile_.*\\.csv$", full.names = TRUE)
+  for (p in profs) {
+    df <- utils::read.csv(p, stringsAsFactors = FALSE)
+    cat("\n###", basename(p), "\n\n")
+    print(utils::head(df, 20))
+  }
+} else {
+  cat("No run tables found. Run `Rscript main.R` first.\n")
+}
+```
+
+## Reconciliation — transactions vs KPI
+
+Money must reconcile to the cent. Any non-zero `diff` is a hard stop.
+
+```{r}
+#| echo: false
+rec <- read_table("reconciliation_txns_vs_kpi")
+if (!is.null(rec)) print(rec) else cat("No reconciliation table in this run.\n")
+```
+
+## Period completeness
+
+Missing months break forecasts and YoY comparisons.
+
+```{r}
+#| echo: false
+comp <- read_table("completeness")
+if (!is.null(comp)) print(comp) else cat("No completeness table in this run.\n")
+```
+
+## Freshness / DQ gate
+
+The `gate` step refuses to analyse marts that are empty, unreadable or stale.
+If this report rendered, the gate passed for the configured marts.

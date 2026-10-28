@@ -46,6 +46,7 @@ STEP_INFO <- list(
   figures        = "standard figures -> figures/*.png",
   reconciliation = "cross-mart reconciliation + completeness",
   monitoring     = "control charts + PSI flags",
+  analyses       = "Tier 1 descriptive tables per mart",
   report         = "renders analyses/*/index.qmd if any exist"
 )
 STEP_ORDER <- names(STEP_INFO)
@@ -177,6 +178,89 @@ step_monitoring <- function(ctx) {
   invisible(TRUE)
 }
 
+step_analyses <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+
+  if ("mart_kpi_monthly" %in% names(ctx$data)) {
+    df <- ctx$data$mart_kpi_monthly
+    g <- bankinganalytics::kpi_growth(df, "month_start", "txn_amount")
+    bankinganalytics::write_table(ctx, "kpi_growth_txn_amount", g)
+    sp <- bankinganalytics::kpi_seasonal_profile(df, "month_start", "txn_amount")
+    bankinganalytics::write_table(ctx, "kpi_seasonal_txn_amount", sp)
+  }
+
+  if ("mart_monthly_transactions" %in% names(ctx$data)) {
+    df <- ctx$data$mart_monthly_transactions
+    tot <- bankinganalytics::txn_monthly_totals(df, "month_start", "total_amount", "txn_count")
+    bankinganalytics::write_table(ctx, "txn_monthly_totals", tot)
+    if ("channel" %in% names(df)) {
+      mix <- bankinganalytics::txn_mix_share(df, "month_start", "channel", "total_amount")
+      bankinganalytics::write_table(ctx, "txn_mix_channel", mix)
+    }
+    if (nrow(tot) >= 6) {
+      anom <- bankinganalytics::txn_anomaly_flags(tot, "month_start", "total_amount")
+      bankinganalytics::write_table(ctx, "txn_anomaly_flags", anom)
+    }
+  }
+
+  if ("mart_customer_360" %in% names(ctx$data)) {
+    df <- ctx$data$mart_customer_360
+    if ("txn_amount" %in% names(df)) {
+      conc <- bankinganalytics::concentration(df$txn_amount)
+      bankinganalytics::write_table(ctx, "customer_concentration", data.frame(
+        gini = conc$gini, top_decile_share = conc$top_decile_share
+      ))
+    }
+    if (all(c("last_txn_date", "txn_count", "txn_amount") %in% names(df))) {
+      recency <- as.numeric(as.Date(Sys.Date()) - as.Date(df$last_txn_date))
+      rfm <- bankinganalytics::rfm_score(
+        data.frame(recency = recency, frequency = df$txn_count, monetary = df$txn_amount),
+        "recency", "frequency", "monetary", n = 5
+      )
+      seg_df <- data.frame(rfm = rfm$rfm, txn_amount = df$txn_amount)
+      prof <- bankinganalytics::segment_profile(seg_df, "rfm", "txn_amount")
+      bankinganalytics::write_table(ctx, "customer_rfm_profile", prof)
+    }
+  }
+
+  if ("mart_loan_portfolio" %in% names(ctx$data)) {
+    df <- ctx$data$mart_loan_portfolio
+    q <- bankinganalytics::portfolio_quality(df, "loan_count", "total_loan_amount")
+    bankinganalytics::write_table(ctx, "loan_portfolio_quality", as.data.frame(q))
+    if ("loan_type" %in% names(df)) {
+      conc <- bankinganalytics::concentration_by(df, "loan_type", "total_loan_amount")
+      bankinganalytics::write_table(ctx, "loan_concentration_by_type", conc$table)
+    }
+  }
+
+  if ("mart_card_fraud" %in% names(ctx$data)) {
+    df <- ctx$data$mart_card_fraud
+    if ("card_type" %in% names(df) &&
+        all(c("fraud_txn_count", "txn_count") %in% names(df))) {
+      prof <- bankinganalytics::fraud_rate_profile(df, "card_type", "fraud_txn_count", "txn_count")
+      bankinganalytics::write_table(ctx, "fraud_rate_by_card_type", prof)
+    }
+  }
+
+  if ("mart_branch_performance" %in% names(ctx$data)) {
+    df <- ctx$data$mart_branch_performance
+    if (all(c("branch_key", "total_accounts", "active_accounts") %in% names(df))) {
+      rank <- bankinganalytics::shrink_rank(df, "branch_key", "active_accounts", "total_accounts")
+      bankinganalytics::write_table(ctx, "branch_shrink_rank", rank)
+    }
+  }
+
+  if ("mart_support_performance" %in% names(ctx$data)) {
+    df <- ctx$data$mart_support_performance
+    if (all(c("month_opened", "resolved_count", "ticket_count") %in% names(df))) {
+      trend <- bankinganalytics::sla_trend(df, "month_opened", "resolved_count", "ticket_count")
+      bankinganalytics::write_table(ctx, "support_sla_trend", trend)
+    }
+  }
+
+  invisible(TRUE)
+}
+
 step_report <- function(ctx) {
   if (skip_report) return(invisible(TRUE))
   qmds <- list.files("analyses", pattern = "index\\.qmd", recursive = TRUE, full.names = TRUE)
@@ -184,6 +268,8 @@ step_report <- function(ctx) {
   if (!requireNamespace("quarto", quietly = TRUE)) {
     stop("quarto package missing", call. = FALSE)
   }
+  Sys.setenv(BANKING_RUN_DIR = ctx$run_dir)
+  on.exit(Sys.unsetenv("BANKING_RUN_DIR"), add = TRUE)
   for (q in qmds) {
     quarto::quarto_render(q, quarto_args = c("--output-dir", file.path(ctx$run_dir, "reports")), quiet = TRUE)
   }

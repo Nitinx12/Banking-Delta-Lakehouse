@@ -15,3 +15,18 @@ test_that("rfm_score returns R/F/M columns", {
   expect_true(all(c("r", "f", "m", "rfm") %in% names(out)))
   expect_equal(nrow(out), 5)
 })
+
+test_that("segment_profile aggregates by segment", {
+  df <- data.frame(seg = c("A", "A", "B"), val = c(10, 20, 100))
+  out <- bankinganalytics::segment_profile(df, "seg", "val")
+  expect_equal(nrow(out), 2)
+  expect_equal(sum(out$share_of_value), 1, tolerance = 1e-9)
+  expect_equal(out$segment[1], "B")
+})
+
+test_that("product_holding_summary groups by product count", {
+  df <- data.frame(products = c(1, 1, 2, 3), val = c(10, 20, 30, 40))
+  out <- bankinganalytics::product_holding_summary(df, "products", "val")
+  expect_equal(nrow(out), 3)
+  expect_equal(sum(out$share_of_value), 1, tolerance = 1e-9)
+})

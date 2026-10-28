@@ -17,3 +17,26 @@ test_that("kpi_variance_bridge returns period/value/delta", {
   expect_true(all(c("period", "value", "delta") %in% names(out)))
   expect_equal(out$delta[2], 2)
 })
+
+test_that("kpi_seasonal_profile aggregates by calendar month", {
+  df <- data.frame(
+    month_start = seq(as.Date("2020-01-01"), by = "month", length.out = 24),
+    value = rep(c(10, 20, 30), 8)
+  )
+  out <- bankinganalytics::kpi_seasonal_profile(df, "month_start", "value")
+  expect_equal(nrow(out), 12)
+  expect_equal(sum(out$share_of_year), 1, tolerance = 1e-9)
+})
+
+test_that("kpi_break_flags returns logical of same length", {
+  x <- c(rep(10, 20), rep(50, 5))
+  fl <- bankinganalytics::kpi_break_flags(x)
+  expect_length(fl, length(x))
+  expect_type(fl, "logical")
+})
+
+test_that("kpi_recompute_ratio never averages ratios", {
+  r <- bankinganalytics::kpi_recompute_ratio(c(10, 20), c(2, 5))
+  expect_equal(r, c(5, 4))
+  expect_true(is.na(bankinganalytics::kpi_recompute_ratio(1, 0)))
+})

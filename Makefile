@@ -33,7 +33,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
         report-fixture report-pdf report-tex report-docker report-clean report \
         report-incident report-weekly \
-        r-restore r-lint r-test r-run r-docker-build r-docker-run ## @see R.md §8.4
+        r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run ## @see R.md §8.4
 
 ##@ Setup
 help: ## Show this help
@@ -219,6 +219,9 @@ r-lint:      ## style + static checks
 
 r-test:      ## hermetic unit + contract tests — safe for ci
 	Rscript -e 'testthat::test_local("r")'
+
+r-cov:       ## coverage report with floor — safe for ci
+	Rscript -e 'cov <- covr::package_coverage("r", type = "tests"); pct <- covr::percent_coverage(cov); message(sprintf("coverage: %.1f%%", pct)); if (pct < 60) quit(status = 1)'
 
 r-run:       ## full analysis against the real warehouse — NOT part of ci
 	Rscript r/main.R

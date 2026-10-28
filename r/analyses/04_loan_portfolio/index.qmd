@@ -1,7 +1,39 @@
 ---
-title: "04_loan_portfolio"
+title: "04 · Loan portfolio"
 format: html
 ---
 
-# 04_loan_portfolio
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Loan portfolio
+
+Portfolio quality, concentration and vintage analysis for `mart_loan_portfolio`.
+Ratios are recomputed from counts and balances — never by averaging a ratio column.
+
+## Portfolio quality
+
+```{r}
+#| echo: false
+q <- read_table("loan_portfolio_quality")
+if (!is.null(q)) print(q) else cat("No portfolio-quality table in this run.\n")
+```
+
+## Concentration by loan type
+
+HHI and top-N share of outstanding amount.
+
+```{r}
+#| echo: false
+conc <- read_table("loan_concentration_by_type")
+if (!is.null(conc)) print(conc) else cat("No concentration table in this run.\n")
+```
+
+## Vintage and survival
+
+Cohort triangles (`vintage_triangle()`) and Kaplan–Meier time-to-default
+(`survival_fit()`) are available in `R/mart_loan_portfolio.R`. Open loans are
+right-censored, not "good" — never drop them from duration analysis.

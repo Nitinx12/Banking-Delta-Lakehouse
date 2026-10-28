@@ -20,3 +20,42 @@ rfm_score <- function(df, recency_col, frequency_col, monetary_col, n = 5) {
   m <- as.integer(cut(df[[monetary_col]], breaks = quantile(df[[monetary_col]], probs = seq(0, 1, length.out = n + 1), na.rm = TRUE), include.lowest = TRUE))
   data.frame(r = r, f = f, m = m, rfm = paste0(r, f, m))
 }
+
+#' Segment profile table: size, mean monetary, share of total value per RFM segment.
+#' @param df Customer data frame with rfm columns (from rfm_score) and a value column.
+#' @param segment_col Name of the segment column (e.g. "rfm").
+#' @param value_col Name of the monetary value column to aggregate.
+#' @export
+segment_profile <- function(df, segment_col, value_col) {
+  if (!segment_col %in% names(df)) stop("segment_col missing", call. = FALSE)
+  if (!value_col %in% names(df)) stop("value_col missing", call. = FALSE)
+  g <- as.character(df[[segment_col]])
+  v <- as.numeric(df[[value_col]])
+  n <- as.integer(stats::aggregate(v, by = list(segment = g), FUN = length)$x)
+  tot_v <- sum(v, na.rm = TRUE)
+  s <- stats::aggregate(v, by = list(segment = g), FUN = sum)
+  out <- data.frame(
+    segment = s$segment,
+    n_customers = n,
+    total_value = s$x,
+    mean_value = s$x / n,
+    share_of_value = s$x / tot_v
+  )
+  out[order(-out$total_value), ]
+}
+
+#' Product-holding distribution: count and value share by number of products held.
+#' @param df Customer data frame with a products_held column and a value column.
+#' @export
+product_holding_summary <- function(df, products_col, value_col) {
+  p <- as.integer(df[[products_col]])
+  v <- as.numeric(df[[value_col]])
+  agg <- stats::aggregate(v, by = list(products = p), FUN = function(z) c(n = length(z), total = sum(z)))
+  out <- data.frame(
+    products = agg$products,
+    n_customers = as.integer(agg$x[, "n"]),
+    total_value = agg$x[, "total"]
+  )
+  out$share_of_value <- out$total_value / sum(out$total_value)
+  out[order(out$products), ]
+}

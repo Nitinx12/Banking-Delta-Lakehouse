@@ -18,7 +18,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-run r-docker-build r-docker-run) do (
+for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -241,6 +241,10 @@ exit /b 0
 
 :t_r-test
 Rscript -e "testthat::test_local('r')" || exit /b 1
+exit /b 0
+
+:t_r-cov
+Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(sprintf('coverage: %.1f%%', pct)); if (pct < 60) quit(status = 1)" || exit /b 1
 exit /b 0
 
 :t_r-run

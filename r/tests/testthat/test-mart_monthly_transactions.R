@@ -12,3 +12,40 @@ test_that("backtest_forecast errors on short series", {
     "gaps|too short"
   )
 })
+
+test_that("txn_monthly_totals sums amount by month", {
+  df <- data.frame(
+    m = as.Date(c("2020-01-01", "2020-01-15", "2020-02-01")),
+    amt = c(100, 50, 200),
+    cnt = c(1, 1, 2)
+  )
+  out <- bankinganalytics::txn_monthly_totals(df, "m", "amt", "cnt")
+  expect_equal(nrow(out), 2)
+  expect_equal(out$total_amount, c(150, 200))
+  expect_equal(out$txn_count, c(2, 2))
+})
+
+test_that("txn_mix_share shares sum to 1 per month", {
+  df <- data.frame(
+    m = as.Date(c("2020-01-01", "2020-01-01", "2020-02-01", "2020-02-01")),
+    g = c("a", "b", "a", "b"),
+    v = c(30, 70, 50, 50)
+  )
+  out <- bankinganalytics::txn_mix_share(df, "m", "g", "v")
+  s <- tapply(out$share, out$month_start, sum)
+  expect_true(all(abs(s - 1) < 1e-9))
+})
+
+test_that("txn_anomaly_flags flags a far change", {
+  v <- c(rep(100, 19), 500)
+  df <- data.frame(m = as.Date("2020-01-01") + 0:19, v = v)
+  out <- bankinganalytics::txn_anomaly_flags(df, "m", "v")
+  expect_true(out$flag[20])
+  expect_false(any(out$flag[1:18], na.rm = TRUE))
+})
+
+test_that("txn_cagr computes compound growth", {
+  res <- bankinganalytics::txn_cagr(100, 121, 2)
+  expect_equal(res$cagr, 0.1, tolerance = 1e-9)
+  expect_error(bankinganalytics::txn_cagr(-1, 10, 2), "positive")
+})

@@ -70,6 +70,46 @@ add an entry here in the same commit.
 
 ## Diagnostic (Tier 2)
 
+### KPI seasonal profile — `kpi_seasonal_profile()`
+
+- **Purpose.** Month-of-year mean, total and share of annual total for a monthly KPI
+  (base R; no `feasts` dependency required for the Tier 1 profile).
+- **Assumptions.** Monthly grain; date column coercible to `Date`; complete months
+  (check with `check_completeness()` first).
+- **Validation.** Unit test: shares sum to 1; 12 calendar months present for a full year.
+- **Limits.** Does not separate trend from seasonality — for STL use `feasts::STL` once
+  that package is pinned. Never average a ratio column; recompute with
+  `kpi_recompute_ratio()`.
+
+### Structural-break flags — `kpi_break_flags()`
+
+- **Purpose.** Flag months where the running mean shifts relative to the global mean
+  (CUSUM-style), separating regime changes from noise.
+- **Assumptions.** Series length ≥ 6; positive sd.
+- **Validation.** Unit test: returns a logical vector of the same length.
+- **Limits.** Heuristic, not a formal changepoint test. For formal inference use
+  `strucchange::breakpoints` or `changepoint` once pinned.
+
+### Monthly totals / mix / anomalies — `txn_monthly_totals()`, `txn_mix_share()`, `txn_anomaly_flags()`
+
+- **Purpose.** Tier 1 descriptive spine for `mart_monthly_transactions`: aggregate by
+  month, compositional channel/type shares, and robust-z anomaly flags on period-over-
+  period changes.
+- **Assumptions.** Date column coercible to `Date`; shares are computed from value
+  weights (not averaged percentages).
+- **Validation.** Unit tests: totals sum correctly; mix shares sum to 1 per month;
+  a single far change is flagged and earlier points are not.
+- **Rules.** Anomalies are **flagged, never deleted**. When modelling shares use log-ratio
+  transforms, not raw percentages.
+
+### CAGR — `txn_cagr()`
+
+- **Purpose.** Compound annual growth rate between two positive endpoints.
+- **Assumptions.** Positive start/end values; `n_years > 0`.
+- **Validation.** Unit test: `(121/100)^(1/2) - 1 = 0.1`; non-positive input errors.
+- **Limits.** Point estimate only at this stage — pair with `bootstrap_ci()` for an
+  interval when reporting externally.
+
 ### RFM quantile scoring — `rfm_score()`
 
 - **Purpose.** Segment customers on recency, frequency and monetary value without fitting
@@ -79,6 +119,68 @@ add an entry here in the same commit.
 - **Validation.** Unit test: returns r/f/m/rfm columns with one row per input row.
 - **Limits.** Quantile bins are sample-relative — scores are not comparable across runs
   without freezing the cut points. Prefer GMM/k-means when segments must be stable over time.
+
+### Segment profile — `segment_profile()`
+
+- **Purpose.** Size, mean value and share of total value per RFM (or any) segment.
+- **Assumptions.** Segment and value columns present; value non-negative for shares.
+- **Validation.** Unit test: shares sum to 1; segments ordered by total value descending.
+- **Limits.** Suppress small cells (see privacy section) before any export.
+
+### Product-holding summary — `product_holding_summary()`
+
+- **Purpose.** Distribution of customers and value by number of products held
+  (cross-sell opportunity sizing).
+- **Validation.** Unit test: shares sum to 1; ordered by product count.
+
+### Portfolio quality — `portfolio_quality()`
+
+- **Purpose.** Recompute loan counts, amounts and late/NPL rates from component
+  counts/balances — never by averaging a ratio column.
+- **Assumptions.** Count and amount columns present; optional late-count column for
+  delinquency rate.
+- **Validation.** Unit test: sums and `late_rate = late_n / n` match hand calculation.
+
+### Concentration by group — `concentration_by()`
+
+- **Purpose.** HHI and top-N share of amount by product, branch or segment.
+- **Validation.** Unit test: HHI of known shares matches `sum(s^2)`; top-1 share correct.
+
+### Fraud-rate profile — `fraud_rate_profile()`
+
+- **Purpose.** Fraud rate by dimension with Wilson intervals (hour, merchant category,
+  channel, amount band, card type).
+- **Validation.** Unit test: ordered by rate descending; CI brackets the rate.
+
+### Precision@k and average precision — `precision_at_k()`, `avg_precision()`
+
+- **Purpose.** Right ranking metrics for imbalanced fraud/default problems (PR curve),
+  not accuracy or ROC-AUC alone.
+- **Assumptions.** Scores and labels aligned; `avg_precision` requires at least one
+  positive label.
+- **Validation.** Unit test: perfect separation gives precision@2 = 1 and AP = 1.
+
+### Shrank branch ranking — `shrink_rank()`
+
+- **Purpose.** Empirical-Bayes shrunk ranking of a rate so small branches are not
+  over-ranked on noise.
+- **Validation.** Unit test: a small-n branch's shrunk rate moves toward the prior
+  relative to its raw rate; ranks are 1..n.
+
+### Peer percentile — `peer_percentile()`
+
+- **Purpose.** Percentile rank of each branch within size/region peer groups.
+- **Validation.** Unit test: top value in a peer group gets 100; singleton peer gets 100.
+
+### SLA trend — `sla_trend()`
+
+- **Purpose.** Monthly SLA compliance rate with Wilson intervals.
+- **Validation.** Unit test: monthly aggregation and rate match hand calculation.
+
+### Workload balance — `workload_balance()`
+
+- **Purpose.** Flag agents/queues with anomalous load via robust z-scores.
+- **Validation.** Unit test: a far outlier is flagged; normal loads are not.
 
 ### Vintage triangle — `vintage_triangle()`
 

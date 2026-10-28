@@ -1,7 +1,33 @@
 ---
-title: "05_card_fraud"
+title: "05 · Card fraud"
 format: html
 ---
 
-# 05_card_fraud
+```{r setup}
+#| echo: false
+#| include: false
+source(file.path("..", "_shared", "_setup.R"))
+```
 
+# Card fraud
+
+Fraud rate profiles with Wilson intervals. Right metrics for imbalanced problems
+are PR-AUC, recall at alert budget and expected cost — **not** accuracy or
+ROC-AUC alone.
+
+## Fraud rate by card type
+
+```{r}
+#| echo: false
+prof <- read_table("fraud_rate_by_card_type")
+if (!is.null(prof)) print(prof) else cat("No fraud-rate profile in this run.\n")
+```
+
+## Cost-based threshold
+
+`cost_threshold()` chooses a cut-off from the cost of a missed fraud versus a
+false alert. Evaluate on a **time-ordered** split; never oversample before splitting.
+
+## Model card
+
+Any predictive fraud model must have a card in `docs/MODEL-CARDS/fraud_detection.md`.

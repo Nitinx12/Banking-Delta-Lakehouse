@@ -26,3 +26,45 @@ cost_threshold <- function(scores, labels, cost_fn = 10, cost_fp = 1) {
   }, numeric(1))
   thr[which.min(costs)]
 }
+
+#' Fraud-rate profile by a grouping dimension with Wilson intervals.
+#' @param df Data frame with group, fraud_count and total_count columns.
+#' @param group_col,fraud_col,total_col Column names.
+#' @export
+fraud_rate_profile <- function(df, group_col, fraud_col, total_col) {
+  g <- as.character(df[[group_col]])
+  k <- as.numeric(df[[fraud_col]])
+  n <- as.numeric(df[[total_col]])
+  agg <- stats::aggregate(
+    cbind(k, n),
+    by = list(group = g),
+    FUN = sum
+  )
+  agg$rate <- ifelse(agg$n == 0, NA_real_, agg$k / agg$n)
+  ci <- t(vapply(seq_len(nrow(agg)), function(i) wilson_interval(agg$k[i], agg$n[i]), numeric(2)))
+  agg$ci_low <- ci[, 1]
+  agg$ci_high <- ci[, 2]
+  agg[order(-agg$rate), ]
+}
+
+#' Precision at top-k given scores and binary labels.
+#' @export
+precision_at_k <- function(scores, labels, k) {
+  k <- min(k, length(scores))
+  ord <- order(scores, decreasing = TRUE)
+  pred_pos <- ord[seq_len(k)]
+  sum(labels[pred_pos] == 1) / k
+}
+
+#' Average precision (area under the PR curve, step-wise).
+#' @export
+avg_precision <- function(scores, labels) {
+  ord <- order(scores, decreasing = TRUE)
+  y <- labels[ord]
+  tp <- cumsum(y == 1)
+  fp <- cumsum(y == 0)
+  prec <- tp / (tp + fp)
+  rec <- tp / sum(y == 1)
+  if (sum(y == 1) == 0) return(NA_real_)
+  sum(prec * (c(rec[-1], 1) - rec))
+}
