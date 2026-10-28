@@ -43,6 +43,7 @@ STEP_INFO <- list(
   gate      = "assert_marts_ready() on every configured mart",
   extract   = "mart_fingerprint() + read_mart() + assert_contract() per mart",
   profile   = "profile_mart() -> tables/profile_<mart>.csv",
+  figures   = "standard figures -> figures/*.png",
   report    = "renders analyses/*/index.qmd if any exist"
 )
 STEP_ORDER <- names(STEP_INFO)
@@ -127,6 +128,12 @@ step_profile <- function(ctx) {
     prof <- bankinganalytics::profile_mart(ctx$data[[mart]], mart)
     bankinganalytics::write_table(ctx, paste0("profile_", mart), prof)
   }
+  invisible(TRUE)
+}
+
+step_figures <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+  bankinganalytics::write_figures(ctx)
   invisible(TRUE)
 }
 
