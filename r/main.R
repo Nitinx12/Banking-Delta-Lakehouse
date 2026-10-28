@@ -39,12 +39,14 @@ for (a in args) {
 }
 
 STEP_INFO <- list(
-  preflight = "env vars, packages, config, writable output folder",
-  gate      = "assert_marts_ready() on every configured mart",
-  extract   = "mart_fingerprint() + read_mart() + assert_contract() per mart",
-  profile   = "profile_mart() -> tables/profile_<mart>.csv",
-  figures   = "standard figures -> figures/*.png",
-  report    = "renders analyses/*/index.qmd if any exist"
+  preflight      = "env vars, packages, config, writable output folder",
+  gate           = "assert_marts_ready() on every configured mart",
+  extract        = "mart_fingerprint() + read_mart() + assert_contract() per mart",
+  profile        = "profile_mart() -> tables/profile_<mart>.csv",
+  figures        = "standard figures -> figures/*.png",
+  reconciliation = "cross-mart reconciliation + completeness",
+  monitoring     = "control charts + PSI flags",
+  report         = "renders analyses/*/index.qmd if any exist"
 )
 STEP_ORDER <- names(STEP_INFO)
 
@@ -134,6 +136,44 @@ step_profile <- function(ctx) {
 step_figures <- function(ctx) {
   if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
   bankinganalytics::write_figures(ctx)
+  invisible(TRUE)
+}
+
+step_reconciliation <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+  rec <- bankinganalytics::with_pg(bankinganalytics::reconcile_txns_vs_kpi)
+  bankinganalytics::write_table(ctx, "reconciliation_txns_vs_kpi", rec)
+  # completeness checks for date marts
+  comp_rows <- list()
+  for (mart in c("mart_kpi_monthly", "mart_monthly_transactions", "mart_card_fraud", "mart_support_performance")) {
+    if (mart %in% names(ctx$data)) {
+      dc <- if (mart == "mart_support_performance") "month_opened" else "month_start"
+      res <- bankinganalytics::check_completeness(ctx$data[[mart]], dc)
+      comp_rows[[mart]] <- data.frame(mart = mart, complete = res$ok, n_missing = length(res$missing))
+    }
+  }
+  if (length(comp_rows)) {
+    comp <- do.call(rbind, comp_rows)
+    bankinganalytics::write_table(ctx, "completeness", comp)
+  }
+  invisible(TRUE)
+}
+
+step_monitoring <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+  # control chart for KPI txn_amount
+  if ("mart_kpi_monthly" %in% names(ctx$data)) {
+    x <- ctx$data$mart_kpi_monthly$txn_amount
+    lim <- bankinganalytics::individuals_limits(x)
+    flags <- bankinganalytics::control_flags(x, lim)
+    out <- data.frame(
+      month_start = ctx$data$mart_kpi_monthly$month_start,
+      txn_amount = x,
+      ucl = lim$ucl, lcl = lim$lcl, center = lim$center,
+      out_of_control = flags
+    )
+    bankinganalytics::write_table(ctx, "control_chart_kpi", out)
+  }
   invisible(TRUE)
 }
 
