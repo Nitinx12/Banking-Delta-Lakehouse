@@ -288,7 +288,7 @@ jobs:
 
       # Kill switch: set the repository VARIABLE SKIP_MAIN_PY=true to skip this step.
       - name: Run full daily pipeline (real sources)
-        if: ${{ vars.SKIP_MAIN_PY != 'true' }}
+        if: ${{ env.SKIP_MAIN_PY != 'true' }}
         run: uv run main.py --keep-going
 
       - name: Upload pipeline audit artifacts
