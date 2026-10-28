@@ -1,6 +1,30 @@
 # ENTRY POINT: preflight -> gate -> extract -> profile -> report
 
-options(bankinganalytics.root = normalizePath(getwd(), mustWork = FALSE))
+# Resolve project root whether run from r/ or the repo root.
+root <- getwd()
+if (!file.exists(file.path(root, "DESCRIPTION")) && file.exists(file.path(root, "r", "DESCRIPTION"))) {
+  root <- file.path(root, "r")
+}
+options(bankinganalytics.root = normalizePath(root, mustWork = FALSE))
+setwd(root)
+
+# Dev convenience: load r/.env.r into the environment if present.
+env_file <- file.path(root, ".env.r")
+if (file.exists(env_file)) {
+  lines <- readLines(env_file, warn = FALSE)
+  for (ln in lines) {
+    ln <- trimws(ln)
+    if (!nzchar(ln) || startsWith(ln, "#")) next
+    parts <- strsplit(ln, "=", fixed = TRUE)[[1]]
+    if (length(parts) >= 2) {
+      key <- trimws(parts[1])
+      val <- trimws(paste(parts[-1], collapse = "="))
+      if (nzchar(key) && !nzchar(Sys.getenv(key, unset = ""))) {
+        do.call(Sys.setenv, setNames(list(val), key))
+      }
+    }
+  }
+}
 
 # --- argument parsing ---
 args <- commandArgs(trailingOnly = TRUE)
