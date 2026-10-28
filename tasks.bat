@@ -16,7 +16,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly) do (
+for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -58,6 +58,10 @@ exit /b 0
 
 :t_contracts
 uv run python -m contracts.validate || exit /b 1
+exit /b 0
+
+:t_contracts-sync
+uv run python scripts\sync_contracts.py %ARGS% || exit /b 1
 exit /b 0
 
 :t_sql-lint

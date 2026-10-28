@@ -28,7 +28,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 	       PGUSER="$${PGUSER:-$$PG_USER}" \
 	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
-.PHONY: help install hooks lint format contracts sql-lint unit cov smoke spark-smoke \
+.PHONY: help install hooks lint format contracts contracts-sync sql-lint unit cov smoke spark-smoke \
         sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
         report-fixture report-pdf report-tex report-docker report-clean report \
@@ -56,6 +56,9 @@ format: ## Auto-fix: ruff check --fix + ruff format
 
 contracts: ## Validate contracts/ against source-table.schema.json
 	$(PY) -m contracts.validate
+
+contracts-sync: ## Generate contracts for registry tables missing one (introspects sources)
+	$(PY) scripts/sync_contracts.py
 
 sql-lint: ## sqlfluff lint (postgres dialect) on sql/ and tests/
 	$(SQLFLUFF) lint sql tests --dialect postgres
