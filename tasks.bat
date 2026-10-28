@@ -4,6 +4,8 @@ REM tests/smoke/test_make_parity.py fails if a Makefile target is missing here.
 setlocal EnableExtensions
 chcp 65001 >nul
 cd /d "%~dp0"
+REM Make Rscript available if R is installed in a standard location but not on PATH.
+where Rscript >nul 2>&1 || if exist "C:\Program Files\R\R-4.6.1\bin\Rscript.exe" set "PATH=C:\Program Files\R\R-4.6.1\bin;%PATH%"
 
 set "TARGET=%~1"
 if "%TARGET%"=="" set "TARGET=help"
