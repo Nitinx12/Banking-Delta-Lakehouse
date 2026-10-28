@@ -1,0 +1,77 @@
+{
+  "contract_version": 1,
+  "name": "loan_payments",
+  "description": "Databricks public loan payments, incremental on created_at.",
+  "source": "databricks_source",
+  "source_schema": "public",
+  "source_table": "loan_payments",
+  "target_schema": "raw",
+  "target_table": "loan_payments",
+  "business_key": [
+    "payment_id"
+  ],
+  "load_strategy": "incremental",
+  "incremental_column": "created_at",
+  "watermark_strategy": "timestamp",
+  "num_partitions": 4,
+  "match_mode": "strict_gt",
+  "columns": [
+    {
+      "name": "payment_id",
+      "type": "bigint",
+      "nullable": false,
+      "key": true
+    },
+    {
+      "name": "loan_id",
+      "type": "bigint",
+      "nullable": false
+    },
+    {
+      "name": "payment_date",
+      "type": "date",
+      "nullable": true
+    },
+    {
+      "name": "amount_paid",
+      "type": "numeric(18,2)",
+      "nullable": true
+    },
+    {
+      "name": "principal_component",
+      "type": "numeric(18,2)",
+      "nullable": true
+    },
+    {
+      "name": "interest_component",
+      "type": "numeric(18,2)",
+      "nullable": true
+    },
+    {
+      "name": "late_payment_flag",
+      "type": "bigint",
+      "nullable": true
+    },
+    {
+      "name": "created_at",
+      "type": "timestamptz",
+      "nullable": false
+    }
+  ],
+  "quality": {
+    "row_count": {
+      "mode": "source_vs_landed_exact",
+      "severity": "ERROR"
+    },
+    "freshness": {
+      "mode": "max_loaded_at_within_window",
+      "window": "PT24H",
+      "compare": "landing_loaded_at",
+      "severity": "WARNING"
+    }
+  },
+  "owner": "banking-data-platform",
+  "tags": [
+    "incremental"
+  ]
+}
