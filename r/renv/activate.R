@@ -1,0 +1,1 @@
+# renv activation (stub)

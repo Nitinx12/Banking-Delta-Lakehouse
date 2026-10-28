@@ -1,0 +1,7 @@
+---
+title: "04_loan_portfolio"
+format: html
+---
+
+# 04_loan_portfolio
+

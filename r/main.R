@@ -1,0 +1,159 @@
+# ENTRY POINT: preflight -> gate -> extract -> profile -> report
+
+options(bankinganalytics.root = normalizePath(getwd(), mustWork = FALSE))
+
+# --- argument parsing ---
+args <- commandArgs(trailingOnly = TRUE)
+list_only <- "--list" %in% args
+keep_going <- "--keep-going" %in% args
+skip_report <- "--skip-report" %in% args
+only <- NULL
+run_key <- NULL
+for (a in args) {
+  if (startsWith(a, "--only=")) only <- strsplit(sub("^--only=", "", a), ",")[[1]]
+  if (startsWith(a, "--run-key=")) run_key <- sub("^--run-key=", "", a)
+}
+
+STEP_INFO <- list(
+  preflight = "env vars, packages, config, writable output folder",
+  gate      = "assert_marts_ready() on every configured mart",
+  extract   = "mart_fingerprint() + read_mart() + assert_contract() per mart",
+  profile   = "profile_mart() -> tables/profile_<mart>.csv",
+  report    = "renders analyses/*/index.qmd if any exist"
+)
+STEP_ORDER <- names(STEP_INFO)
+
+if (list_only) {
+  for (s in STEP_ORDER) cat(sprintf("%-10s %s\n", s, STEP_INFO[[s]]))
+  quit(status = 0)
+}
+
+# --- package loading ---
+if (requireNamespace("pkgload", quietly = TRUE) && dir.exists("R")) {
+  pkgload::load_all(".")
+} else {
+  suppressPackageStartupMessages(library(bankinganalytics))
+}
+
+suppressPackageStartupMessages({
+  library(dplyr)
+})
+
+cfg <- bankinganalytics::cfg_analysis()
+contracts <- bankinganalytics::cfg_contracts()
+
+ctx <- bankinganalytics::run_context(run_key)
+
+# dependency check: profile needs extract in same invocation
+if (!is.null(only) && "profile" %in% only && !"extract" %in% only) {
+  cat("profile requires extract in the same invocation\n")
+  quit(status = 64)
+}
+if (is.null(only)) only <- STEP_ORDER
+# canonical order
+only <- intersect(STEP_ORDER, only)
+
+run_step <- function(name) {
+  t0 <- Sys.time()
+  res <- tryCatch({
+    do.call(paste0("step_", name), list(ctx))
+    list(status = "SUCCESS", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = NULL)
+  }, error = function(e) {
+    list(status = "FAILED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
+  })
+  ctx$steps[[name]] <<- res
+  bankinganalytics::write_manifest(ctx, if (res$status == "FAILED") "RUNNING" else "RUNNING")
+  res
+}
+
+step_preflight <- function(ctx) {
+  # env vars
+  bankinganalytics::cfg_env("R_PG_HOST")
+  bankinganalytics::cfg_env("R_PG_USER")
+  bankinganalytics::cfg_env("R_PG_PASSWORD")
+  # config
+  bankinganalytics::cfg_analysis()
+  bankinganalytics::cfg_contracts()
+  # writable output
+  dir.create(bankinganalytics::output_dir(), showWarnings = FALSE, recursive = TRUE)
+  if (!dir.exists(bankinganalytics::output_dir())) stop("output dir not writable", call. = FALSE)
+  invisible(TRUE)
+}
+
+step_gate <- function(ctx) {
+  bankinganalytics::with_pg(function(con) bankinganalytics::assert_marts_ready(con, cfg))
+}
+
+step_extract <- function(ctx) {
+  for (mart in names(cfg$marts)) {
+    spec <- cfg$marts[[mart]]
+    col <- spec$freshness_col
+    token <- bankinganalytics::mart_fingerprint(mart, col)
+    df <- bankinganalytics::read_mart(mart, token)
+    cspec <- contracts[[mart]]
+    bankinganalytics::assert_contract(df, mart, cspec)
+    ctx$data[[mart]] <- df
+  }
+  invisible(TRUE)
+}
+
+step_profile <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+  for (mart in names(ctx$data)) {
+    prof <- bankinganalytics::profile_mart(ctx$data[[mart]], mart)
+    bankinganalytics::write_table(ctx, paste0("profile_", mart), prof)
+  }
+  invisible(TRUE)
+}
+
+step_report <- function(ctx) {
+  if (skip_report) return(invisible(TRUE))
+  qmds <- list.files("analyses", pattern = "index\\.qmd", recursive = TRUE, full.names = TRUE)
+  if (length(qmds) == 0) return(invisible(TRUE))
+  if (!requireNamespace("quarto", quietly = TRUE)) {
+    stop("quarto package missing", call. = FALSE)
+  }
+  for (q in qmds) {
+    quarto::quarto_render(q, output_dir = file.path(ctx$run_dir, "reports"))
+  }
+  invisible(TRUE)
+}
+
+# --- run ---
+failed <- FALSE
+partial <- FALSE
+for (s in only) {
+  r <- run_step(s)
+  if (r$status == "FAILED") {
+    failed <- TRUE
+    cat(sprintf("step %s failed: %s\n", s, r$error))
+    if (!keep_going) break
+    partial <- TRUE
+  }
+}
+
+# prune old runs
+retention <- cfg$retention_days %||% 30
+if (!is.null(retention)) {
+  runs_dir <- file.path(bankinganalytics::output_dir(), "runs")
+  if (dir.exists(runs_dir)) {
+    dirs <- list.dirs(runs_dir, full.names = TRUE, recursive = FALSE)
+    for (d in dirs) {
+      if (normalizePath(d) == normalizePath(ctx$run_dir)) next
+      info <- file.info(d)
+      age <- as.numeric(difftime(Sys.time(), info$mtime, units = "days"))
+      if (!is.na(age) && age > retention) unlink(d, recursive = TRUE)
+    }
+  }
+}
+
+if (failed && !keep_going) {
+  bankinganalytics::write_manifest(ctx, "FAILED", error = ctx$steps[[tail(only, 1)]]$error)
+  quit(status = 1)
+}
+if (partial) {
+  bankinganalytics::write_manifest(ctx, "PARTIAL")
+  quit(status = 2)
+}
+bankinganalytics::write_manifest(ctx, "SUCCESS")
+quit(status = 0)

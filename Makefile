@@ -32,7 +32,8 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
         sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
         marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
         report-fixture report-pdf report-tex report-docker report-clean report \
-        report-incident report-weekly
+        report-incident report-weekly \
+        r-restore r-lint r-test r-run r-docker-build r-docker-run
 
 ##@ Setup
 help: ## Show this help

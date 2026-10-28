@@ -1,0 +1,35 @@
+# Analysis configuration. Thresholds, horizons, seeds, mart lists live here, not in code.
+
+gate:
+  default_max_age_hours: 30
+
+marts:
+  mart_monthly_transactions:
+    freshness_col: month_start
+    max_age_hours: 840
+  mart_kpi_monthly:
+    freshness_col: month_start
+    max_age_hours: 840
+  mart_card_fraud:
+    freshness_col: month_start
+    max_age_hours: 840
+  mart_support_performance:
+    freshness_col: month_opened
+    max_age_hours: 840
+  mart_customer_360:
+    freshness_col: mart_refreshed_at
+    max_age_hours: 30
+  mart_branch_performance:
+    freshness_col: mart_refreshed_at
+    max_age_hours: 30
+  mart_loan_portfolio:
+    freshness_col: mart_refreshed_at
+    max_age_hours: 30
+
+small_cell_threshold: 10
+seed: 20261028
+forecast_horizon: 3
+retention_days: 30
+
+kpi:
+  forecast_measure: null

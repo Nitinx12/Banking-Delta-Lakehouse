@@ -1,0 +1,41 @@
+mart_monthly_transactions:
+  required_cols: [month_start, txn_type, channel, merchant_category, txn_direction, region, state]
+  key: [month_start, txn_type, channel, merchant_category, txn_direction, region, state]
+  not_null: [month_start]
+  ranges: {}
+
+mart_kpi_monthly:
+  required_cols: [month_start]
+  key: [month_start]
+  not_null: [month_start]
+  ranges: {}
+
+mart_card_fraud:
+  required_cols: [month_start, card_type, card_category, card_tier, merchant_category]
+  key: [month_start, card_type, card_category, card_tier, merchant_category]
+  not_null: [month_start]
+  ranges: {}
+
+mart_support_performance:
+  required_cols: [month_opened, issue_type, status, customer_state, income_band]
+  key: [month_opened, issue_type, status, customer_state, income_band]
+  not_null: [month_opened]
+  ranges: {}
+
+mart_customer_360:
+  required_cols: [customer_key]
+  key: [customer_key]
+  not_null: [customer_key]
+  ranges: {}
+
+mart_branch_performance:
+  required_cols: [branch_key]
+  key: [branch_key]
+  not_null: [branch_key]
+  ranges: {}
+
+mart_loan_portfolio:
+  required_cols: [loan_type, status, loan_amount_band, term_band, start_year]
+  key: [loan_type, status, loan_amount_band, term_band, start_year]
+  not_null: [loan_type]
+  ranges: {}

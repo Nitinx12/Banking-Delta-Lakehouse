@@ -1,0 +1,30 @@
+Package: bankinganalytics
+Title: Banking-Delta-Lakehouse R Analysis Layer
+Version: 0.1.0
+Description: Read-only R analysis layer consuming marts.mart_*.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+Imports:
+    DBI,
+    RPostgres,
+    dbplyr,
+    dplyr,
+    tidyr,
+    yaml,
+    jsonlite,
+    logger,
+    withr,
+    rlang,
+    fs,
+    cli,
+    withr,
+    digest
+Suggests:
+    duckdb,
+    testthat (>= 3.0.0),
+    covr,
+    lintr,
+    styler
+Config/testthat/edition: 3
