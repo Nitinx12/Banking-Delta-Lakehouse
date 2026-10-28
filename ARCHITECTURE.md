@@ -614,7 +614,7 @@ flowchart TB
   fails if a target is missing or `ci` picks up a non-hermetic target.
 - **Coverage.** `make cov` enforces `fail_under` in `pyproject.toml`. Never lower it to
   pass. `sql-lint` is currently red on pre-existing `sql/` violations (separate fix branch).
-- Full detail: `docs/TESTING.md`, `docs/CI-CD.md`, `docs/GITWORKFLOWS.md`.
+- Full detail: `docs/TESTING.md`, `docs/GITWORKFLOWS.md`.
 
 ## 13. Deployment topology
 
@@ -691,7 +691,7 @@ flowchart TB
 | What is in the audit schema? | `docs/AUDIT.md` |
 | How does Airflow orchestrate it? | `docs/AIRFLOW.md` |
 | How do I run, test and gate code? | `docs/TESTING.md` |
-| What are the CI/CD workflows? | `docs/CI-CD.md` |
+| What are the CI/CD workflows? | `docs/GITWORKFLOWS.md` |
 | How do branches, commits and hooks work? | `docs/GITWORKFLOWS.md` |
 | How is each piece deployed? | `docs/DEPLOYMENT.md` |
 | The pipeline is failing right now | `docs/RUNBOOK.md` · `docs/TROUBLESHOOTING.md` |
