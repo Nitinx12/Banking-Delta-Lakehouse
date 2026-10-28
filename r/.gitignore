@@ -7,3 +7,4 @@ _targets/
 .Rproj.user
 renv/library/
 renv/local/
+.env.r
