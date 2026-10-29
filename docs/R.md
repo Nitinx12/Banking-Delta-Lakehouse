@@ -625,7 +625,7 @@ What exists in `r/` today versus what this guide still describes as the target s
 | `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done (cards marked *planned* until models are trained) |
 | Makefile / `tasks.bat` `r-*` targets (incl. `r-cov`), `.github/workflows/r-ci.yml` (lint + test + covr floor 60 + R CMD check) | Done |
 | `scripts/dump_mart_schema.R`, `scripts/check_gate.R`, `scripts/prune_runs.R`, `scripts/snapshot_renv.R` | Done |
-| `renv.lock` | **To do** — run `Rscript r/scripts/snapshot_renv.R` on a machine with R (or via the rocker image) and commit the lockfile |
+| `renv.lock` | **Done** — committed (R 4.6.1, 140+ packages pinned) |
 | Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **To do** — helpers and model cards are in place; full models need live data + pinned packages (Phases 4–5 of section 12) |
 
 What was verified when the scaffold was written: all `R/`, test and `main.R` files parse; the

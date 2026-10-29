@@ -5,6 +5,4 @@ _targets/
 .Rhistory
 .RData
 .Rproj.user
-renv/library/
-renv/local/
 .env.r
