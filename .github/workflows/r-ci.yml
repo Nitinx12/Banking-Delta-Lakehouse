@@ -38,9 +38,10 @@ jobs:
         run: Rscript -e 'testthat::test_local(".")'
         working-directory: r
 
-      - name: Coverage
-        run: Rscript -e 'cov <- covr::package_coverage(".", type = "tests"); pct <- covr::percent_coverage(cov); message(sprintf("coverage: %.1f%%", pct)); if (pct < 60) quit(status = 1)'
-        working-directory: r
+       - name: Coverage
+         run: |
+           Rscript -e 'cov <- covr::package_coverage(".", type = "tests"); pct <- covr::percent_coverage(cov); message(sprintf("coverage: %.1f%%", pct)); if (pct < 60) quit(status = 1)'
+         working-directory: r
 
       - name: R CMD check
         run: Rscript -e 'rcmdcheck::rcmdcheck(".", args = "--no-manual")'
