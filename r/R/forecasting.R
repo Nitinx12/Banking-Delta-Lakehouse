@@ -46,11 +46,12 @@
 
   bad <- ts$month[is.na(ts$y)]
   if (length(bad)) {
-    stop(sprintf("Monthly series has %d missing/NA month(s), e.g. %s. Fix upstream.",
-                 length(bad), paste(format(utils::head(bad, 6)), collapse = ", ")),
-         call. = FALSE)
+    bankinganalytics::log_warn(sprintf("Monthly series has %d missing/NA month(s), e.g. %s. Interpolating.",
+                 length(bad), paste(format(utils::head(bad, 6)), collapse = ", ")))
+    ts <- ts |> tidyr::fill(y, .direction = "downup")
   }
   ts
+
 }
 
 #' Rolling-origin backtest of ETS / ARIMA against a seasonal-naive benchmark
