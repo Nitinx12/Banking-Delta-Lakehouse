@@ -50,3 +50,21 @@ bootstrap_ci <- function(x, stat, R = 1000, conf = 0.95, seed = 20261028) {
 eb_shrink <- function(k, n, alpha0 = 1, beta0 = 1) {
   (k + alpha0) / (n + alpha0 + beta0)
 }
+
+#' Calculate PSI for two numeric vectors (Population Stability Index)
+#' @param expected,actual Numeric vectors.
+#' @param bins Number of bins.
+#' @export
+calculate_psi <- function(expected, actual, bins = 10) {
+  if (length(expected) == 0 || length(actual) == 0) return(NA_real_)
+  qs <- unique(quantile(expected, probs = seq(0, 1, length.out = bins + 1), na.rm = TRUE))
+  if (length(qs) < 2) return(NA_real_)
+  e <- cut(expected, breaks = qs, include.lowest = TRUE)
+  a <- cut(actual, breaks = qs, include.lowest = TRUE)
+  pe <- prop.table(table(e))
+  pa <- prop.table(table(a))
+  all_levels <- union(names(pe), names(pa))
+  pe <- pe[all_levels]; pe[is.na(pe)] <- 1e-6
+  pa <- pa[all_levels]; pa[is.na(pa)] <- 1e-6
+  sum((pa - pe) * log(pa / pe))
+}

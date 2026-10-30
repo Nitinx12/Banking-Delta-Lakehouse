@@ -57,3 +57,13 @@ peer_percentile <- function(df, id_col, value_col, peer_col) {
   })
   data.frame(id = id, peer = peer, value = v, percentile = pct, stringsAsFactors = FALSE)
 }
+
+#' Branch performance benchmarks
+#' @param df Data frame with branch_key, active_accounts, total_accounts.
+#' @export
+branch_benchmarks <- function(df, branch_key, active_col, total_col) {
+  rates <- df[[active_col]] / df[[total_col]]
+  probs <- ecdf(rates)
+  df$percentile <- probs(rates)
+  df
+}
