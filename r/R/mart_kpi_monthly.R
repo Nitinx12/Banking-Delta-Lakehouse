@@ -84,3 +84,21 @@ kpi_recompute_ratio <- function(num, den) {
   if (length(num) != length(den)) stop("num and den must have equal length", call. = FALSE)
   ifelse(den == 0, NA_real_, num / den)
 }
+
+#' Variance bridge from current to previous period.
+#' @param df Data frame ordered by period.
+#' @param value_col Name of the total value column.
+#' @param count_col Optional volume column.
+#' @param date_col Optional period column.
+#' @export
+kpi_variance_bridge_detailed <- function(df, value_col, count_col = NULL, date_col = NULL) {
+  res <- kpi_variance_bridge(df, value_col, count_col, date_col)
+  if (is.null(count_col)) return(res)
+  
+  # Add percentages relative to base
+  base_val <- res$value[1]
+  res$vol_pct <- res$volume_effect / base_val
+  res$rate_pct <- res$rate_effect / base_val
+  res$int_pct <- res$interaction / base_val
+  res
+}

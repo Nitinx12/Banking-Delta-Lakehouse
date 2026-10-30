@@ -37,15 +37,19 @@ segment_profile <- function(df, segment_col, value_col) {
   if (!value_col %in% names(df)) stop("value_col missing", call. = FALSE)
   g <- as.character(df[[segment_col]])
   v <- as.numeric(df[[value_col]])
-  n <- as.integer(stats::aggregate(v, by = list(segment = g), FUN = length)$x)
+  
+  # Use a more robust aggregation to handle NA
+  agg <- stats::aggregate(v, by = list(segment = g), FUN = function(z) {
+    c(n = length(z), sum = sum(z, na.rm = TRUE), mean = mean(z, na.rm = TRUE))
+  })
+  
   tot_v <- sum(v, na.rm = TRUE)
-  s <- stats::aggregate(v, by = list(segment = g), FUN = sum)
   out <- data.frame(
-    segment = s$segment,
-    n_customers = n,
-    total_value = s$x,
-    mean_value = s$x / n,
-    share_of_value = s$x / tot_v
+    segment = agg$segment,
+    n_customers = as.integer(agg$x[, "n"]),
+    total_value = agg$x[, "sum"],
+    mean_value = agg$x[, "mean"],
+    share_of_value = agg$x[, "sum"] / tot_v
   )
   out[order(-out$total_value), ]
 }

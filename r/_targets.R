@@ -57,6 +57,8 @@ list(
              format = "rds"),
   tar_target(txn_totals, bankinganalytics::txn_monthly_totals(txn_checked, "month_start", "total_amount", "txn_count"),
              format = "rds"),
+  tar_target(kpi_bridge, bankinganalytics::kpi_variance_bridge(kpi_checked, "txn_amount", "txn_count", "month_start"),
+             format = "rds"),
 
   # optional forecast: only when tsibble/fable are installed
   tar_target(kpi_backtest, {
