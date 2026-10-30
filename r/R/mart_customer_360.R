@@ -15,9 +15,15 @@ concentration <- function(x) {
 #' @param df data frame with recency, frequency, monetary columns.
 #' @export
 rfm_score <- function(df, recency_col, frequency_col, monetary_col, n = 5) {
-  r <- n + 1 - as.integer(cut(df[[recency_col]], breaks = quantile(df[[recency_col]], probs = seq(0, 1, length.out = n + 1), na.rm = TRUE), include.lowest = TRUE))
-  f <- as.integer(cut(df[[frequency_col]], breaks = quantile(df[[frequency_col]], probs = seq(0, 1, length.out = n + 1), na.rm = TRUE), include.lowest = TRUE))
-  m <- as.integer(cut(df[[monetary_col]], breaks = quantile(df[[monetary_col]], probs = seq(0, 1, length.out = n + 1), na.rm = TRUE), include.lowest = TRUE))
+  score_col <- function(col, inverse = FALSE) {
+    rks <- rank(df[[col]], ties.method = "first")
+    scores <- as.integer(cut(rks, breaks = seq(0, length(rks), length.out = n + 1), include.lowest = TRUE))
+    if (inverse) n + 1 - scores else scores
+  }
+  
+  r <- score_col(recency_col, inverse = TRUE)
+  f <- score_col(frequency_col)
+  m <- score_col(monetary_col)
   data.frame(r = r, f = f, m = m, rfm = paste0(r, f, m))
 }
 

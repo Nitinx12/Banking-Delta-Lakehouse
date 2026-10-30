@@ -19,7 +19,7 @@ log_time_summary <- function(x) {
 #' @param df Data frame with date_col, within_col (resolved within SLA) and total_col.
 #' @export
 sla_trend <- function(df, date_col, within_col, total_col) {
-  d <- as.Date(df[[date_col]])
+  d <- as.Date(cut(as.Date(df[[date_col]]), "month"))
   w <- as.numeric(df[[within_col]])
   t <- as.numeric(df[[total_col]])
   agg <- stats::aggregate(cbind(w, t), by = list(month = d), FUN = sum)

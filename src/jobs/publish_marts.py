@@ -105,6 +105,11 @@ MART_CONFIG: dict[str, dict[str, Any]] = {
         "watermark": "mart_refreshed_at",
         "kind": "timestamp",
     },
+    "mart_loan_vintage": {
+        "key": ["cohort_month", "months_on_book", "loan_type"],
+        "watermark": "mart_refreshed_at",
+        "kind": "timestamp",
+    },
 }
 
 

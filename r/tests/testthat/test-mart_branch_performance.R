@@ -18,7 +18,7 @@ test_that("robust_z returns NA when MAD is zero", {
 test_that("shrink_rank shrinks small-n rates toward the prior", {
   df <- data.frame(
     branch = c("big", "small"),
-    k = c(50, 1),
+    k = c(50, 0),
     n = c(100, 2)
   )
   out <- bankinganalytics::shrink_rank(df, "branch", "k", "n")

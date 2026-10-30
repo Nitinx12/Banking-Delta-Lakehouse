@@ -81,6 +81,17 @@ add an entry here in the same commit.
   that package is pinned. Never average a ratio column; recompute with
   `kpi_recompute_ratio()`.
 
+### Variance bridge — `kpi_variance_bridge()`
+
+- **Purpose.** Decompose a period-over-period change in a total into volume, rate and
+  interaction effects (waterfall), so a KPI move is attributable, not just observed.
+- **Assumptions.** Total equals `count * rate`; rows are ordered by period; the previous
+  period is the base. Columns are passed as arguments, never assumed to be global.
+- **Validation.** Unit test: volume + rate + interaction equals `delta` exactly.
+- **Limits.** Additive with an explicit interaction term. A true mix effect needs a
+  dimensional breakdown (e.g. channel) and is not produced here. Never average a ratio
+  column; recompute with `kpi_recompute_ratio()`.
+
 ### Structural-break flags — `kpi_break_flags()`
 
 - **Purpose.** Flag months where the running mean shifts relative to the global mean

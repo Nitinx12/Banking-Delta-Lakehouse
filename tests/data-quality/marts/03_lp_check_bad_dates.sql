@@ -44,7 +44,8 @@ DECLARE
         'mart_monthly_transactions.month_start',
         'mart_card_fraud.month_start',
         'mart_support_performance.month_opened',
-        'mart_kpi_monthly.month_start'
+        'mart_kpi_monthly.month_start',
+        'mart_loan_vintage.cohort_month'
     ]::TEXT[];
 
     -- ---------- working variables ----------

@@ -186,4 +186,18 @@
 | estimated_outstanding_principal | numeric | YES |
 | mart_refreshed_at | timestamp with time zone | YES |
 
+## mart_loan_vintage
 
+| column | type | nullable |
+|---|---|---|
+| cohort_month | date | YES |
+| months_on_book | integer | YES |
+| loan_type | character varying | YES |
+| payment_count | bigint | YES |
+| loans_with_payments | bigint | YES |
+| amount_paid | numeric | YES |
+| principal_paid | numeric | YES |
+| interest_paid | numeric | YES |
+| late_payments | bigint | YES |
+| late_payment_rate_pct | numeric | YES |
+| mart_refreshed_at | timestamp with time zone | YES |

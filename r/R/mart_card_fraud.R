@@ -59,12 +59,12 @@ precision_at_k <- function(scores, labels, k) {
 #' Average precision (area under the PR curve, step-wise).
 #' @export
 avg_precision <- function(scores, labels) {
+  if (sum(labels == 1) == 0) return(NA_real_)
   ord <- order(scores, decreasing = TRUE)
   y <- labels[ord]
   tp <- cumsum(y == 1)
   fp <- cumsum(y == 0)
   prec <- tp / (tp + fp)
   rec <- tp / sum(y == 1)
-  if (sum(y == 1) == 0) return(NA_real_)
-  sum(prec * (c(rec[-1], 1) - rec))
+  sum(prec * diff(c(0, rec)))
 }

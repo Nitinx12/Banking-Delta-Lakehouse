@@ -7,8 +7,8 @@ test_that("kpi_growth computes MoM and YoY diffs", {
   expect_equal(nrow(out), 24)
   expect_true(is.na(out$mom[1]))
   expect_equal(out$mom[2], 1)
-  expect_true(is.na(out$yoy[13]))
-  expect_equal(out$yoy[14], 1)
+  expect_true(is.na(out$yoy[12]))
+  expect_equal(out$yoy[13], 12)
 })
 
 test_that("kpi_variance_bridge returns period/value/delta", {
@@ -16,6 +16,31 @@ test_that("kpi_variance_bridge returns period/value/delta", {
   out <- bankinganalytics::kpi_variance_bridge(df, "value")
   expect_true(all(c("period", "value", "delta") %in% names(out)))
   expect_equal(out$delta[2], 2)
+})
+
+test_that("kpi_variance_bridge splits a delta into volume, rate and interaction", {
+  df <- data.frame(
+    month_start = as.Date(c("2024-01-01", "2024-02-01")),
+    txn_count = c(100, 120),
+    txn_amount = c(1000, 1440)
+  )
+  out <- bankinganalytics::kpi_variance_bridge(df, "txn_amount", "txn_count", "month_start")
+  expect_equal(out$delta[2], 440)
+  expect_equal(out$volume_effect[2], 200)
+  expect_equal(out$rate_effect[2], 200)
+  expect_equal(out$interaction[2], 40)
+  expect_equal(
+    out$volume_effect[2] + out$rate_effect[2] + out$interaction[2],
+    out$delta[2]
+  )
+})
+
+test_that("kpi_variance_bridge errors on a missing count column", {
+  df <- data.frame(month_start = as.Date("2024-01-01"), txn_amount = 1000)
+  expect_error(
+    bankinganalytics::kpi_variance_bridge(df, "txn_amount", "txn_count"),
+    "missing count col"
+  )
 })
 
 test_that("kpi_seasonal_profile aggregates by calendar month", {

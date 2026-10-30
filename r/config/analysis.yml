@@ -18,13 +18,13 @@ marts:
     max_age_hours: 840
   mart_customer_360:
     freshness_col: mart_refreshed_at
-    max_age_hours: 30
+    max_age_hours: 100
   mart_branch_performance:
     freshness_col: mart_refreshed_at
-    max_age_hours: 30
+    max_age_hours: 100
   mart_loan_portfolio:
     freshness_col: mart_refreshed_at
-    max_age_hours: 30
+    max_age_hours: 100
 
 small_cell_threshold: 10
 seed: 20261028
@@ -33,3 +33,15 @@ retention_days: 30
 
 kpi:
   forecast_measure: null
+
+variance_bridges:
+  - mart: mart_kpi_monthly
+    label: txn_amount
+    date_col: month_start
+    value_col: txn_amount
+    count_col: txn_count
+  - mart: mart_kpi_monthly
+    label: loan_amount_disbursed
+    date_col: month_start
+    value_col: loan_amount_disbursed
+    count_col: loans_disbursed

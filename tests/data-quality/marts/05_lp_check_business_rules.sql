@@ -66,7 +66,15 @@ DECLARE
         ["mart_kpi_monthly", "fraud_txn_count > card_txn_count",
          "fraud transactions exceed card transactions"],
         ["mart_kpi_monthly", "tickets_resolved > tickets_opened",
-         "tickets resolved exceed tickets opened"]
+         "tickets resolved exceed tickets opened"],
+        ["mart_loan_vintage", "late_payments > payment_count",
+         "late payments exceed payment count"],
+        ["mart_loan_vintage", "principal_paid > amount_paid",
+         "principal paid exceeds amount paid"],
+        ["mart_loan_vintage", "interest_paid > amount_paid",
+         "interest paid exceeds amount paid"],
+        ["mart_loan_vintage", "loans_with_payments > payment_count",
+         "loans with payments exceed payment count"]
     ]'::JSONB;
 
     -- ---------- working variables ----------

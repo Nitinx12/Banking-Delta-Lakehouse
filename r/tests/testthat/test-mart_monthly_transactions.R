@@ -37,7 +37,10 @@ test_that("txn_mix_share shares sum to 1 per month", {
 })
 
 test_that("txn_anomaly_flags flags a far change", {
-  v <- c(rep(100, 19), 500)
+  v <- c(
+    97, 98, 94, 102, 104, 100, 102, 106, 109, 107,
+    115, 117, 114, 103, 109, 109, 109, 114, 118, 618
+  )
   df <- data.frame(m = as.Date("2020-01-01") + 0:19, v = v)
   out <- bankinganalytics::txn_anomaly_flags(df, "m", "v")
   expect_true(out$flag[20])

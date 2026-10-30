@@ -31,7 +31,8 @@ DECLARE
         "mart_loan_portfolio":        ["loan_type", "status", "loan_amount_band", "term_band", "start_year"],
         "mart_card_fraud":            ["month_start", "card_type", "card_category", "card_tier", "merchant_category"],
         "mart_support_performance":   ["month_opened", "issue_type", "status", "customer_state", "income_band"],
-        "mart_kpi_monthly":           ["month_start"]
+        "mart_kpi_monthly":           ["month_start"],
+        "mart_loan_vintage":          ["cohort_month", "months_on_book", "loan_type"]
     }'::JSONB;
 
     -- grain columns that must never be NULL (subset of v_grains)
@@ -42,7 +43,8 @@ DECLARE
         "mart_loan_portfolio":        ["loan_type", "status", "loan_amount_band", "term_band"],
         "mart_card_fraud":            ["month_start", "card_type", "card_category", "card_tier", "merchant_category"],
         "mart_support_performance":   ["month_opened", "issue_type", "status"],
-        "mart_kpi_monthly":           ["month_start"]
+        "mart_kpi_monthly":           ["month_start"],
+        "mart_loan_vintage":          ["cohort_month", "months_on_book", "loan_type"]
     }'::JSONB;
 
     -- ---------- working variables ----------

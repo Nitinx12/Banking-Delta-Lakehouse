@@ -81,6 +81,13 @@ BEGIN
         p_force_full      => p_force_full
     );
 
+    -- 8) loan vintage (needs dim_loan + fact_loan_payments)
+    CALL marts.sp_load_mart_loan_vintage(
+        p_pipeline_run_id => v_pipeline_run_id,
+        p_source_batch_id => v_batch_id,
+        p_force_full      => p_force_full
+    );
+
     -- >>> ADD NEW MARTS HERE (one CALL per mart) <<<
 
     RAISE NOTICE '=== Marts load finished | batch=% ===', v_batch_id;

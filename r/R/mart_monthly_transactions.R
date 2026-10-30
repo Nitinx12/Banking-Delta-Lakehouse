@@ -32,7 +32,7 @@ backtest_forecast <- function(df, date_col, value_col, h = 3, initial = 24, step
 #' @param df Data frame with date_col, amount_col and optional count_col.
 #' @export
 txn_monthly_totals <- function(df, date_col, amount_col, count_col = NULL) {
-  d <- as.Date(df[[date_col]])
+  d <- as.Date(cut(as.Date(df[[date_col]]), "month"))
   a <- as.numeric(df[[amount_col]])
   out <- stats::aggregate(a, by = list(month_start = d), FUN = sum)
   names(out)[2] <- "total_amount"
@@ -51,7 +51,7 @@ txn_monthly_totals <- function(df, date_col, amount_col, count_col = NULL) {
 #' @param df Data frame with date_col, group_col, value_col (weight, e.g. amount or count).
 #' @export
 txn_mix_share <- function(df, date_col, group_col, value_col) {
-  d <- as.Date(df[[date_col]])
+  d <- as.Date(cut(as.Date(df[[date_col]]), "month"))
   g <- as.character(df[[group_col]])
   v <- as.numeric(df[[value_col]])
   tot <- stats::aggregate(v, by = list(month_start = d), FUN = sum)

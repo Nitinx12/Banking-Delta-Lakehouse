@@ -47,6 +47,9 @@ STEP_INFO <- list(
   reconciliation = "cross-mart reconciliation + completeness",
   monitoring     = "control charts + PSI flags",
   analyses       = "Tier 1 descriptive tables per mart",
+  forecast       = "Tier 3 forecasts + backtests for KPIs",
+  predict        = "Tier 3 Predictive risk scores (PD, Fraud, Attrition)",
+  targets        = "Run targets dependency graph (_targets.R)",
   report         = "renders analyses/*/index.qmd if any exist"
 )
 STEP_ORDER <- names(STEP_INFO)
@@ -187,6 +190,13 @@ step_analyses <- function(ctx) {
     bankinganalytics::write_table(ctx, "kpi_growth_txn_amount", g)
     sp <- bankinganalytics::kpi_seasonal_profile(df, "month_start", "txn_amount")
     bankinganalytics::write_table(ctx, "kpi_seasonal_txn_amount", sp)
+    
+    # Structural breaks (Tier 2 diagnostic)
+    if (nrow(df) >= 12) {
+      breaks <- bankinganalytics::kpi_break_flags(df$txn_amount)
+      out_breaks <- data.frame(month_start = df$month_start, txn_amount = df$txn_amount, break_flag = breaks)
+      bankinganalytics::write_table(ctx, "kpi_structural_breaks", out_breaks)
+    }
   }
 
   if ("mart_monthly_transactions" %in% names(ctx$data)) {
@@ -200,6 +210,18 @@ step_analyses <- function(ctx) {
     if (nrow(tot) >= 6) {
       anom <- bankinganalytics::txn_anomaly_flags(tot, "month_start", "total_amount")
       bankinganalytics::write_table(ctx, "txn_anomaly_flags", anom)
+    }
+    
+    # CAGR (Tier 1 Descriptive)
+    if (nrow(tot) >= 2) {
+      start_val <- tot$total_amount[1]
+      end_val <- tot$total_amount[nrow(tot)]
+      # Approximate years
+      years <- as.numeric(difftime(max(tot$month_start), min(tot$month_start), units = "days")) / 365.25
+      if (start_val > 0 && end_val > 0 && years > 0) {
+        cagr_res <- bankinganalytics::txn_cagr(start_val, end_val, years)
+        bankinganalytics::write_table(ctx, "txn_cagr_total_amount", data.frame(cagr = cagr_res$cagr, years = years))
+      }
     }
   }
 
@@ -240,6 +262,19 @@ step_analyses <- function(ctx) {
       prof <- bankinganalytics::fraud_rate_profile(df, "card_type", "fraud_txn_count", "txn_count")
       bankinganalytics::write_table(ctx, "fraud_rate_by_card_type", prof)
     }
+    
+    # Performance metrics (Tier 2 diagnostic)
+    if ("is_fraud" %in% names(df)) {
+      # We need a score for these metrics. Use the predicted scores if available, 
+      # otherwise we just skip or use a placeholder.
+      # Since this is step_analyses, we might not have scores yet unless we call predict first.
+      # For now, we check if a 'fraud_score' column was already added to the mart data.
+      if ("fraud_score" %in% names(df)) {
+        ap <- bankinganalytics::avg_precision(df$fraud_score, df$is_fraud)
+        p10 <- bankinganalytics::precision_at_k(df$fraud_score, df$is_fraud, k = 10)
+        bankinganalytics::write_table(ctx, "fraud_model_performance", data.frame(avg_precision = ap, precision_at_10 = p10))
+      }
+    }
   }
 
   if ("mart_branch_performance" %in% names(ctx$data)) {
@@ -258,10 +293,110 @@ step_analyses <- function(ctx) {
     }
   }
 
+  # Variance bridges are configured in analysis.yml, never hard-coded here.
+  for (b in cfg$variance_bridges %||% list()) {
+    if (!b$mart %in% names(ctx$data)) next
+    df <- ctx$data[[b$mart]]
+    if (!all(c(b$value_col, b$count_col) %in% names(df))) {
+      bankinganalytics::log_warn(sprintf(
+        "variance bridge %s skipped: missing %s or %s in %s",
+        b$label, b$value_col, b$count_col, b$mart
+      ))
+      next
+    }
+    if (!is.null(b$date_col) && b$date_col %in% names(df)) {
+      df <- df[order(df[[b$date_col]]), , drop = FALSE]
+    }
+    vb <- bankinganalytics::kpi_variance_bridge(df, b$value_col, b$count_col, b$date_col)
+    bankinganalytics::write_table(ctx, paste0("variance_bridge_", b$label), vb)
+  }
+
   invisible(TRUE)
 }
 
+step_forecast <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+
+  # Forecasts for mart_kpi_monthly (txn_amount)
+  if ("mart_kpi_monthly" %in% names(ctx$data)) {
+    df <- ctx$data$mart_kpi_monthly
+    
+    # 1. Backtest (T3 rigor)
+    if (nrow(df) >= 30) {
+      bt <- bankinganalytics::backtest_forecast(df, "month_start", "txn_amount")
+      bankinganalytics::write_table(ctx, "forecast_backtest_kpi_txn", bt)
+    }
+
+    # 2. Future projection
+    proj <- bankinganalytics::forecast_future(df, "month_start", "txn_amount", h = 6)
+    bankinganalytics::write_table(ctx, "forecast_future_kpi_txn", proj)
+  }
+
+  # Forecasts for mart_monthly_transactions (total_amount)
+  if ("mart_monthly_transactions" %in% names(ctx$data)) {
+    df <- ctx$data$mart_monthly_transactions
+    
+    if (nrow(df) >= 30) {
+      bt <- bankinganalytics::backtest_forecast(df, "month_start", "total_amount")
+      bankinganalytics::write_table(ctx, "forecast_backtest_txn_total", bt)
+    }
+    
+    proj <- bankinganalytics::forecast_future(df, "month_start", "total_amount", h = 6)
+    bankinganalytics::write_table(ctx, "forecast_future_txn_total", proj)
+  }
+
+  invisible(TRUE)
+}
+
+step_predict <- function(ctx) {
+  if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+
+  # 1. PD Scorecard (Loan Portfolio)
+  if ("mart_loan_portfolio" %in% names(ctx$data)) {
+    df <- ctx$data$mart_loan_portfolio
+    if ("is_default" %in% names(df)) {
+      # Identify features automatically from the mart or config
+      features <- setdiff(names(df), c("loan_id", "is_default", "month_start"))
+      model <- bankinganalytics::fit_pd_scorecard(df, "is_default", features)
+      scores <- bankinganalytics::predict_risk_scores(model, df)
+      
+      res <- data.frame(loan_id = df$loan_id, pd_score = scores)
+      bankinganalytics::write_table(ctx, "predict_pd_scores", res)
+    }
+  }
+
+  # 2. Fraud Detection (Card Fraud)
+  if ("mart_card_fraud" %in% names(ctx$data)) {
+    df <- ctx$data$mart_card_fraud
+    if ("is_fraud" %in% names(df)) {
+      features <- setdiff(names(df), c("card_id", "is_fraud", "month_start"))
+      model <- bankinganalytics::fit_fraud_model(df, "is_fraud", features)
+      scores <- bankinganalytics::predict_risk_scores(model, df)
+      
+      res <- data.frame(card_id = df$card_id, fraud_score = scores)
+      bankinganalytics::write_table(ctx, "predict_fraud_scores", res)
+    }
+  }
+
+  # 3. Attrition Risk (Customer 360)
+  if ("mart_customer_360" %in% names(ctx$data)) {
+    df <- ctx$data$mart_customer_360
+    if ("is_attrited" %in% names(df)) {
+      features <- setdiff(names(df), c("customer_id", "is_attrited", "month_start"))
+      model <- bankinganalytics::fit_attrition_model(df, "is_attrited", features)
+      scores <- bankinganalytics::predict_risk_scores(model, df)
+      
+      res <- data.frame(customer_id = df$customer_id, attrition_score = scores)
+      bankinganalytics::write_table(ctx, "predict_attrition_scores", res)
+    }
+  }
+
+  invisible(TRUE)
+}
+
+
 step_report <- function(ctx) {
+
   if (skip_report) return(invisible(TRUE))
   qmds <- list.files("analyses", pattern = "index\\.qmd", recursive = TRUE, full.names = TRUE)
   if (length(qmds) == 0) return(invisible(TRUE))
@@ -280,7 +415,18 @@ step_report <- function(ctx) {
 failed <- FALSE
 partial <- FALSE
 for (s in only) {
-  r <- run_step(s)
+  if (s == "targets") {
+    # Delegate to the targets dependency graph
+    r <- tryCatch({
+      targets::tar_make()
+      list(status = "SUCCESS", seconds = 0, error = NULL)
+    }, error = function(e) {
+      list(status = "FAILED", seconds = 0, error = conditionMessage(e))
+    })
+  } else {
+    r <- run_step(s)
+  }
+  
   if (r$status == "FAILED") {
     failed <- TRUE
     cat(sprintf("step %s failed: %s\n", s, r$error))
