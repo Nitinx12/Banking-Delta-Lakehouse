@@ -9,7 +9,7 @@
 assert_contract <- function(df, mart, spec) {
   req <- unlist(spec$required_cols)
   if (length(req) == 0L) {
-    log_warn("contract for {mart} has no required_cols yet - nothing is being enforced")
+    log_warn(sprintf("contract for %s has no required_cols yet - nothing is being enforced", mart))
   }
 
   missing <- setdiff(req, names(df))

@@ -24,8 +24,12 @@ pg_connect <- function() {
     timezone_out     = "UTC",
     bigint           = "numeric"
   )
+  # Do not leak the connection if one of the session settings fails.
+  ok <- FALSE
+  on.exit(if (!ok) DBI::dbDisconnect(con), add = TRUE)
   DBI::dbExecute(con, "SET default_transaction_read_only = on")
   DBI::dbExecute(con, "SET statement_timeout = '120s'")
+  ok <- TRUE
   con
 }
 

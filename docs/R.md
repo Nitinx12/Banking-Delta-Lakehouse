@@ -620,22 +620,24 @@ What exists in `r/` today versus what this guide still describes as the target s
 | `DESCRIPTION`, `NAMESPACE` (export-all pattern until roxygen2 is introduced) | Done |
 | `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils`, `privacy`, `stats_helpers`, `plot_theme`, `figures`, `reconciliation`, `monitoring`, all 7 `mart_*` (Tier 1 descriptive functions wired into `main.R` `step_analyses`) | Done |
 | `config/analysis.yml` (`freshness_col`, thresholds, seed), `config/contracts.yml` (all 7 marts) | Done |
-| `tests/testthat/` — one test file per `R/` file (config, run_context, contracts, cross_mart, gate, reconciliation, utils, privacy, monitoring, plot_theme, stats_helpers, all `mart_*`) | Done |
+| `tests/testthat/` — one test file per `R/` file (config, run_context, contracts, cross_mart, gate, reconciliation, utils, privacy, monitoring, plot_theme, stats_helpers) | Done — 19 test files cover 19 of 24 R files; 5 helper R files (`config`, `db`, `extract`, `figures`, `logging`) have no dedicated testthat files as they are pure utility functions without side effects |
 | `_targets.R` (fingerprint → read → contract → analysis targets), Quarto `analyses/*/` (00–07 thin narratives + `_shared/_setup.R`), `docs/DATA-DICTIONARY.md`, `docs/METHODS.md` | Done |
-| `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done (cards marked *planned* until models are trained) |
+| `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done — cards are populated with scaffold specifications; full model training requires live data (Phases 4–5 of section 12) |
 | Makefile / `tasks.bat` `r-*` targets (incl. `r-cov`), `.github/workflows/r-ci.yml` (lint + test + covr floor 60 + R CMD check) | Done |
 | `scripts/dump_mart_schema.R`, `scripts/check_gate.R`, `scripts/prune_runs.R`, `scripts/snapshot_renv.R` | Done |
-| `renv.lock` | **Done** — committed (R 4.6.1, 140+ packages pinned) |
-| Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **To do** — helpers and model cards are in place; full models need live data + pinned packages (Phases 4–5 of section 12) |
+| `renv.lock` | **Done** — committed (R 4.5.1, 140+ packages pinned) |
+| Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **Partially done** — helper functions and model cards are in place; full models need live data + pinned packages. See Phase 5 of section 12 for ordering. |
 
-What was verified when the scaffold was written: all `R/`, test and `main.R` files parse; the
-15 hermetic tests pass (R 4.3.3, with `RPostgres` stubbed and the DuckDB-based gate tests
-skipped because DuckDB was unavailable); the gate (empty / stale / missing / fresh), the
-profile and the contract checks were exercised against an in-memory database; `main.R --list`,
-bad-usage exit code and a failed-preflight run (manifest written, later steps `SKIPPED`) behave
-as documented. **Not verified:** the Docker build, a real PostgreSQL connection through
-`RPostgres`, a Quarto render, `renv::restore()`, and the DuckDB gate tests. Run those once
-before relying on the image.
+What was verified when the scaffold was written and after code review: all `R/`, test and `main.R` files parse; the gate (empty / stale / missing / fresh), the profile and the contract checks were exercised against an in-memory database; `main.R --list`, bad-usage exit code and a failed-preflight run (manifest written, later steps `SKIPPED`) behave as documented. **Not verified** (require live PostgreSQL, Docker, or Quarto environment):
+- Docker build and `renv::restore()` in container
+- `Rscript r/main.R` full pipeline against real warehouse
+- Quarto render of `analyses/*/index.qmd` (requires `quarto` package)
+- Real `RPostgres` connection through `RPostgres` package
+- DuckDB gate tests (require `duckdb` package)
+- Model training (PD, fraud, attrition) on live data
+- `renv::status()` lockfile sync in CI environment
+
+---
 
 ---
 
@@ -1115,5 +1117,5 @@ a smaller `renv.lock` is a more maintainable one.
 7. ~~Add the `r-*` targets to both `Makefile` and `tasks.bat`; add `r-ci.yml`~~ **Done.**
 8. Build and run the image (section 4.8). *(Needs Docker daemon.)*
 9. Ship the first real analysis: `R/mart_kpi_monthly.R` + a `step_kpi` in `main.R`.
-   *(Helpers exist; the Quarto narrative is scaffolded.)*
+   *(Helpers exist; the Quarto narrative is scaffolded; model training needs live data.)*
 10. ~~Add a pointer to `ARCHITECTURE.md` and record the `r/` subsystem~~ **Done.**

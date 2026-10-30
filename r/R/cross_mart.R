@@ -24,6 +24,7 @@ profile_mart <- function(df, mart) {
 #' @export
 write_table <- function(ctx, name, df) {
   path <- file.path(ctx$run_dir, "tables", paste0(name, ".csv"))
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   utils::write.csv(df, path, row.names = FALSE)
   rel <- file.path("tables", paste0(name, ".csv"))
   ctx$outputs <- c(ctx$outputs, rel)

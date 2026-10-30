@@ -28,11 +28,27 @@ marts:
 
 small_cell_threshold: 10
 seed: 20261028
-forecast_horizon: 3
+forecast_horizon: 3        # backtest horizon (months)
+projection_horizon: 6      # future projection horizon (months)
+forecast_min_months: 30    # distinct months needed before a backtest is run
 retention_days: 30
 
 kpi:
   forecast_measure: null
+
+# Series to forecast. Rows of the same month are combined with `agg`
+# (sum for flows/counts, mean only for genuinely averaged measures).
+forecasts:
+  - mart: mart_kpi_monthly
+    label: kpi_txn
+    date_col: month_start
+    value_col: txn_amount
+    agg: sum
+  - mart: mart_monthly_transactions
+    label: txn_total
+    date_col: month_start
+    value_col: total_amount
+    agg: sum
 
 variance_bridges:
   - mart: mart_kpi_monthly

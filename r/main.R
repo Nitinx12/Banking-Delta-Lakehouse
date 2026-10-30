@@ -8,6 +8,9 @@ if (!file.exists(file.path(root, "DESCRIPTION")) && file.exists(file.path(root, 
 options(bankinganalytics.root = normalizePath(root, mustWork = FALSE))
 setwd(root)
 
+# `%||%` is only in base R >= 4.4; define it so older R versions work too.
+`%||%` <- function(a, b) if (is.null(a)) b else a
+
 # Dev convenience: load r/.env.r into the environment if present.
 env_file <- file.path(root, ".env.r")
 if (file.exists(env_file)) {
@@ -15,10 +18,12 @@ if (file.exists(env_file)) {
   for (ln in lines) {
     ln <- trimws(ln)
     if (!nzchar(ln) || startsWith(ln, "#")) next
+    ln <- sub("^export\\s+", "", ln)
     parts <- strsplit(ln, "=", fixed = TRUE)[[1]]
     if (length(parts) >= 2) {
       key <- trimws(parts[1])
       val <- trimws(paste(parts[-1], collapse = "="))
+      val <- sub("^([\"'])(.*)\\1$", "\\2", val)  # strip one pair of surrounding quotes
       if (nzchar(key) && !nzchar(Sys.getenv(key, unset = ""))) {
         do.call(Sys.setenv, setNames(list(val), key))
       }
@@ -54,8 +59,17 @@ STEP_INFO <- list(
 )
 STEP_ORDER <- names(STEP_INFO)
 
+if (!is.null(only)) {
+  unknown <- setdiff(only, STEP_ORDER)
+  if (length(unknown)) {
+    cat(sprintf("unknown step(s) in --only: %s (valid: %s)\n",
+                paste(unknown, collapse = ", "), paste(STEP_ORDER, collapse = ", ")))
+    quit(status = 64)
+  }
+}
+
 if (list_only) {
-  for (s in STEP_ORDER) cat(sprintf("%-10s %s\n", s, STEP_INFO[[s]]))
+  for (s in STEP_ORDER) cat(sprintf("%-15s %s\n", s, STEP_INFO[[s]]))
   quit(status = 0)
 }
 
@@ -72,12 +86,15 @@ suppressPackageStartupMessages({
 
 cfg <- bankinganalytics::cfg_analysis()
 contracts <- bankinganalytics::cfg_contracts()
+if (!is.null(cfg$seed)) set.seed(cfg$seed)
 
 ctx <- list2env(bankinganalytics::run_context(run_key), parent = emptyenv())
 
-# dependency check: profile needs extract in same invocation
-if (!is.null(only) && "profile" %in% only && !"extract" %in% only) {
-  cat("profile requires extract in the same invocation\n")
+# dependency check: every step that reads ctx$data needs extract in the same invocation
+NEEDS_DATA <- c("profile", "figures", "reconciliation", "monitoring", "analyses", "forecast", "predict")
+if (!is.null(only) && !"extract" %in% only && any(only %in% NEEDS_DATA)) {
+  cat(sprintf("%s requires extract in the same invocation\n",
+              paste(intersect(only, NEEDS_DATA), collapse = ", ")))
   quit(status = 64)
 }
 if (is.null(only)) only <- STEP_ORDER
@@ -93,7 +110,7 @@ run_step <- function(name) {
     list(status = "FAILED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
   })
   ctx$steps[[name]] <- res
-  bankinganalytics::write_manifest(ctx, if (res$status == "FAILED") "RUNNING" else "RUNNING")
+  bankinganalytics::write_manifest(ctx, "RUNNING")
   res
 }
 
@@ -167,11 +184,13 @@ step_monitoring <- function(ctx) {
   if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
   # control chart for KPI txn_amount
   if ("mart_kpi_monthly" %in% names(ctx$data)) {
-    x <- ctx$data$mart_kpi_monthly$txn_amount
+    kpi <- ctx$data$mart_kpi_monthly
+    kpi <- kpi[order(kpi$month_start), , drop = FALSE]
+    x <- kpi$txn_amount
     lim <- bankinganalytics::individuals_limits(x)
     flags <- bankinganalytics::control_flags(x, lim)
     out <- data.frame(
-      month_start = ctx$data$mart_kpi_monthly$month_start,
+      month_start = kpi$month_start,
       txn_amount = x,
       ucl = lim$ucl, lcl = lim$lcl, center = lim$center,
       out_of_control = flags
@@ -186,11 +205,12 @@ step_analyses <- function(ctx) {
 
   if ("mart_kpi_monthly" %in% names(ctx$data)) {
     df <- ctx$data$mart_kpi_monthly
+    df <- df[order(df$month_start), , drop = FALSE]
     g <- bankinganalytics::kpi_growth(df, "month_start", "txn_amount")
     bankinganalytics::write_table(ctx, "kpi_growth_txn_amount", g)
     sp <- bankinganalytics::kpi_seasonal_profile(df, "month_start", "txn_amount")
     bankinganalytics::write_table(ctx, "kpi_seasonal_txn_amount", sp)
-    
+
     # Structural breaks (Tier 2 diagnostic)
     if (nrow(df) >= 12) {
       breaks <- bankinganalytics::kpi_break_flags(df$txn_amount)
@@ -211,9 +231,10 @@ step_analyses <- function(ctx) {
       anom <- bankinganalytics::txn_anomaly_flags(tot, "month_start", "total_amount")
       bankinganalytics::write_table(ctx, "txn_anomaly_flags", anom)
     }
-    
+
     # CAGR (Tier 1 Descriptive)
     if (nrow(tot) >= 2) {
+      tot <- tot[order(tot$month_start), , drop = FALSE]
       start_val <- tot$total_amount[1]
       end_val <- tot$total_amount[nrow(tot)]
       # Approximate years
@@ -262,10 +283,10 @@ step_analyses <- function(ctx) {
       prof <- bankinganalytics::fraud_rate_profile(df, "card_type", "fraud_txn_count", "txn_count")
       bankinganalytics::write_table(ctx, "fraud_rate_by_card_type", prof)
     }
-    
+
     # Performance metrics (Tier 2 diagnostic)
     if ("is_fraud" %in% names(df)) {
-      # We need a score for these metrics. Use the predicted scores if available, 
+      # We need a score for these metrics. Use the predicted scores if available,
       # otherwise we just skip or use a placeholder.
       # Since this is step_analyses, we might not have scores yet unless we call predict first.
       # For now, we check if a 'fraud_score' column was already added to the mart data.
@@ -317,32 +338,55 @@ step_analyses <- function(ctx) {
 step_forecast <- function(ctx) {
   if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
 
-  # Forecasts for mart_kpi_monthly (txn_amount)
-  if ("mart_kpi_monthly" %in% names(ctx$data)) {
-    df <- ctx$data$mart_kpi_monthly
-    
-    # 1. Backtest (T3 rigor)
-    if (nrow(df) >= 30) {
-      bt <- bankinganalytics::backtest_forecast(df, "month_start", "txn_amount")
-      bankinganalytics::write_table(ctx, "forecast_backtest_kpi_txn", bt)
+  h_backtest <- cfg$forecast_horizon %||% 3
+  h_project  <- cfg$projection_horizon %||% 6
+  min_months <- max(cfg$forecast_min_months %||% 30, 24 + h_backtest)
+
+  # Forecast targets live in analysis.yml (`forecasts:`); these defaults keep the
+  # previous behaviour if the key is absent. `agg` says how several rows of the
+  # same month are combined: sum for flows/counts (the default), mean for averages.
+  specs <- cfg$forecasts %||% list(
+    list(mart = "mart_kpi_monthly", label = "kpi_txn",
+         date_col = "month_start", value_col = "txn_amount", agg = "sum"),
+    list(mart = "mart_monthly_transactions", label = "txn_total",
+         date_col = "month_start", value_col = "total_amount", agg = "sum")
+  )
+
+  for (sp in specs) {
+    if (!sp$mart %in% names(ctx$data)) next
+    df <- ctx$data[[sp$mart]]
+    if (!all(c(sp$date_col, sp$value_col) %in% names(df))) {
+      bankinganalytics::log_warn(sprintf(
+        "forecast %s skipped: missing %s or %s in %s",
+        sp$label, sp$date_col, sp$value_col, sp$mart
+      ))
+      next
+    }
+    agg_fun <- switch(sp$agg %||% "sum",
+      sum = sum, mean = mean, max = max, min = min,
+      stop(sprintf("forecast %s: unsupported agg '%s'", sp$label, sp$agg), call. = FALSE)
+    )
+
+    # Count distinct MONTHS, not rows: marts like mart_monthly_transactions have
+    # one row per channel/region/... within each month.
+    n_months <- length(unique(format(as.Date(df[[sp$date_col]]), "%Y-%m")))
+
+    if (n_months >= min_months) {
+      bt <- bankinganalytics::backtest_forecast(
+        df, sp$date_col, sp$value_col, h = h_backtest
+      )
+      bankinganalytics::write_table(ctx, paste0("forecast_backtest_", sp$label), bt)
+    } else {
+      bankinganalytics::log_warn(sprintf(
+        "forecast %s: backtest skipped, %d months available (< %d)",
+        sp$label, n_months, min_months
+      ))
     }
 
-    # 2. Future projection
-    proj <- bankinganalytics::forecast_future(df, "month_start", "txn_amount", h = 6)
-    bankinganalytics::write_table(ctx, "forecast_future_kpi_txn", proj)
-  }
-
-  # Forecasts for mart_monthly_transactions (total_amount)
-  if ("mart_monthly_transactions" %in% names(ctx$data)) {
-    df <- ctx$data$mart_monthly_transactions
-    
-    if (nrow(df) >= 30) {
-      bt <- bankinganalytics::backtest_forecast(df, "month_start", "total_amount")
-      bankinganalytics::write_table(ctx, "forecast_backtest_txn_total", bt)
-    }
-    
-    proj <- bankinganalytics::forecast_future(df, "month_start", "total_amount", h = 6)
-    bankinganalytics::write_table(ctx, "forecast_future_txn_total", proj)
+    proj <- bankinganalytics::forecast_future(
+      df, sp$date_col, sp$value_col, h = h_project
+    )
+    bankinganalytics::write_table(ctx, paste0("forecast_future_", sp$label), proj)
   }
 
   invisible(TRUE)
@@ -350,6 +394,7 @@ step_forecast <- function(ctx) {
 
 step_predict <- function(ctx) {
   if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
+  scored <- 0L
 
   # 1. PD Scorecard (Loan Portfolio)
   if ("mart_loan_portfolio" %in% names(ctx$data)) {
@@ -359,9 +404,10 @@ step_predict <- function(ctx) {
       features <- setdiff(names(df), c("loan_id", "is_default", "month_start"))
       model <- bankinganalytics::fit_pd_scorecard(df, "is_default", features)
       scores <- bankinganalytics::predict_risk_scores(model, df)
-      
+
       res <- data.frame(loan_id = df$loan_id, pd_score = scores)
       bankinganalytics::write_table(ctx, "predict_pd_scores", res)
+      scored <- scored + 1L
     }
   }
 
@@ -372,9 +418,10 @@ step_predict <- function(ctx) {
       features <- setdiff(names(df), c("card_id", "is_fraud", "month_start"))
       model <- bankinganalytics::fit_fraud_model(df, "is_fraud", features)
       scores <- bankinganalytics::predict_risk_scores(model, df)
-      
+
       res <- data.frame(card_id = df$card_id, fraud_score = scores)
       bankinganalytics::write_table(ctx, "predict_fraud_scores", res)
+      scored <- scored + 1L
     }
   }
 
@@ -385,10 +432,18 @@ step_predict <- function(ctx) {
       features <- setdiff(names(df), c("customer_id", "is_attrited", "month_start"))
       model <- bankinganalytics::fit_attrition_model(df, "is_attrited", features)
       scores <- bankinganalytics::predict_risk_scores(model, df)
-      
+
       res <- data.frame(customer_id = df$customer_id, attrition_score = scores)
       bankinganalytics::write_table(ctx, "predict_attrition_scores", res)
+      scored <- scored + 1L
     }
+  }
+
+  if (scored == 0L) {
+    bankinganalytics::log_warn(paste(
+      "predict: nothing scored. The marts are aggregated and have no",
+      "is_default / is_fraud / is_attrited label columns (see contracts.yml)."
+    ))
   }
 
   invisible(TRUE)
@@ -414,21 +469,32 @@ step_report <- function(ctx) {
 # --- run ---
 failed <- FALSE
 partial <- FALSE
+failed_error <- NULL
 for (s in only) {
   if (s == "targets") {
-    # Delegate to the targets dependency graph
-    r <- tryCatch({
-      targets::tar_make()
-      list(status = "SUCCESS", seconds = 0, error = NULL)
-    }, error = function(e) {
-      list(status = "FAILED", seconds = 0, error = conditionMessage(e))
-    })
+    # Delegate to the targets dependency graph; skip (with a warning) when the
+    # project has no _targets.R so a default full run does not fail on it.
+    if (!file.exists("_targets.R")) {
+      bankinganalytics::log_warn("targets: no _targets.R in project root, step skipped")
+      r <- list(status = "SUCCESS", seconds = 0, error = NULL)
+    } else {
+      t0 <- Sys.time()
+      r <- tryCatch({
+        if (!requireNamespace("targets", quietly = TRUE)) stop("targets package missing", call. = FALSE)
+        targets::tar_make()
+        list(status = "SUCCESS", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = NULL)
+      }, error = function(e) {
+        list(status = "FAILED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
+      })
+    }
+    ctx$steps[[s]] <- r
   } else {
     r <- run_step(s)
   }
-  
+
   if (r$status == "FAILED") {
     failed <- TRUE
+    if (is.null(failed_error)) failed_error <- sprintf("%s: %s", s, r$error)
     cat(sprintf("step %s failed: %s\n", s, r$error))
     if (!keep_going) break
     partial <- TRUE
@@ -437,7 +503,7 @@ for (s in only) {
 
 # prune old runs
 retention <- cfg$retention_days %||% 30
-if (!is.null(retention)) {
+if (is.numeric(retention) && length(retention) == 1L && retention >= 1) {
   runs_dir <- file.path(bankinganalytics::output_dir(), "runs")
   if (dir.exists(runs_dir)) {
     dirs <- list.dirs(runs_dir, full.names = TRUE, recursive = FALSE)
@@ -451,7 +517,7 @@ if (!is.null(retention)) {
 }
 
 if (failed && !keep_going) {
-  bankinganalytics::write_manifest(ctx, "FAILED", error = ctx$steps[[tail(only, 1)]]$error)
+  bankinganalytics::write_manifest(ctx, "FAILED", error = failed_error)
   quit(status = 1)
 }
 if (partial) {
