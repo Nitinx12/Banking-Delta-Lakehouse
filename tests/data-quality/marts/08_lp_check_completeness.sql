@@ -26,7 +26,7 @@ DECLARE
         "mart_customer_360": 1000, "mart_branch_performance": 10,
         "mart_monthly_transactions": 1000, "mart_loan_portfolio": 10,
         "mart_card_fraud": 10, "mart_support_performance": 10,
-        "mart_kpi_monthly": 12
+        "mart_kpi_monthly": 12, "mart_loan_vintage": 10
     }'::JSONB;
 
     -- [mart_table, source_schema, source_table]
