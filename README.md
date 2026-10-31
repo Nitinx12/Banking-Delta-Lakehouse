@@ -96,6 +96,8 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 
 ## Quick start
 
+For a step-by-step guide see [docs/QUICKSTART.md](docs/QUICKSTART.md).
+
 ```bash
 make install     # runtime + dev dependencies (uv)
 make hooks       # enable the repo git hooks
@@ -110,6 +112,7 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 
 | Doc | What it covers |
 | --- | --- |
+| [docs/QUICKSTART.md](docs/QUICKSTART.md) | Step-by-step guide to running the project locally. |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | The blueprint: layers, flow, gates and contracts. |
 | [docs/PIPELINE.md](docs/PIPELINE.md) | The daily pipeline end to end. |
 | [docs/CONTRACTS.md](docs/CONTRACTS.md) | Data contracts: source → `raw` landing. |
