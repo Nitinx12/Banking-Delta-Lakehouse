@@ -6,3 +6,4 @@ _targets/
 .RData
 .Rproj.user
 .env.r
+..Rcheck/

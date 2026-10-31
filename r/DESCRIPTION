@@ -5,6 +5,8 @@ Authors@R: person("Banking Delta Lakehouse", role = c("aut", "cre"),
     email = "data-platform@example.com")
 Description: Read-only R analysis layer consuming marts.mart_*.
 License: MIT + file LICENSE
+Author: Banking Delta Lakehouse
+Maintainer: Banking Delta Lakehouse <data-platform@example.com>
 Encoding: UTF-8
 Depends: R (>= 4.6.1)
 Roxygen: list(markdown = TRUE)
