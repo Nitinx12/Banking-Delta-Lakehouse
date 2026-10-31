@@ -30,7 +30,7 @@ jobs:
           working-directory: r
 
       - name: Install extra tools
-        run: Rscript -e 'install.packages(c("lintr","rcmdcheck","duckdb","fable","fabletools","tsibble"), repos = "https://cloud.r-project.org")'
+        run: Rscript -e 'install.packages(c("lintr","rcmdcheck","duckdb","fable","fabletools","tsibble","feasts"), repos = "https://cloud.r-project.org")'
         working-directory: r
 
       - name: Lint
