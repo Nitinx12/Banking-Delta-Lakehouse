@@ -94,13 +94,17 @@ Colour legend (same as `ARCHITECTURE.md`): blue = sources, violet = orchestratio
 orange = `raw`, cyan = `staging`, green = `analytics`, pink = `marts`,
 yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 
-## Dashboard
+## Live Dashboard
 
-![Dashboard overview](assets/images/dashboard_image1.png)
-![Dashboard detail](assets/images/dashboard_image2.png)
+<p align="center">
+  <a href="https://walmartdbt-b3fdfqwyky3ghzr5syyxtu.streamlit.app/"><b>Live Demo</b></a> &mdash; interactive dashboard on the <code>marts</code> schema &middot; <a href="dashboard/README.md">docs</a>
+</p>
 
-Streamlit executive dashboard (read-only, live `SELECT` against Databricks marts):
-[http://localhost:8501](http://localhost:8501) · source in [`dashboard/`](dashboard/README.md).
+<p align="center">
+  <a href="https://walmartdbt-b3fdfqwyky3ghzr5syyxtu.streamlit.app/">
+    <img src="assets/images/dashboard_image2.png" width="90%" alt="Walmart Sales Dashboard — gold schema" style="border-radius:12px; border:1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(15,23,42,0.12);" />
+  </a>
+</p>
 
 ## Quick start
 
@@ -112,9 +116,6 @@ make hooks       # enable the repo git hooks
 make ci          # local gate: lint + contracts + sql-lint + coverage + smoke
 make daily       # run the whole pipeline
 ```
-
-On Windows use `tasks.bat <target>` instead of `make <target>`; the two are
-kept in sync by `tests/smoke/test_make_parity.py`.
 
 ## Common commands
 
@@ -149,6 +150,9 @@ cd dashboard && streamlit run app.py
 make report-fixture             # render all fixtures, no TeX, no DB
 make report                     # daily PDF against the warehouse in .env
 ```
+
+On Windows use `tasks.bat <target>` instead of `make <target>`; the two are
+kept in sync by `tests/smoke/test_make_parity.py`.
 
 ## Documentation
 
