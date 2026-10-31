@@ -47,14 +47,14 @@
 #' @param cfg Parsed analysis.yml.
 #' @param now Reference instant (injectable for tests).
 #' @export
-assert_marts_ready <- function(con, cfg = cfg_analysis(), now = Sys.time()) {
+assert_marts_ready <- function(con, cfg = bankinganalytics::cfg_analysis(), now = Sys.time()) {
   problems <- character()
   default_age <- cfg$gate$default_max_age_hours %||% 30
 
   for (mart in names(cfg$marts)) {
     spec  <- cfg$marts[[mart]]
     col   <- spec$freshness_col
-    stats <- tryCatch(mart_stats(con, mart, col), error = function(e) e)
+    stats <- tryCatch(bankinganalytics::mart_stats(con, mart, col), error = function(e) e)
 
     if (inherits(stats, "error")) {
       problems <- c(problems, sprintf("%s unreadable: %s", mart, conditionMessage(stats)))
@@ -65,7 +65,9 @@ assert_marts_ready <- function(con, cfg = cfg_analysis(), now = Sys.time()) {
       next
     }
     if (is.null(col)) {
-      log_warn("no freshness_col configured for {mart}; only checking it is non-empty")
+      bankinganalytics::log_warn(
+        "no freshness_col configured for {mart}; only checking it is non-empty"
+      )
       next
     }
 

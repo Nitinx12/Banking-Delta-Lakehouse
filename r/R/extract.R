@@ -30,7 +30,7 @@ mart_stats <- function(con, mart, freshness_col = NULL) {
 #' Fingerprint a mart on its own connection
 #' @export
 mart_fingerprint <- function(mart, freshness_col = NULL) {
-  with_pg(function(con) mart_stats(con, mart, freshness_col))
+  bankinganalytics::with_pg(function(con) bankinganalytics::mart_stats(con, mart, freshness_col))
 }
 
 #' Read a whole mart
@@ -40,7 +40,7 @@ mart_fingerprint <- function(mart, freshness_col = NULL) {
 read_mart <- function(mart, token = NULL) {
   .assert_mart_name(mart)
   force(token)
-  with_pg(function(con) {
+  bankinganalytics::with_pg(function(con) {
     dplyr::collect(dplyr::tbl(con, DBI::Id(schema = "marts", table = mart)))
   })
 }

@@ -7,7 +7,7 @@ concentration <- function(x) {
   x <- sort(as.numeric(x), decreasing = FALSE)
   cumshare <- cumsum(x) / sum(x)
   top_decile <- sum(x > stats::quantile(x, 0.9, na.rm = TRUE)) / sum(x)
-  list(gini = gini(x), top_decile_share = top_decile, lorenz = cumshare)
+  list(gini = bankinganalytics::gini(x), top_decile_share = top_decile, lorenz = cumshare)
 }
 
 #' RFM quantile scoring

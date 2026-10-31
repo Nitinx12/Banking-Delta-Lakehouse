@@ -1,3 +1,4 @@
+
 # Forecasting modules for Banking Delta Lakehouse.
 # Implements rolling-origin backtesting for ETS and ARIMA models against a
 # seasonal-naive benchmark, plus a future projection.
@@ -33,29 +34,29 @@
   if (nrow(df) == 0L) stop("No rows to build a monthly series from.", call. = FALSE)
 
   ts <- df |>
-    dplyr::transmute(month = tsibble::yearmonth(.data[[date_col]]),
-                     y     = as.numeric(.data[[value_col]])) |>
-    dplyr::filter(!is.na(month)) |>
-    dplyr::group_by(month) |>
-    dplyr::summarise(y = if (all(is.na(y))) NA_real_ else agg(y, na.rm = TRUE),
+    dplyr::transmute(month = tsibble::yearmonth(.data[[date_col]]),  # nolint
+                     y     = as.numeric(.data[[value_col]])) |>  # nolint
+    dplyr::filter(!is.na(month)) |>  # nolint
+    dplyr::group_by(month) |>  # nolint
+    dplyr::summarise(y = if (all(is.na(y))) NA_real_ else agg(y, na.rm = TRUE),  # nolint
                      .groups = "drop") |>
-    tsibble::as_tsibble(index = month) |>
+    tsibble::as_tsibble(index = month) |>  # nolint
     tsibble::fill_gaps()
 
-  bad <- ts$month[is.na(ts$y)]
+  bad <- ts$month[is.na(ts$y)]  # nolint
   if (length(bad) && !interpolate) {
     stop(sprintf(
-      paste0("Monthly series has gaps: %d missing month(s), e.g. %s. ",
+      paste0("Monthly series has gaps: %d missing month(s), e.g. %s. ",  # nolint
              "Fix upstream or pass interpolate = TRUE to fill them."),
       length(bad), paste(format(utils::head(bad, 6)), collapse = ", ")
     ), call. = FALSE)
   }
   if (length(bad)) {
-    log_warn(sprintf(
-      "Monthly series has %d missing month(s), e.g. %s. Interpolating.",
+    bankinganalytics::log_warn(sprintf(
+      "Monthly series has %d missing month(s), e.g. %s. Interpolating.",  # nolint
       length(bad), paste(format(utils::head(bad, 6)), collapse = ", ")
     ))
-    ts <- ts |> tidyr::fill(y, .direction = "downup")
+    ts <- ts |> tidyr::fill(y, .direction = "downup")  # nolint
     attr(ts, "interpolated_months") <- bad
   }
   ts
@@ -93,9 +94,9 @@ backtest_forecast <- function(df, date_col, value_col, h = 3, initial = 24, step
 
   fit <- folds |>
     fabletools::model(
-      snaive = fable::SNAIVE(y),
-      ets    = fable::ETS(y),
-      arima  = fable::ARIMA(y)
+      snaive = fable::SNAIVE(y),  # nolint
+      ets    = fable::ETS(y),  # nolint
+      arima  = fable::ARIMA(y)  # nolint
     )
 
   acc <- fabletools::accuracy(fabletools::forecast(fit, h = h), ts)
@@ -130,18 +131,18 @@ forecast_future <- function(df, date_col, value_col, h = 6, agg = sum, level = 9
 
   fit <- ts |>
     fabletools::model(
-      ets   = fable::ETS(y),
-      arima = fable::ARIMA(y)
+      ets   = fable::ETS(y),  # nolint
+      arima = fable::ARIMA(y)  # nolint
     )
 
   band <- paste0(level, "%")
   out <- fabletools::forecast(fit, h = h) |>
     fabletools::hilo(level = level) |>
-    as.data.frame()
+    as.data.frame()  # nolint
 
   # `hilo` columns expose $lower and $upper directly.
   data.frame(
-    month  = as.Date(out$month),
+    month  = as.Date(out$month),  # nolint
     .model = out$.model,
     .mean  = out$.mean,
     .lower = out[[band]]$lower,

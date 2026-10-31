@@ -3,12 +3,12 @@
 #' Open a read-only warehouse connection
 #' @export
 pg_connect <- function() {
-  host     <- cfg_env("R_PG_HOST")
-  port     <- as.integer(cfg_env("R_PG_PORT", "5432"))
-  dbname   <- cfg_env("R_PG_DATABASE", "banking_delta")
-  user     <- cfg_env("R_PG_USER")
-  password <- cfg_env("R_PG_PASSWORD")
-  sslmode  <- cfg_env("R_PG_SSLMODE", "prefer")
+  host     <- bankinganalytics::cfg_env("R_PG_HOST")
+  port     <- as.integer(bankinganalytics::cfg_env("R_PG_PORT", "5432"))
+  dbname   <- bankinganalytics::cfg_env("R_PG_DATABASE", "banking_delta")
+  user     <- bankinganalytics::cfg_env("R_PG_USER")
+  password <- bankinganalytics::cfg_env("R_PG_PASSWORD")
+  sslmode  <- bankinganalytics::cfg_env("R_PG_SSLMODE", "prefer")
 
   con <- DBI::dbConnect(
     RPostgres::Postgres(),

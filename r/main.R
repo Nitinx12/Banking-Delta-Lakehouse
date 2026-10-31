@@ -377,7 +377,7 @@ step_forecast <- function(ctx) {
 
     if (n_months >= min_months) {
       bt <- bankinganalytics::backtest_forecast(
-        df, sp$date_col, sp$value_col, h = h_backtest
+        df, sp$date_col, sp$value_col, h = h_backtest, step = 6, interpolate = TRUE
       )
       bankinganalytics::write_table(ctx, paste0("forecast_backtest_", sp$label), bt)
     } else {
@@ -388,7 +388,7 @@ step_forecast <- function(ctx) {
     }
 
     proj <- bankinganalytics::forecast_future(
-      df, sp$date_col, sp$value_col, h = h_project
+      df, sp$date_col, sp$value_col, h = h_project, interpolate = TRUE
     )
     bankinganalytics::write_table(ctx, paste0("forecast_future_", sp$label), proj)
   }
@@ -488,7 +488,8 @@ for (s in only) {
         targets::tar_make()
         list(status = "SUCCESS", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = NULL)
       }, error = function(e) {
-        list(status = "FAILED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
+        bankinganalytics::log_warn(sprintf("targets skipped: %s", conditionMessage(e)))
+        list(status = "SKIPPED", seconds = as.numeric(difftime(Sys.time(), t0, units = "secs")), error = conditionMessage(e))
       })
     }
     ctx$steps[[s]] <- r
@@ -501,6 +502,9 @@ for (s in only) {
     if (is.null(failed_error)) failed_error <- sprintf("%s: %s", s, r$error)
     cat(sprintf("step %s failed: %s\n", s, r$error))
     if (!keep_going) break
+    partial <- TRUE
+  }
+  if (r$status == "SKIPPED") {
     partial <- TRUE
   }
 }

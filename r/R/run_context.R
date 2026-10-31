@@ -36,7 +36,7 @@ run_context <- function(run_key = NULL) {
     run_key <- format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
   }
   run_key <- sanitise_run_key(run_key)
-  run_dir <- file.path(output_dir(), "runs", run_key)
+  run_dir <- file.path(bankinganalytics::output_dir(), "runs", run_key)
   fs::dir_create(run_dir, recurse = TRUE)
   fs::dir_create(file.path(run_dir, "tables"), recurse = TRUE)
   fs::dir_create(file.path(run_dir, "figures"), recurse = TRUE)

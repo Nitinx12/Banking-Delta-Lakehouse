@@ -4,7 +4,7 @@
 #' @export
 sla_compliance <- function(within, total) {
   p <- within / total
-  ci <- wilson_interval(within, total)
+  ci <- bankinganalytics::wilson_interval(within, total)
   list(rate = p, ci = ci)
 }
 
@@ -27,7 +27,7 @@ sla_trend <- function(df, date_col, within_col, total_col) {
   agg$rate <- ifelse(agg$total == 0, NA_real_, agg$within / agg$total)
   ci <- t(vapply(
     seq_len(nrow(agg)),
-    function(i) wilson_interval(agg$within[i], agg$total[i]),
+    function(i) bankinganalytics::wilson_interval(agg$within[i], agg$total[i]),
     numeric(2)
   ))
   agg$ci_low <- ci[, 1]
