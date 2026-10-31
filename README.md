@@ -108,6 +108,40 @@ make daily       # run the whole pipeline
 On Windows use `tasks.bat <target>` instead of `make <target>`; the two are
 kept in sync by `tests/smoke/test_make_parity.py`.
 
+## Common commands
+
+```bash
+# Full gated pipeline (writes to warehouse + Databricks)
+make daily                      # or: python main.py
+make run-jobs                   # extracts only: mongo -> databricks -> mysql
+
+# Data quality gates
+make dq                         # raw -> staging -> analytics -> marts
+make dq-raw                     # single layer
+
+# One layer at a time
+make staging && make dq-staging
+make analytics && make dq-analytics
+make marts && make dq-marts
+make publish                    # publish marts to Databricks Delta
+
+# Tests
+make ci                         # lint + contracts + sql-lint + coverage + smoke
+make test                       # unit + smoke
+make unit / make smoke
+
+# Airflow stack
+make up                         # docker compose up -d
+make down
+
+# Dashboard (Streamlit, read-only against Databricks marts)
+cd dashboard && streamlit run app.py
+
+# Reports
+make report-fixture             # render all fixtures, no TeX, no DB
+make report                     # daily PDF against the warehouse in .env
+```
+
 ## Documentation
 
 | Doc | What it covers |
