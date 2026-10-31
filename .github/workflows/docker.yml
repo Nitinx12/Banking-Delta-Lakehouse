@@ -57,11 +57,11 @@ jobs:
             build-context: .
             file: Dockerfile.pipeline
             build-args: ''
-           - name: r
-             build-context: .
-             file: r/Dockerfile
-             build-args: |
-               GIT_SHA=${{ github.sha }}
+          - name: r
+            build-context: .
+            file: r/Dockerfile
+            build-args: |
+              GIT_SHA=${{ github.sha }}
 
     steps:
       - name: Checkout
