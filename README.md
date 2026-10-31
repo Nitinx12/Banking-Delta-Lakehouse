@@ -94,6 +94,14 @@ Colour legend (same as `ARCHITECTURE.md`): blue = sources, violet = orchestratio
 orange = `raw`, cyan = `staging`, green = `analytics`, pink = `marts`,
 yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 
+## Dashboard
+
+![Dashboard overview](assets/images/dashboard_image1.png)
+![Dashboard detail](assets/images/dashboard_image2.png)
+
+Streamlit executive dashboard (read-only, live `SELECT` against Databricks marts):
+[http://localhost:8501](http://localhost:8501) · source in [`dashboard/`](dashboard/README.md).
+
 ## Quick start
 
 For a step-by-step guide see [docs/QUICKSTART.md](docs/QUICKSTART.md).
