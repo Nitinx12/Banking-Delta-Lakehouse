@@ -106,6 +106,12 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
   </a>
 </p>
 
+</p>
+
+<p align="center">
+  <sub><code>Python</code> · <code>PySpark</code> · <code>R</code> · <code>PostgreSQL</code> · <code>MongoDB</code> · <code>Apache Airflow</code> · <code>Docker</code> · <code>MySQL</code> · <code>Databricks</code> · <code>Streamlit</code> · <code>Plotly</code> · <code>uv</code> · <code>Ruff</code> · <code>Latex</code></sub>
+</p>
+
 ## Quick start
 
 For a step-by-step guide see [docs/QUICKSTART.md](docs/QUICKSTART.md).
@@ -150,7 +156,6 @@ cd dashboard && streamlit run app.py
 make report-fixture             # render all fixtures, no TeX, no DB
 make report                     # daily PDF against the warehouse in .env
 ```
-
 On Windows use `tasks.bat <target>` instead of `make <target>`; the two are
 kept in sync by `tests/smoke/test_make_parity.py`.
 
