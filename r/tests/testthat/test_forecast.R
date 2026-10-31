@@ -27,8 +27,11 @@ test_that(".monthly_series sums rows within a month and does not average", {
 
 test_that(".monthly_series rejects gaps and missing columns", {
   d <- make_mart()
-  expect_error(.monthly_series(d[d$month_start != as.Date("2024-06-01"), ],
-                               "month_start", "total_amount"), "missing/NA")
+  gap <- d[d$month_start != as.Date("2024-06-01"), ]
+  expect_error(.monthly_series(gap, "month_start", "total_amount"), "has gaps")
+  filled <- .monthly_series(gap, "month_start", "total_amount", interpolate = TRUE)
+  expect_equal(nrow(filled), 34L)
+  expect_equal(length(attr(filled, "interpolated_months")), 1L)
   expect_error(.monthly_series(d, "month_start", "nope"), "not found")
 })
 
@@ -43,7 +46,8 @@ test_that("backtest works on multi-row months with no warnings", {
 test_that("backtest refuses a series that is too short", {
   skip_if_no_forecast_pkgs()
   d <- make_mart(seq(as.Date("2024-01-01"), by = "month", length.out = 20))
-  expect_error(backtest_forecast(d, "month_start", "total_amount"), "too short")
+  expect_error(backtest_forecast(d, "month_start", "total_amount"),
+               "Series too short for backtest")
 })
 
 test_that("forecast_future returns Date months and ordered intervals", {

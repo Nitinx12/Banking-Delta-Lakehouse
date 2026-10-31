@@ -12,7 +12,7 @@ sla_compliance <- function(within, total) {
 #' @export
 log_time_summary <- function(x) {
   lx <- log(x[x > 0])
-  c(median = exp(median(lx)), mean = exp(mean(lx)))
+  c(median = exp(stats::median(lx)), mean = exp(mean(lx)))
 }
 
 #' Monthly SLA trend: compliance rate and Wilson interval per month.
@@ -25,7 +25,11 @@ sla_trend <- function(df, date_col, within_col, total_col) {
   agg <- stats::aggregate(cbind(w, t), by = list(month = d), FUN = sum)
   names(agg)[2:3] <- c("within", "total")
   agg$rate <- ifelse(agg$total == 0, NA_real_, agg$within / agg$total)
-  ci <- t(vapply(seq_len(nrow(agg)), function(i) wilson_interval(agg$within[i], agg$total[i]), numeric(2)))
+  ci <- t(vapply(
+    seq_len(nrow(agg)),
+    function(i) wilson_interval(agg$within[i], agg$total[i]),
+    numeric(2)
+  ))
   agg$ci_low <- ci[, 1]
   agg$ci_high <- ci[, 2]
   agg[order(agg$month), ]

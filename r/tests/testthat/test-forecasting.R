@@ -15,7 +15,6 @@ test_that("backtest_forecast fails on short series", {
     month_start = seq(as.Date("2020-01-01"), by = "month", length.out = 5),
     txn_amount = rnorm(5)
   )
-  # initial=24 is default
   expect_error(backtest_forecast(df, "month_start", "txn_amount"), "Series too short")
 })
 

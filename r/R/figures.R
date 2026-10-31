@@ -51,11 +51,17 @@ write_figures <- function(ctx) {
   if ("mart_branch_performance" %in% names(ctx$data)) {
     df <- ctx$data$mart_branch_performance
     df <- df[order(-df$accounts_per_employee), ][seq_len(min(15, nrow(df))), ]
-    p <- ggplot2::ggplot(df, ggplot2::aes(x = reorder(.data$branch_name, .data$accounts_per_employee),
-                                          y = .data$accounts_per_employee)) +
+    p <- ggplot2::ggplot(df, ggplot2::aes(
+      x = stats::reorder(.data$branch_name, .data$accounts_per_employee),
+      y = .data$accounts_per_employee
+    )) +
       ggplot2::geom_col(fill = "#9467bd") +
       ggplot2::coord_flip() +
-      ggplot2::labs(title = "Top branches by accounts per employee", x = "Branch", y = "Accounts per employee")
+      ggplot2::labs(
+        title = "Top branches by accounts per employee",
+        x = "Branch",
+        y = "Accounts per employee"
+      )
     save_plot("branch_accounts_per_employee", p)
   }
 
@@ -73,8 +79,10 @@ write_figures <- function(ctx) {
   if ("mart_support_performance" %in% names(ctx$data)) {
     df <- ctx$data$mart_support_performance
     agg <- stats::aggregate(ticket_count ~ issue_type, data = df, FUN = sum)
-    p <- ggplot2::ggplot(agg, ggplot2::aes(x = reorder(.data$issue_type, -.data$ticket_count),
-                                           y = .data$ticket_count)) +
+    p <- ggplot2::ggplot(agg, ggplot2::aes(
+      x = stats::reorder(.data$issue_type, -.data$ticket_count),
+      y = .data$ticket_count
+    )) +
       ggplot2::geom_col(fill = "#e377c2") +
       ggplot2::coord_flip() +
       ggplot2::labs(title = "Tickets by issue type", x = "Issue type", y = "Tickets")

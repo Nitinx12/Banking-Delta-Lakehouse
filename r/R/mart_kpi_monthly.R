@@ -15,13 +15,15 @@ kpi_variance_bridge <- function(df, value_col, count_col = NULL, date_col = NULL
   v <- as.numeric(df[[value_col]])
   period <- if (!is.null(date_col) && date_col %in% names(df)) df[[date_col]] else seq_along(v)
   out <- data.frame(period = period, value = v, delta = c(NA_real_, diff(v)))
-  if (is.null(count_col)) return(out)
+  if (is.null(count_col)) {
+    return(out)
+  }
   if (!count_col %in% names(df)) stop("missing count col", call. = FALSE)
 
   n <- as.numeric(df[[count_col]])
   rate <- ifelse(n == 0, NA_real_, v / n)
-  prev_n <- c(NA_real_, head(n, -1L))
-  prev_rate <- c(NA_real_, head(rate, -1L))
+  prev_n <- c(NA_real_, utils::head(n, -1L))
+  prev_rate <- c(NA_real_, utils::head(rate, -1L))
   out$volume_effect <- (n - prev_n) * prev_rate
   out$rate_effect <- prev_n * (rate - prev_rate)
   out$interaction <- (n - prev_n) * (rate - prev_rate)
@@ -50,7 +52,11 @@ kpi_seasonal_profile <- function(df, date_col, value_col) {
   d <- as.Date(df[[date_col]])
   v <- as.numeric(df[[value_col]])
   mo <- as.integer(format(d, "%m"))
-  agg <- stats::aggregate(v, by = list(month = mo), FUN = function(z) c(mean = mean(z), sum = sum(z), n = length(z)))
+  agg <- stats::aggregate(
+    v,
+    by = list(month = mo),
+    FUN = function(z) c(mean = mean(z), sum = sum(z), n = length(z))
+  )
   out <- data.frame(
     month = agg$month,
     mean_value = agg$x[, "mean"],
@@ -68,10 +74,14 @@ kpi_seasonal_profile <- function(df, date_col, value_col) {
 #' @export
 kpi_break_flags <- function(x, k = 1.5) {
   n <- length(x)
-  if (n < 6) return(rep(FALSE, n))
+  if (n < 6) {
+    return(rep(FALSE, n))
+  }
   g <- mean(x, na.rm = TRUE)
   s <- stats::sd(x, na.rm = TRUE)
-  if (is.na(s) || s == 0) return(rep(FALSE, n))
+  if (is.na(s) || s == 0) {
+    return(rep(FALSE, n))
+  }
   cum <- cumsum(x - g) / seq_len(n)
   abs(cum) > k * s / sqrt(seq_len(n))
 }
@@ -93,8 +103,10 @@ kpi_recompute_ratio <- function(num, den) {
 #' @export
 kpi_variance_bridge_detailed <- function(df, value_col, count_col = NULL, date_col = NULL) {
   res <- kpi_variance_bridge(df, value_col, count_col, date_col)
-  if (is.null(count_col)) return(res)
-  
+  if (is.null(count_col)) {
+    return(res)
+  }
+
   # Add percentages relative to base
   base_val <- res$value[1]
   res$vol_pct <- res$volume_effect / base_val

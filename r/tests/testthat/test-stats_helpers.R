@@ -23,18 +23,18 @@ test_that("wilson_interval", {
 })
 
 test_that("concentration gini", {
-  res <- bankinganalytics::concentration(c(1,2,3,4,100))
+  res <- bankinganalytics::concentration(c(1, 2, 3, 4, 100))
   expect_true(res$gini > 0.5)
 })
 
 test_that("robust_z", {
-  z <- bankinganalytics::robust_z(c(1,2,3,4,100))
+  z <- bankinganalytics::robust_z(c(1, 2, 3, 4, 100))
   expect_true(is.na(z[5]) == FALSE)
 })
 
 test_that("cost_threshold", {
-  sc <- c(0.1,0.2,0.8,0.9)
-  lab <- c(0,0,1,1)
+  sc <- c(0.1, 0.2, 0.8, 0.9)
+  lab <- c(0, 0, 1, 1)
   t <- bankinganalytics::cost_threshold(sc, lab)
   expect_true(t >= 0.2)
 })

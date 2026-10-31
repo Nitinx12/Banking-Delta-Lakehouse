@@ -5,9 +5,8 @@
 #' @export
 concentration <- function(x) {
   x <- sort(as.numeric(x), decreasing = FALSE)
-  n <- length(x)
   cumshare <- cumsum(x) / sum(x)
-  top_decile <- sum(x > quantile(x, 0.9, na.rm = TRUE)) / sum(x)
+  top_decile <- sum(x > stats::quantile(x, 0.9, na.rm = TRUE)) / sum(x)
   list(gini = gini(x), top_decile_share = top_decile, lorenz = cumshare)
 }
 
@@ -17,10 +16,11 @@ concentration <- function(x) {
 rfm_score <- function(df, recency_col, frequency_col, monetary_col, n = 5) {
   score_col <- function(col, inverse = FALSE) {
     rks <- rank(df[[col]], ties.method = "first")
-    scores <- as.integer(cut(rks, breaks = seq(0, length(rks), length.out = n + 1), include.lowest = TRUE))
+    breaks <- seq(0, length(rks), length.out = n + 1)
+    scores <- as.integer(cut(rks, breaks = breaks, include.lowest = TRUE))
     if (inverse) n + 1 - scores else scores
   }
-  
+
   r <- score_col(recency_col, inverse = TRUE)
   f <- score_col(frequency_col)
   m <- score_col(monetary_col)
@@ -37,12 +37,12 @@ segment_profile <- function(df, segment_col, value_col) {
   if (!value_col %in% names(df)) stop("value_col missing", call. = FALSE)
   g <- as.character(df[[segment_col]])
   v <- as.numeric(df[[value_col]])
-  
+
   # Use a more robust aggregation to handle NA
   agg <- stats::aggregate(v, by = list(segment = g), FUN = function(z) {
     c(n = length(z), sum = sum(z, na.rm = TRUE), mean = mean(z, na.rm = TRUE))
   })
-  
+
   tot_v <- sum(v, na.rm = TRUE)
   out <- data.frame(
     segment = agg$segment,
@@ -60,7 +60,11 @@ segment_profile <- function(df, segment_col, value_col) {
 product_holding_summary <- function(df, products_col, value_col) {
   p <- as.integer(df[[products_col]])
   v <- as.numeric(df[[value_col]])
-  agg <- stats::aggregate(v, by = list(products = p), FUN = function(z) c(n = length(z), total = sum(z)))
+  agg <- stats::aggregate(
+    v,
+    by = list(products = p),
+    FUN = function(z) c(n = length(z), total = sum(z))
+  )
   out <- data.frame(
     products = agg$products,
     n_customers = as.integer(agg$x[, "n"]),

@@ -4,7 +4,11 @@
 #' @param df data frame with cohort_col and mob_col and value_col.
 #' @export
 vintage_triangle <- function(df, cohort_col, mob_col, value_col) {
-  stats::aggregate(df[[value_col]], by = list(cohort = df[[cohort_col]], mob = df[[mob_col]]), FUN = sum)
+  stats::aggregate(
+    df[[value_col]],
+    by = list(cohort = df[[cohort_col]], mob = df[[mob_col]]),
+    FUN = sum
+  )
 }
 
 #' HHI concentration
@@ -60,7 +64,7 @@ concentration_by <- function(df, group_col, amount_col, top_n = 5) {
   s$share <- s$total_amount / tot
   list(
     hhi = hhi(s$share),
-    top_n_share = sum(head(s$share, top_n)),
+    top_n_share = sum(utils::head(s$share, top_n)),
     table = s
   )
 }

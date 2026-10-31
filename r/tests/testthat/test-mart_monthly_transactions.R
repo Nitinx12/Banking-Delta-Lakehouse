@@ -1,7 +1,6 @@
-test_that("backtest_forecast errors without tsibble/fable", {
-  skip_if(requireNamespace("tsibble", quietly = TRUE) && requireNamespace("fable", quietly = TRUE))
-  df <- data.frame(m = as.Date("2020-01-01") + 0:30, y = rnorm(31))
-  expect_error(bankinganalytics::backtest_forecast(df, "m", "y"), "tsibble|fable")
+test_that("forecast dependency check names the missing package", {
+  expect_error(bankinganalytics:::.require_forecast_pkgs(pkgs = "notarealpackage"),
+               "notarealpackage")
 })
 
 test_that("backtest_forecast errors on short series", {

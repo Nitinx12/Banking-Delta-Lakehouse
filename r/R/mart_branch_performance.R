@@ -11,7 +11,7 @@ funnel_limits <- function(n_trials, p_bar, z = 3) {
 #' Robust z-score (median/MAD)
 #' @export
 robust_z <- function(x) {
-  med <- median(x, na.rm = TRUE)
+  med <- stats::median(x, na.rm = TRUE)
   mad <- stats::mad(x, na.rm = TRUE)
   if (mad == 0) return(rep(NA_real_, length(x)))
   (x - med) / (1.4826 * mad)
@@ -51,7 +51,7 @@ peer_percentile <- function(df, id_col, value_col, peer_col) {
   id <- as.character(df[[id_col]])
   v <- as.numeric(df[[value_col]])
   peer <- as.character(df[[peer_col]])
-  pct <- ave(v, peer, FUN = function(z) {
+  pct <- stats::ave(v, peer, FUN = function(z) {
     if (length(z) < 2) return(rep(100, length(z)))
     rank(z, ties.method = "average") / length(z) * 100
   })
@@ -63,7 +63,7 @@ peer_percentile <- function(df, id_col, value_col, peer_col) {
 #' @export
 branch_benchmarks <- function(df, branch_key, active_col, total_col) {
   rates <- df[[active_col]] / df[[total_col]]
-  probs <- ecdf(rates)
+  probs <- stats::ecdf(rates)
   df$percentile <- probs(rates)
   df
 }

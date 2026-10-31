@@ -16,9 +16,8 @@
 ^\.dockerignore$
 ^\.env\.r$
 ^\.env\.r\.example$
-^tests$
+^\.lintr$
 ^docs$
 ^analyses$
 ^scripts$
 ^config$
-^inst$

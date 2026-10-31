@@ -1,5 +1,47 @@
 # The gate: refuse to analyse marts that are empty, unreadable or stale.
 
+.read_sql <- function(name) {
+  path <- system.file("sql", name, package = "bankinganalytics")
+  if (!nzchar(path)) stop("SQL file not found: ", name, call. = FALSE)
+  paste(readLines(path, warn = FALSE), collapse = "\n")
+}
+
+.audit_problems <- function(con) {
+  problems <- character()
+
+  dq <- tryCatch(DBI::dbGetQuery(con, .read_sql("mart_dq_status.sql")),
+                 error = function(e) e)
+  if (inherits(dq, "error")) {
+    problems <- c(problems, sprintf("audit DQ unreadable: %s", conditionMessage(dq)))
+  } else if (nrow(dq) == 0L || is.na(dq$checks[[1]]) || dq$checks[[1]] == 0) {
+    problems <- c(problems, "no marts DQ results in audit.v_dq_latest")
+  } else if (!is.na(dq$failures[[1]]) && dq$failures[[1]] > 0) {
+    problems <- c(problems, sprintf("%d marts DQ check(s) failed in audit.v_dq_latest",
+                                    as.integer(dq$failures[[1]])))
+  }
+
+  run <- tryCatch(DBI::dbGetQuery(con, .read_sql("pipeline_run_status.sql")),
+                  error = function(e) e)
+  if (inherits(run, "error")) {
+    problems <- c(problems, sprintf("audit pipeline run unreadable: %s", conditionMessage(run)))
+  } else if (nrow(run) == 0L) {
+    problems <- c(problems, "no rows in audit.pipeline_runs")
+  } else if (!run$status[[1]] %in% c("SUCCESS", "PARTIAL")) {
+    problems <- c(problems, sprintf("latest pipeline run is %s", run$status[[1]]))
+  } else if (run$status[[1]] == "PARTIAL") {
+    if (is.na(run$marts_runs[[1]]) || run$marts_runs[[1]] == 0) {
+      problems <- c(problems, "latest pipeline run is PARTIAL with no marts table runs")
+    } else if (!is.na(run$marts_failed[[1]]) && run$marts_failed[[1]] > 0) {
+      problems <- c(problems, sprintf(
+        "latest PARTIAL pipeline run has %d failed marts table run(s)",
+        as.integer(run$marts_failed[[1]])
+      ))
+    }
+  }
+
+  problems
+}
+
 #' Stop unless every configured mart is readable, non-empty and fresh enough
 #' @param con A DBI connection.
 #' @param cfg Parsed analysis.yml.
@@ -33,6 +75,10 @@ assert_marts_ready <- function(con, cfg = cfg_analysis(), now = Sys.time()) {
       problems <- c(problems, sprintf("%s is stale (%s h old, limit %s h)",
                                       mart, format(round(age_h, 1)), max_age))
     }
+  }
+
+  if (isTRUE(cfg$gate$check_audit %||% TRUE)) {
+    problems <- c(problems, .audit_problems(con))
   }
 
   if (length(problems)) {

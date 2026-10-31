@@ -2,6 +2,7 @@
 
 gate:
   default_max_age_hours: 30
+  check_audit: true
 
 marts:
   mart_monthly_transactions:

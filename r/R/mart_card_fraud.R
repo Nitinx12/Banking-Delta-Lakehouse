@@ -5,7 +5,7 @@
 #' @export
 wilson_interval <- function(k, n, conf = 0.95) {
   if (n == 0) return(c(NA, NA))
-  z <- qnorm(1 - (1 - conf) / 2)
+  z <- stats::qnorm(1 - (1 - conf) / 2)
   p <- k / n
   denom <- 1 + z^2 / n
   centre <- (p + z^2 / (2 * n)) / denom

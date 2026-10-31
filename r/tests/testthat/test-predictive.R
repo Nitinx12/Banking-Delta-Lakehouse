@@ -29,6 +29,31 @@ test_that("predict_risk_scores returns numeric vector", {
   expect_true(all(scores >= 0 & scores <= 1))
 })
 
+test_that("PD scores use the positive class and expose WoE/IV", {
+  df <- data.frame(
+    is_default = rep(c(0, 1), each = 50),
+    feature1 = c(rnorm(50, 0), rnorm(50, 2)),
+    feature2 = c(rnorm(50, 0), rnorm(50, 1))
+  )
+  model <- fit_pd_scorecard(df, "is_default", c("feature1", "feature2"))
+  scores <- predict_risk_scores(model, df)
+  expect_equal(model$positive, "1")
+  expect_true(all(c("feature1", "feature2") %in% names(model$iv)))
+  expect_true(all(model$iv >= 0))
+  expect_gt(mean(scores[df$is_default == 1]), mean(scores[df$is_default == 0]))
+})
+
+test_that("PD positive class can be named explicitly", {
+  df <- data.frame(
+    is_default = factor(rep(c("good", "bad"), each = 50), levels = c("bad", "good")),
+    feature1 = c(rnorm(50, 0), rnorm(50, 2))
+  )
+  model <- fit_pd_scorecard(df, "is_default", "feature1", positive = "good")
+  scores <- predict_risk_scores(model, df)
+  expect_equal(model$positive, "good")
+  expect_gt(mean(scores[df$is_default == "good"]), mean(scores[df$is_default == "bad"]))
+})
+
 test_that("fit_fraud_model returns gbm structure", {
   df <- data.frame(
     card_id = 1:100,

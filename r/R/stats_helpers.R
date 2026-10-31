@@ -6,10 +6,14 @@
 gini <- function(x) {
   x <- sort(as.numeric(x))
   n <- length(x)
-  if (n == 0) return(NA_real_)
+  if (n == 0) {
+    return(NA_real_)
+  }
   num <- sum((2 * seq_len(n) - n - 1) * x)
   den <- n * sum(x)
-  if (den == 0) return(NA_real_)
+  if (den == 0) {
+    return(NA_real_)
+  }
   num / den
 }
 
@@ -18,16 +22,20 @@ gini <- function(x) {
 #' @param bins Number of bins.
 #' @export
 psi <- function(expected, actual, bins = 10) {
-  qs <- unique(quantile(expected, probs = seq(0, 1, length.out = bins + 1), na.rm = TRUE))
-  if (length(qs) < 2) return(NA_real_)
+  qs <- unique(stats::quantile(expected, probs = seq(0, 1, length.out = bins + 1), na.rm = TRUE))
+  if (length(qs) < 2) {
+    return(NA_real_)
+  }
   e <- cut(expected, breaks = qs, include.lowest = TRUE)
   a <- cut(actual, breaks = qs, include.lowest = TRUE)
   pe <- prop.table(table(e))
   pa <- prop.table(table(a))
   # align
   all_levels <- union(names(pe), names(pa))
-  pe <- pe[all_levels]; pe[is.na(pe)] <- 1e-6
-  pa <- pa[all_levels]; pa[is.na(pa)] <- 1e-6
+  pe <- pe[all_levels]
+  pe[is.na(pe)] <- 1e-6
+  pa <- pa[all_levels]
+  pa[is.na(pa)] <- 1e-6
   sum((pa - pe) * log(pa / pe))
 }
 
@@ -41,7 +49,7 @@ bootstrap_ci <- function(x, stat, R = 1000, conf = 0.95, seed = 20261028) {
   set.seed(seed)
   reps <- replicate(R, stat(sample(x, replace = TRUE)))
   alpha <- (1 - conf) / 2
-  quantile(reps, c(alpha, 1 - alpha), na.rm = TRUE)
+  stats::quantile(reps, c(alpha, 1 - alpha), na.rm = TRUE)
 }
 
 #' Empirical-Bayes shrinkage (beta-binomial) for a rate
@@ -56,15 +64,21 @@ eb_shrink <- function(k, n, alpha0 = 1, beta0 = 1) {
 #' @param bins Number of bins.
 #' @export
 calculate_psi <- function(expected, actual, bins = 10) {
-  if (length(expected) == 0 || length(actual) == 0) return(NA_real_)
-  qs <- unique(quantile(expected, probs = seq(0, 1, length.out = bins + 1), na.rm = TRUE))
-  if (length(qs) < 2) return(NA_real_)
+  if (length(expected) == 0 || length(actual) == 0) {
+    return(NA_real_)
+  }
+  qs <- unique(stats::quantile(expected, probs = seq(0, 1, length.out = bins + 1), na.rm = TRUE))
+  if (length(qs) < 2) {
+    return(NA_real_)
+  }
   e <- cut(expected, breaks = qs, include.lowest = TRUE)
   a <- cut(actual, breaks = qs, include.lowest = TRUE)
   pe <- prop.table(table(e))
   pa <- prop.table(table(a))
   all_levels <- union(names(pe), names(pa))
-  pe <- pe[all_levels]; pe[is.na(pe)] <- 1e-6
-  pa <- pa[all_levels]; pa[is.na(pa)] <- 1e-6
+  pe <- pe[all_levels]
+  pe[is.na(pe)] <- 1e-6
+  pa <- pa[all_levels]
+  pa[is.na(pa)] <- 1e-6
   sum((pa - pe) * log(pa / pe))
 }

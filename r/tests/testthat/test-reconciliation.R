@@ -17,7 +17,7 @@ test_that("individuals_limits", {
 })
 
 test_that("control_flags returns logical vector", {
-  x <- c(1,2,3,4,5)
+  x <- c(1, 2, 3, 4, 5)
   fl <- bankinganalytics::control_flags(x)
   expect_type(fl, "logical")
   expect_length(fl, length(x))

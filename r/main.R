@@ -232,6 +232,10 @@ step_analyses <- function(ctx) {
       bankinganalytics::write_table(ctx, "txn_anomaly_flags", anom)
     }
 
+    # Seasonal profile (Tier 1 Descriptive) - mean/sum/n per calendar month
+    sp <- bankinganalytics::kpi_seasonal_profile(df, "month_start", "total_amount")
+    bankinganalytics::write_table(ctx, "txn_seasonal_total_amount", sp)
+
     # CAGR (Tier 1 Descriptive)
     if (nrow(tot) >= 2) {
       tot <- tot[order(tot$month_start), , drop = FALSE]
@@ -328,7 +332,7 @@ step_analyses <- function(ctx) {
     if (!is.null(b$date_col) && b$date_col %in% names(df)) {
       df <- df[order(df[[b$date_col]]), , drop = FALSE]
     }
-    vb <- bankinganalytics::kpi_variance_bridge(df, b$value_col, b$count_col, b$date_col)
+    vb <- bankinganalytics::kpi_variance_bridge_detailed(df, b$value_col, b$count_col, b$date_col)
     bankinganalytics::write_table(ctx, paste0("variance_bridge_", b$label), vb)
   }
 
