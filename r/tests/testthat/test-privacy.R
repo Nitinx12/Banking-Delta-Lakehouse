@@ -16,3 +16,10 @@ test_that("suppress_small_cells no-ops when n_col missing", {
   df <- data.frame(v = 1:3)
   expect_identical(bankinganalytics::suppress_small_cells(df, "n"), df)
 })
+
+test_that("suppress_small_cells keeps cells at threshold", {
+  df <- data.frame(n = c(10, 9), v = c(1, 2))
+  out <- bankinganalytics::suppress_small_cells(df, "n", threshold = 10)
+  expect_equal(out$v[1], 1)
+  expect_true(is.na(out$v[2]))
+})
