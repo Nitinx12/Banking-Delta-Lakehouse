@@ -57,7 +57,7 @@ jobs:
             build-context: .
             file: Dockerfile.pipeline
             build-args: ''
-           - name: r
+          - name: r
             build-context: r
             build-args: |
               GIT_SHA=${{ github.sha }}
