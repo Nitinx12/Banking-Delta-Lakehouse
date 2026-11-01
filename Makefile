@@ -29,15 +29,20 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
 .PHONY: help install hooks lint format contracts contracts-sync sql-lint unit cov smoke spark-smoke \
-        sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
-        marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
-        report-fixture report-pdf report-tex report-docker report-clean report \
-        report-incident report-weekly \
-        r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run ## @see R.md §8.4
+		sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
+		marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
+		report-fixture report-pdf report-tex report-docker report-clean report \
+		report-incident report-weekly \
+		r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run \
+		setup-env monitor-logs ## @see R.md §8.4
+
 
 ##@ Setup
 help: ## Show this help
 	@$(PY) scripts/make_help.py
+
+setup-env: ## Initialize .env files from templates
+	bash scripts/setup_env.sh
 
 install: ## Install runtime + dev dependencies (uv)
 	$(UV) sync --group dev
@@ -209,6 +214,9 @@ report-clean: ## Delete generated report artefacts
 clean: ## Remove caches and coverage output (keeps .spark/ jar cache)
 	rm -rf .pytest_cache .ruff_cache .coverage htmlcov
 	find . -type d -name __pycache__ -not -path "./.venv/*" -prune -exec rm -rf {} +
+
+monitor-logs: ## Monitor and cleanup log files
+	bash scripts/monitor_logs.sh
 
 ##@ R targets (R.md §8.4)
 r-restore: ## install pinned packages

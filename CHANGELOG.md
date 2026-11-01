@@ -11,6 +11,10 @@ the `release` workflow verifies before publishing.
 
 ### Added
 
+- **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.
+- **Log management automation.** `scripts/monitor_logs.sh` to monitor and cleanup old/large log files.
+- **Task runner integration.** Added `setup-env` and `monitor-logs` targets to `Makefile` and `tasks.bat`.
+
 - **Data contracts.** Validated source → `raw` landing contracts
   (`contracts/`): a JSON Schema (`source-table.schema.json`), a registry mirroring
   `audit.source_tables`, per-table contracts for the ten sources, a template and a
