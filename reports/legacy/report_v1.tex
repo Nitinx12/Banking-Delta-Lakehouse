@@ -1,0 +1,73 @@
+% Report v1: Initial Design Template
+\documentclass[a4paper,11pt]{article}
+\usepackage{bankingreport}
+\usepackage{graphicx} % \resizebox (harmless if already loaded)
+
+% Shrink content to \linewidth only when it is too wide; narrower content is left alone.
+\newsavebox{\fitbox}
+\newcommand{\shrinktofit}[1]{%
+  \sbox{\fitbox}{#1}%
+  \ifdim\wd\fitbox>\linewidth\resizebox{\linewidth}{!}{\usebox{\fitbox}}\else\usebox{\fitbox}\fi}
+
+% Define report metadata
+\renewcommand{\reportkindname}{Daily Health Report}
+\renewcommand{\reportverdict}{OPERATIONAL}
+\renewcommand{\reportseverity}{INFO}
+\renewcommand{\reportdagid}{banking\_delta\_daily}
+\renewcommand{\reportdagrunid}{run\_20261101\_0001}
+\renewcommand{\reportgenerated}{2026-11-01 09:00 UTC}
+\renewcommand{\reportenv}{Development}
+
+\begin{document}
+
+\statusbanner{ok}{SYSTEMS OPERATIONAL}
+
+\section*{Executive Summary}
+The daily pipeline successfully completed all stages. All source systems were landed, transformed, and published to the Delta Lakehouse without critical errors.
+
+\begin{center}
+    \kpicard{Total Files}{21}{Processed}{ok} \quad
+    \kpicard{Total Size}{0 MB}{Landed}{ok} \quad
+    \kpicard{DQ Checks}{44}{Passed}{ok} \quad
+    \kpicard{Latency}{12m}{Pipeline}{ok}
+\end{center}
+
+\section*{Pipeline Flow}
+\begin{center}
+    \shrinktofit{%
+    \begin{tikzpicture}
+        \node[flowstep, source, ok] (src) {Sources};
+        \node[flowstep, raw, ok] (raw) [right=1cm of src] {Raw};
+        \node[flowstep, staging, ok] (stg) [right=1cm of raw] {Staging};
+        \node[flowstep, analytics, ok] (ana) [right=1cm of stg] {Analytics};
+        \node[flowstep, marts, ok] (marts) [right=1cm of ana] {Marts};
+        \node[flowstep, publish, ok] (pub) [right=1cm of marts] {Publish};
+
+        \draw[flowarrow] (src) -- (raw);
+        \draw[flowarrow] (raw) -- (stg);
+        \draw[flowarrow] (stg) -- (ana);
+        \draw[flowarrow] (ana) -- (marts);
+        \draw[flowarrow] (marts) -- (pub);
+    \end{tikzpicture}}
+\end{center}
+
+\section*{Data Quality Events}
+\begin{longtable}{|l|l|l|l|p{0.28\textwidth}|l|}
+    \hline
+    \textbf{Sev} & \textbf{Rule} & \textbf{Layer} & \textbf{Subject} & \textbf{Message} & \textbf{Impact} \\
+    \hline
+    \endfirsthead
+    \hline
+    \textbf{Sev} & \textbf{Rule} & \textbf{Layer} & \textbf{Subject} & \textbf{Message} & \textbf{Impact} \\
+    \hline
+    \endhead
+    \eventrow{INFO}{NULL\_CHECK}{RAW}{customer\_id}{No nulls found}{None}
+    \eventrow{INFO}{UNIQ\_CHECK}{STAGING}{txn\_id}{All unique}{None}
+    \eventrow{INFO}{VAL\_CHECK}{MARTS}{total\_bal}{Within range}{None}
+    \hline
+\end{longtable}
+
+\section*{Infrastructure Notes}
+\callout{ok}{Stability}{The system is performing within expected SLOs. All database connections are stable.}
+
+\end{document}
