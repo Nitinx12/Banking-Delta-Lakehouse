@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/logo/logo4.png" alt="Banking-Delta-Lakehouse" width="420">
+  <img src="assets/logo/logo5.png" alt="Banking-Delta-Lakehouse" width="420">
 </p>
 
 <h1 align="center">Banking Delta Lakehouse</h1>
@@ -106,11 +106,19 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
   </a>
 </p>
 
-</p>
-
 <p align="center">
   <sub><code>Python</code> · <code>PySpark</code> · <code>R</code> · <code>PostgreSQL</code> · <code>MongoDB</code> · <code>Apache Airflow</code> · <code>Docker</code> · <code>MySQL</code> · <code>Databricks</code> · <code>Streamlit</code> · <code>Plotly</code> · <code>uv</code> · <code>Ruff</code> · <code>Latex</code></sub>
 </p>
+
+## Business insights
+
+Curated findings from the `marts` schema, each traced to a mart and a reproducible query. Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
+
+| Question | Finding | Source |
+| --- | --- | --- |
+| Do a small group of customers drive most transaction value? | Top 10% of active customers hold 22.55% of transaction value. | `marts.mart_customer_360` |
+| How late is the loan book paying? | 12.01% of 600,005 loan payments are late. | `marts.mart_loan_portfolio` |
+| How much fraud is in card spend? | 0.499% of 3,005,000 card transactions (28,608,185.59). | `marts.mart_card_fraud` |
 
 ## Quick start
 
@@ -168,6 +176,7 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 | [docs/PIPELINE.md](docs/PIPELINE.md) | The daily pipeline end to end. |
 | [docs/CONTRACTS.md](docs/CONTRACTS.md) | Data contracts: source → `raw` landing. |
 | [docs/DATA-QUALITY.md](docs/DATA-QUALITY.md) | DQ contract per layer and how it gates publish. |
+| [docs/INSIGHTS.md](docs/INSIGHTS.md) | Business questions, findings and reproducible queries. |
 | [docs/AUDIT.md](docs/AUDIT.md) | Audit tables, watermarks and run lineage. |
 | [docs/AIRFLOW.md](docs/AIRFLOW.md) | DAGs, schedule and task gating. |
 | [docs/TESTING.md](docs/TESTING.md) | Test markers, layouts and how to run them. |

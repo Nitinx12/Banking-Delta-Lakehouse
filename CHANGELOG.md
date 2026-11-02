@@ -11,6 +11,7 @@ the `release` workflow verifies before publishing.
 
 ### Added
 
+- **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.
 - **Log management automation.** `scripts/monitor_logs.sh` to monitor and cleanup old/large log files.
 - **Task runner integration.** Added `setup-env` and `monitor-logs` targets to `Makefile` and `tasks.bat`.
