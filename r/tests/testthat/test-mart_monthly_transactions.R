@@ -49,5 +49,23 @@ test_that("txn_anomaly_flags flags a far change", {
 test_that("txn_cagr computes compound growth", {
   res <- bankinganalytics::txn_cagr(100, 121, 2)
   expect_equal(res$cagr, 0.1, tolerance = 1e-9)
+  expect_null(res$ci)
   expect_error(bankinganalytics::txn_cagr(-1, 10, 2), "positive")
+})
+
+test_that("txn_cagr interval brackets the point estimate when a series is given", {
+  set.seed(1)
+  months <- seq.Date(as.Date("2020-01-01"), as.Date("2023-12-01"), by = "month")
+  values <- 100 * exp(seq(0, 0.10 * length(months) / 12, length.out = length(months))) *
+    exp(rnorm(length(months), 0, 0.02))
+  res <- bankinganalytics::txn_cagr(values[1], values[length(values)],
+                                    length(months) / 12, values = values)
+  expect_true(!is.null(res$ci))
+  expect_true(res$ci[["low"]] < res$cagr && res$cagr < res$ci[["high"]])
+})
+
+test_that("txn_cagr interval is NULL for non-positive or too-short series", {
+  expect_null(bankinganalytics::txn_cagr_ci(100, 121, 2))
+  expect_null(bankinganalytics::txn_cagr_ci(100, 121, 2, values = c(100, -1, 121)))
+  expect_null(bankinganalytics::txn_cagr_ci(100, 121, 2, values = c(100, 121)))
 })

@@ -56,6 +56,16 @@ precision_at_k <- function(scores, labels, k) {
   sum(labels[pred_pos] == 1) / k
 }
 
+#' Share of all positives captured by the top-k scores (sensitivity at budget k).
+#' @export
+recall_at_k <- function(scores, labels, k) {
+  k <- min(k, length(scores))
+  positives <- sum(labels == 1)
+  if (positives == 0) return(NA_real_)
+  ord <- order(scores, decreasing = TRUE)
+  sum(labels[ord[seq_len(k)]] == 1) / positives
+}
+
 #' Average precision (area under the PR curve, step-wise).
 #' @export
 avg_precision <- function(scores, labels) {

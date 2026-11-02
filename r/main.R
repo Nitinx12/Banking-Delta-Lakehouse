@@ -244,8 +244,15 @@ step_analyses <- function(ctx) {
       # Approximate years
       years <- as.numeric(difftime(max(tot$month_start), min(tot$month_start), units = "days")) / 365.25
       if (start_val > 0 && end_val > 0 && years > 0) {
-        cagr_res <- bankinganalytics::txn_cagr(start_val, end_val, years)
-        bankinganalytics::write_table(ctx, "txn_cagr_total_amount", data.frame(cagr = cagr_res$cagr, years = years))
+        cagr_res <- bankinganalytics::txn_cagr(start_val, end_val, years,
+                                               values = tot$total_amount)
+        ci <- cagr_res$ci
+        bankinganalytics::write_table(ctx, "txn_cagr_total_amount", data.frame(
+          cagr = cagr_res$cagr,
+          cagr_low = if (is.null(ci)) NA_real_ else ci[["low"]],
+          cagr_high = if (is.null(ci)) NA_real_ else ci[["high"]],
+          years = years
+        ))
       }
     }
   }
@@ -282,23 +289,9 @@ step_analyses <- function(ctx) {
 
   if ("mart_card_fraud" %in% names(ctx$data)) {
     df <- ctx$data$mart_card_fraud
-    if ("card_type" %in% names(df) &&
-        all(c("fraud_txn_count", "txn_count") %in% names(df))) {
+    if (all(c("card_type", "fraud_txn_count", "txn_count") %in% names(df))) {
       prof <- bankinganalytics::fraud_rate_profile(df, "card_type", "fraud_txn_count", "txn_count")
       bankinganalytics::write_table(ctx, "fraud_rate_by_card_type", prof)
-    }
-
-    # Performance metrics (Tier 2 diagnostic)
-    if ("is_fraud" %in% names(df)) {
-      # We need a score for these metrics. Use the predicted scores if available,
-      # otherwise we just skip or use a placeholder.
-      # Since this is step_analyses, we might not have scores yet unless we call predict first.
-      # For now, we check if a 'fraud_score' column was already added to the mart data.
-      if ("fraud_score" %in% names(df)) {
-        ap <- bankinganalytics::avg_precision(df$fraud_score, df$is_fraud)
-        p10 <- bankinganalytics::precision_at_k(df$fraud_score, df$is_fraud, k = 10)
-        bankinganalytics::write_table(ctx, "fraud_model_performance", data.frame(avg_precision = ap, precision_at_10 = p10))
-      }
     }
   }
 
@@ -400,18 +393,88 @@ step_predict <- function(ctx) {
   if (length(ctx$data) == 0) stop("no mart data in memory", call. = FALSE)
   scored <- 0L
 
+  pred_cfg <- cfg$predictive %||% list()
+  test_prop    <- pred_cfg$test_prop %||% 0.8
+  alert_budget <- pred_cfg$alert_budget %||% 10
+  min_rows     <- pred_cfg$min_rows_for_split %||% 40
+
+  # Fit on the earliest rows, score every row, and report metrics on the held-out
+  # rows only. Without a usable date column the metrics are still written but
+  # labelled in_sample, so a report can never present them as out-of-time.
+  score_one <- function(df, label_col, id_col, score_col, key, fit_fn) {
+    date_col <- intersect(c("month_start", "month_opened"), names(df))
+    date_col <- if (length(date_col)) date_col[[1L]] else NULL
+
+    split <- NULL
+    if (!is.null(date_col) && nrow(df) >= min_rows) {
+      split <- tryCatch(bankinganalytics::time_split(df, date_col, test_prop),
+                        error = function(e) NULL)
+    }
+
+    features <- setdiff(names(df), c(id_col, label_col, date_col))
+    model <- fit_fn(if (is.null(split)) df else split$train, label_col, features)
+    scores <- bankinganalytics::predict_risk_scores(model, df)
+    labels <- as.integer(as.character(df[[label_col]]) == as.character(model$positive))
+
+    id_vals <- df[[id_col]]
+    if (is.null(id_vals)) {
+      bankinganalytics::log_warn(sprintf(
+        "%s: no %s column, row numbers used as identifiers", key, id_col
+      ))
+      id_vals <- seq_len(nrow(df))
+    }
+    out <- setNames(data.frame(id_vals, scores), c(id_col, score_col))
+    bankinganalytics::write_table(ctx, paste0("predict_", key, "_scores"), out)
+
+    eval_idx <- if (is.null(split)) seq_len(nrow(df)) else split$test_idx
+    validation <- if (is.null(split)) "in_sample" else "oos_time_ordered"
+    if (is.null(split)) {
+      bankinganalytics::log_warn(sprintf(
+        "%s: metrics are in-sample (needs a dated mart with at least %d rows)",
+        key, min_rows
+      ))
+    }
+    metrics <- cbind(
+      data.frame(
+        mart = key,
+        model = model$type,
+        validation = validation,
+        cutoff = if (is.null(split)) NA_character_ else as.character(split$cutoff)
+      ),
+      bankinganalytics::binary_metrics(scores[eval_idx], labels[eval_idx], k = alert_budget)
+    )
+    bankinganalytics::write_table(ctx, paste0("predict_", key, "_metrics"), metrics)
+    invisible(TRUE)
+  }
+
   # 1. PD Scorecard (Loan Portfolio)
   if ("mart_loan_portfolio" %in% names(ctx$data)) {
     df <- ctx$data$mart_loan_portfolio
     if ("is_default" %in% names(df)) {
-      # Identify features automatically from the mart or config
-      features <- setdiff(names(df), c("loan_id", "is_default", "month_start"))
-      model <- bankinganalytics::fit_pd_scorecard(df, "is_default", features)
-      scores <- bankinganalytics::predict_risk_scores(model, df)
-
-      res <- data.frame(loan_id = df$loan_id, pd_score = scores)
-      bankinganalytics::write_table(ctx, "predict_pd_scores", res)
+      score_one(df, "is_default", "loan_id", "pd_score", "pd",
+                bankinganalytics::fit_pd_scorecard)
       scored <- scored + 1L
+
+      # Time-to-default needs exposure time, not just a default flag.
+      if ("months_on_book" %in% names(df)) {
+        cox <- tryCatch(
+          bankinganalytics::cox_fit(
+            df, "months_on_book", "is_default",
+            setdiff(names(df), c("loan_id", "is_default", "month_start", "month_opened",
+                                 "months_on_book"))
+          ),
+          error = function(e) e
+        )
+        if (inherits(cox, "error")) {
+          bankinganalytics::log_warn(sprintf("cox_fit skipped: %s", conditionMessage(cox)))
+        } else {
+          bankinganalytics::write_table(ctx, "predict_pd_survival", data.frame(
+            feature = names(cox$hazard_ratios),
+            hazard_ratio = as.numeric(cox$hazard_ratios),
+            concordance = cox$concordance
+          ))
+        }
+      }
     }
   }
 
@@ -419,12 +482,8 @@ step_predict <- function(ctx) {
   if ("mart_card_fraud" %in% names(ctx$data)) {
     df <- ctx$data$mart_card_fraud
     if ("is_fraud" %in% names(df)) {
-      features <- setdiff(names(df), c("card_id", "is_fraud", "month_start"))
-      model <- bankinganalytics::fit_fraud_model(df, "is_fraud", features)
-      scores <- bankinganalytics::predict_risk_scores(model, df)
-
-      res <- data.frame(card_id = df$card_id, fraud_score = scores)
-      bankinganalytics::write_table(ctx, "predict_fraud_scores", res)
+      score_one(df, "is_fraud", "card_id", "fraud_score", "fraud",
+                bankinganalytics::fit_fraud_model)
       scored <- scored + 1L
     }
   }
@@ -433,12 +492,8 @@ step_predict <- function(ctx) {
   if ("mart_customer_360" %in% names(ctx$data)) {
     df <- ctx$data$mart_customer_360
     if ("is_attrited" %in% names(df)) {
-      features <- setdiff(names(df), c("customer_id", "is_attrited", "month_start"))
-      model <- bankinganalytics::fit_attrition_model(df, "is_attrited", features)
-      scores <- bankinganalytics::predict_risk_scores(model, df)
-
-      res <- data.frame(customer_id = df$customer_id, attrition_score = scores)
-      bankinganalytics::write_table(ctx, "predict_attrition_scores", res)
+      score_one(df, "is_attrited", "customer_id", "attrition_score", "attrition",
+                bankinganalytics::fit_attrition_model)
       scored <- scored + 1L
     }
   }

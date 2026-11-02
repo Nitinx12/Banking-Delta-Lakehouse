@@ -7,6 +7,11 @@ test_that("psi identical ~0", {
   expect_lt(bankinganalytics::psi(x, x), 0.01)
 })
 
+test_that("psi of an empty side is NA", {
+  expect_true(is.na(bankinganalytics::psi(numeric(), rnorm(10))))
+  expect_true(is.na(bankinganalytics::psi(rnorm(10), numeric())))
+})
+
 test_that("bootstrap_ci returns 2 values", {
   ci <- bankinganalytics::bootstrap_ci(1:10, median, R = 50)
   expect_length(ci, 2)

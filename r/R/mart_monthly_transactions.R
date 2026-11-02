@@ -57,15 +57,40 @@ txn_anomaly_flags <- function(df, date_col, value_col) {
   )
 }
 
-#' Log-difference growth rate and CAGR with bootstrap CI.
+#' Log-difference growth rate and CAGR, with an interval when a series is given.
+#' The point estimate is the endpoint CAGR; the interval bootstraps the mean
+#' per-period log growth, which is the same quantity, so both agree.
 #' @param start_value,end_value Beginning and ending values.
 #' @param n_years Number of years between them.
-#' @param times Number of bootstrap resamples for the CI (default 0 = no CI).
+#' @param conf Confidence level of the interval.
+#' @param values Optional ordered positive observations covering the same period
+#'   (e.g. monthly totals). Without it no interval can be estimated and `ci` is NULL.
+#' @param seed Seed for the bootstrap.
 #' @export
-txn_cagr <- function(start_value, end_value, n_years, conf = 0.95) {
+txn_cagr <- function(start_value, end_value, n_years, conf = 0.95,
+                     values = NULL, seed = 20261028) {
   if (start_value <= 0 || end_value <= 0 || n_years <= 0) {
     stop("start_value, end_value and n_years must be positive", call. = FALSE)
   }
   cagr <- (end_value / start_value)^(1 / n_years) - 1
-  list(cagr = cagr)
+  list(cagr = cagr, ci = txn_cagr_ci(start_value, end_value, n_years, conf, values, seed))
+}
+
+#' Confidence interval of the CAGR from the per-period log growth rates.
+#' @param start_value,end_value Beginning and ending values.
+#' @param n_years Number of years between them.
+#' @param conf Confidence level.
+#' @param values Ordered positive observations; NULL or too short gives NULL.
+#' @param seed Seed for the bootstrap.
+#' @export
+txn_cagr_ci <- function(start_value, end_value, n_years, conf = 0.95,
+                        values = NULL, seed = 20261028) {
+  if (is.null(values) || length(values) < 3L || any(values <= 0, na.rm = TRUE)) {
+    return(NULL)
+  }
+  growth <- diff(log(as.numeric(values)))
+  per_year <- (length(values) - 1) / n_years
+  annual <- bankinganalytics::bootstrap_ci(growth, mean, conf = conf, seed = seed)
+  c(low = exp(unname(annual[[1L]]) * per_year) - 1,
+    high = exp(unname(annual[[2L]]) * per_year) - 1)
 }
