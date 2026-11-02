@@ -97,12 +97,12 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 ## Live Dashboard
 
 <p align="center">
-  <a href="https://walmartdbt-b3fdfqwyky3ghzr5syyxtu.streamlit.app/"><b>Live Demo</b></a> &mdash; interactive dashboard on the <code>marts</code> schema &middot; <a href="dashboard/README.md">docs</a>
+  <a href="https://banking-delta-lakehouse-a8rrtbxdaeacw2rsckfpyf.streamlit.app/"><b>Live Demo</b></a> &mdash; interactive dashboard on the <code>marts</code> schema &middot; <a href="dashboard/README.md">docs</a>
 </p>
 
 <p align="center">
-  <a href="https://walmartdbt-b3fdfqwyky3ghzr5syyxtu.streamlit.app/">
-    <img src="assets/images/dashboard_image2.png" width="90%" alt="Walmart Sales Dashboard — gold schema" style="border-radius:12px; border:1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(15,23,42,0.12);" />
+  <a href="https://banking-delta-lakehouse-a8rrtbxdaeacw2rsckfpyf.streamlit.app/">
+    <img src="assets/images/dashboard_image2.png" width="90%" alt="Banking Delta Dashboard - marts schema" style="border-radius:12px; border:1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(15,23,42,0.12);" />
   </a>
 </p>
 
