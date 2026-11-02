@@ -18,7 +18,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run setup-env monitor-logs) do (
+for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run setup-env monitor-logs) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -146,6 +146,10 @@ exit /b 0
 
 :t_run-jobs
 uv run python scripts\run_jobs.py %ARGS% || exit /b 1
+exit /b 0
+
+:t_run-notebooks
+uv run python scripts\run_notebooks.py %ARGS% || exit /b 1
 exit /b 0
 
 :t_staging
