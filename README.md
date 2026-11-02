@@ -5,7 +5,7 @@
 <h1 align="center">Banking Delta Lakehouse</h1>
 
 <p align="center">
-  Banking-Delta-Lakehouse is a daily banking lakehouse pipeline that ingests data from MySQL, MongoDB, and Databricks using PySpark, transforms it in PostgreSQL through four layers (raw → staging → analytics → marts), and publishes curated Delta tables to Databricks. Apache Airflow        orchestrates the pipeline, PostgreSQL stored procedures handle transformations, and automated data-quality gates, audit logging, and a read-only Streamlit dashboard support reliable data delivery.
+  Banking-Delta-Lakehouse is a daily banking data pipeline. It pulls data from MySQL, MongoDB, and Databricks with PySpark, moves it through four PostgreSQL layers (raw → staging → analytics → marts) using stored procedures, and publishes the final marts to Databricks Delta. Airflow       runs it on a schedule, and data-quality checks at every layer stop bad data before it reaches the next step. Each run is logged for auditing. Results are served through a read-only Streamlit dashboard, an R layer for deeper analysis, and automated LaTeX reports (daily, weekly, and       incident PDFs) that Airflow emails out after each run.
 </p>
 
 ## Tech stack
