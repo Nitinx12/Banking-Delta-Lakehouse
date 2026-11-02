@@ -32,3 +32,11 @@ test_that("precision_at_k and avg_precision behave on a clean example", {
   expect_equal(bankinganalytics::precision_at_k(scores, labels, 2), 1)
   expect_equal(bankinganalytics::avg_precision(scores, labels), 1)
 })
+
+test_that("recall_at_k counts only the positives actually found", {
+  scores <- c(0.9, 0.8, 0.3, 0.2)
+  labels <- c(1, 1, 0, 0)
+  expect_equal(bankinganalytics::recall_at_k(scores, labels, 2), 1)
+  expect_equal(bankinganalytics::recall_at_k(scores, labels, 1), 0.5)
+  expect_true(is.na(bankinganalytics::recall_at_k(scores, c(0, 0, 0, 0), 2)))
+})

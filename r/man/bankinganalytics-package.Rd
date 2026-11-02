@@ -5,9 +5,9 @@
 \alias{avg_precision}
 \alias{backtest_forecast}
 \alias{bank_palette}
+\alias{binary_metrics}
 \alias{bootstrap_ci}
 \alias{branch_benchmarks}
-\alias{calculate_psi}
 \alias{cfg_analysis}
 \alias{cfg_contracts}
 \alias{cfg_env}
@@ -16,6 +16,7 @@
 \alias{concentration_by}
 \alias{control_flags}
 \alias{cost_threshold}
+\alias{cox_fit}
 \alias{eb_shrink}
 \alias{ensure_factor_target}
 \alias{fit_attrition_model}
@@ -53,6 +54,7 @@
 \alias{psi}
 \alias{psi_check}
 \alias{read_mart}
+\alias{recall_at_k}
 \alias{reconcile_txns_vs_kpi}
 \alias{rfm_score}
 \alias{robust_z}
@@ -65,8 +67,10 @@
 \alias{suppress_small_cells}
 \alias{survival_fit}
 \alias{theme_bank}
+\alias{time_split}
 \alias{txn_anomaly_flags}
 \alias{txn_cagr}
+\alias{txn_cagr_ci}
 \alias{txn_mix_share}
 \alias{txn_monthly_totals}
 \alias{vintage_triangle}

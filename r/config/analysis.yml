@@ -34,6 +34,12 @@ projection_horizon: 6      # future projection horizon (months)
 forecast_min_months: 30    # distinct months needed before a backtest is run
 retention_days: 30
 
+# Time-ordered validation for the Tier 3 models (docs/R.md section 7).
+predictive:
+  test_prop: 0.8           # earliest 80% of rows by date train, latest 20% evaluates
+  alert_budget: 10         # top-k slice for precision / recall at k
+  min_rows_for_split: 40   # below this the metrics are reported as in_sample
+
 kpi:
   forecast_measure: null
 

@@ -1,5 +1,60 @@
 # Predictive modelling modules for Banking Delta Lakehouse.
 
+#' Time-ordered train/test split: the earliest rows train, the latest rows evaluate.
+#' Random splits would let the future leak into the model, so they are never used
+#' on mart data.
+#' @param df Data frame.
+#' @param date_col Column defining time order.
+#' @param prop Share of rows (earliest first) assigned to train.
+#' @return list(train, test, train_idx, test_idx, cutoff)
+#' @export
+time_split <- function(df, date_col, prop = 0.8) {
+  if (!date_col %in% names(df)) {
+    stop(sprintf("date column not found: %s", date_col), call. = FALSE)
+  }
+  if (!is.numeric(prop) || prop <= 0 || prop >= 1) {
+    stop("prop must be strictly between 0 and 1", call. = FALSE)
+  }
+  if (length(unique(df[[date_col]])) < 2L) {
+    stop(sprintf("date column %s has a single distinct value", date_col), call. = FALSE)
+  }
+  ord <- order(df[[date_col]], na.last = TRUE)
+  n <- length(ord)
+  cut <- floor(n * prop)
+  if (cut < 1L || cut >= n) stop("split leaves an empty side", call. = FALSE)
+  train_idx <- ord[seq_len(cut)]
+  test_idx <- ord[seq.int(cut + 1L, n)]
+  list(
+    train = df[train_idx, , drop = FALSE],
+    test = df[test_idx, , drop = FALSE],
+    train_idx = train_idx,
+    test_idx = test_idx,
+    cutoff = df[[date_col]][ord[cut]]
+  )
+}
+
+#' Ranking metrics for a binary classifier, always shown next to the base rate.
+#' Accuracy is deliberately absent: with rare events it flatters every model.
+#' @param scores Numeric scores; higher means more likely positive.
+#' @param labels 0/1 vector, 1 = positive.
+#' @param k Alert budget for the top-k metrics.
+#' @export
+binary_metrics <- function(scores, labels, k = 10) {
+  if (length(scores) != length(labels)) {
+    stop("scores and labels must have the same length", call. = FALSE)
+  }
+  if (!length(scores)) stop("empty evaluation sample", call. = FALSE)
+  labels <- as.integer(labels)
+  data.frame(
+    n = length(labels),
+    positives = sum(labels == 1L),
+    base_rate = mean(labels == 1L),
+    avg_precision = bankinganalytics::avg_precision(scores, labels),
+    precision_at_k = bankinganalytics::precision_at_k(scores, labels, k),
+    recall_at_k = bankinganalytics::recall_at_k(scores, labels, k)
+  )
+}
+
 #' Ensure a target column is a factor.
 #' @param df data frame
 #' @param target column name
@@ -131,7 +186,7 @@ fit_pd_scorecard <- function(df, target, features, positive = NULL) {
 #' @export
 fit_fraud_model <- function(df, target, features, positive = NULL) {
   model <- .fit_binary_logit(df, target, features, positive)
-  c(model, list(type = "gbm"))
+  c(model, list(type = "logistic"))
 }
 
 #' Attrition Risk Model

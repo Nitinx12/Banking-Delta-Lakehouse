@@ -33,3 +33,30 @@ test_that("concentration_by returns hhi and top-n share", {
   expect_equal(res$hhi, 0.25 + 0.09 + 0.04, tolerance = 1e-9)
   expect_equal(res$top_n_share, 0.5, tolerance = 1e-9)
 })
+
+test_that("cox_fit returns hazard ratios in the expected direction", {
+  skip_if_not_installed("survival")
+  set.seed(42)
+  n <- 300
+  risk <- rnorm(n)
+  df <- data.frame(
+    loan_id = seq_len(n),
+    months_on_book = pmax(1, rexp(n, rate = exp(0.6 * risk))),
+    is_default = rbinom(n, 1, 0.8),
+    risk = risk
+  )
+  fit <- bankinganalytics::cox_fit(df, "months_on_book", "is_default", "risk")
+  expect_length(fit$hazard_ratios, 1)
+  expect_gt(unname(fit$hazard_ratios[["risk"]]), 1)
+  expect_gt(fit$concordance, 0.5)
+})
+
+test_that("cox_fit validates its inputs", {
+  skip_if_not_installed("survival")
+  df <- data.frame(t = c(1, 2, 3), e = c(0, 0, 0), x = c(1, 2, 3))
+  expect_error(bankinganalytics::cox_fit(df, "t", "e", "x"), "no observed events")
+  expect_error(bankinganalytics::cox_fit(df, "t", "e", character()), "at least one feature")
+  expect_error(bankinganalytics::cox_fit(df, "t", "e", "missing_col"), "not found")
+  bad <- data.frame(t = c(0, 1, 2), e = c(1, 1, 0), x = c(1, 2, 3))
+  expect_error(bankinganalytics::cox_fit(bad, "t", "e", "x"), "positive")
+})
