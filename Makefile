@@ -29,7 +29,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
 .PHONY: help install hooks lint format contracts contracts-sync sql-lint unit cov smoke spark-smoke \
-		sql-smoke integration smoke-live test leaks ci up down run-jobs staging analytics \
+		sql-smoke integration smoke-live test leaks ci up down run-jobs run-notebooks staging analytics \
 		marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
 		report-fixture report-pdf report-tex report-docker report-clean report \
 		report-incident report-weekly \
@@ -142,6 +142,9 @@ down: ## Stop the local Airflow stack
 ##@ Pipeline (acts on the environment .env points at!)
 run-jobs: ## [1] Extract: mongo -> databricks -> mysql (ARGS="--sources mongo")
 	$(PY) scripts/run_jobs.py $(ARGS)
+
+run-notebooks: ## Execute the project notebooks (ARGS="--notebooks mysql")
+	$(PY) scripts/run_notebooks.py $(ARGS)
 
 staging: ## [2] CALL staging.sp_load_all()
 	@$(PG_ENV) $(PSQL) -f sql/staging/00_master_load.sql

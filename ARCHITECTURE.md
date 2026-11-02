@@ -127,6 +127,7 @@ Banking-Delta-Lakehouse/
 │   ├── run_jobs.py             # extracts in order (mongo → databricks → mysql)
 │   ├── run_{raw,staging,analytics,marts}_tests.py   # data-quality runners
 │   └── seed_watermarks.py      # first incremental run of a new table
+│   ├── run_notebooks.py     # execute the source-exploration notebooks
 │
 ├── sql/
 │   ├── scripts/00–06           # bootstrap: DB, schemas, audit, registry, watermarks
@@ -144,6 +145,7 @@ Banking-Delta-Lakehouse/
 ├── airflow/                    # dags/, include/banking_airflow/, compose, Dockerfile
 ├── dashboard/                  # Streamlit read-only app (Databricks SQL)
 ├── r/                          # R analysis layer (read-only consumer; see docs/R.md)
+├── reports/                    # daily/weekly/incident PDF + TeX output
 ├── docs/                       # per-subsystem guides
 └── conf/ · notebooks/          # log4j2 config · source exploration notebooks
 ```
@@ -272,7 +274,8 @@ flowchart LR
   dim_loan, dim_txn_profile`; `fact_card_transactions, fact_loan_payments,
   fact_transactions, fact_support_tickets`.
 - **Marts:** `mart_customer_360, mart_branch_performance, mart_monthly_transactions,
-  mart_loan_portfolio, mart_card_fraud, mart_support_performance, mart_kpi_monthly`.
+  mart_loan_portfolio, mart_card_fraud, mart_support_performance, mart_kpi_monthly,
+  mart_loan_vintage`.
 - A schema is only ever written by its owner. Never hand-edit `raw`/`staging`/`analytics`/
   `marts`; go through the extractor or the `sp_load_*` procedures.
 - `staging._stg_*` tables are transient: they exist only between the Spark write and the
@@ -487,7 +490,7 @@ flowchart LR
 
 ## 10. Orchestration (Airflow)
 
-Airflow 3.3.2 (CeleryExecutor) in Docker Compose. Two DAGs; the DAG holds no pipeline
+Airflow 3.3.2 (CeleryExecutor) in Docker Compose. Three DAGs; the DAGs hold no pipeline
 logic, only task wiring.
 
 ```mermaid
@@ -537,6 +540,7 @@ flowchart LR
   `max_active_tasks=4`, `dagrun_timeout=5h`, param `publish_full`; created **paused**.
 - `banking_watchdog` — every 3 hours; reads `audit.pipeline_runs` directly and stays
   **silent when healthy**; mails `[MISSED]` / `[STUCK]` / `[WATCHDOG-ERROR]` otherwise.
+- `banking_report_weekly` — Monday 08:00 IST; builds the weekly digest PDF and mails it.
 - `preflight` fails in seconds if Java, disk, the warehouse, a source or Maven is missing.
 - DQ-gate tasks use `retries=0` (a data problem does not fix itself); loads retry once.
 - `finalize_audit` and `send_pipeline_summary` use `trigger_rule=all_done`;
