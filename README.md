@@ -1,5 +1,7 @@
 <p align="center">
-  <img src="assets/logo/logo6.png" alt="Banking-Delta-Lakehouse" width="500">
+  <p align="center">
+  <img src="assets/logo/logo6.png" alt="Banking-Delta-Lakehouse" width="400" height="150" style="max-width: 100%; height: auto;">
+</p>
 </p>
 
 <h1 align="center">Banking Delta Lakehouse</h1>
