@@ -147,12 +147,13 @@ r/
 │   ├── extract.R                # read_mart(), mart_fingerprint()
 │   ├── run_context.R            # run_key, git SHA, manifest read/write
 │   ├── logging.R                # logger wrapper — no row values, ever
-│   ├── privacy.R                # (planned) small-cell suppression, id hashing
-│   ├── stats_helpers.R          # (planned) gini, psi, bootstrap CI, shrinkage, backtests
-│   ├── plot_theme.R             # (planned) one ggplot theme + palette for every figure
+│   ├── privacy.R                # small-cell suppression, id hashing
+│   ├── stats_helpers.R          # gini, psi, bootstrap CI, shrinkage
+│   ├── plot_theme.R             # one ggplot theme + palette for every figure
 │   ├── utils.R                  # %||%
 │   ├── cross_mart.R             # profile_mart(), write_table() — Tier 0, works on any mart
-│   └── mart_<name>.R            # (planned) pure analysis functions, ONE FLAT FILE PER MART
+│   ├── predictive.R             # time_split(), binary_metrics(), WoE + glm fit, scoring
+│   └── mart_<name>.R            # pure analysis functions, ONE FLAT FILE PER MART
 │                                #   e.g. mart_kpi_monthly.R, mart_card_fraud.R
 │
 ├── inst/sql/                    # parametrised read queries — SQL out of R strings
@@ -168,7 +169,7 @@ r/
 │   ├── 05_card_fraud/
 │   ├── 06_support_performance/
 │   ├── 07_kpi_monthly/
-│   └── _shared/                 #   _setup.qmd, _quarto.yml, brand CSS
+│   └── _shared/                 #   _setup.R — reads run-dir tables for the narratives
 │
 ├── scripts/
 │   ├── check_gate.R             # exit 0/1 — usable from Make or Airflow
@@ -178,13 +179,14 @@ r/
 │   ├── testthat.R
 │   └── testthat/
 │       ├── setup.R              # unsets DB env vars — the R twin of conftest no_network
-│       ├── fixtures/            # tiny synthetic mart frames (CSV/parquet), no real data
+│       ├── fixtures/            # optional reusable frames; most tests build synthetic
+│       │                        #   data inline, so this folder may be empty
 │       └── test-*.R             # one file per R/ file
 │
 ├── docs/
-│   ├── DATA-DICTIONARY.md       # generated: columns, types, grain per mart
-│   ├── METHODS.md               # every method: assumptions, validation, known limits
-│   └── MODEL-CARDS/             # one card per predictive model
+│   ├── REVIEW-LOG.md            # dated lint / test / live-run log
+│   └── (DATA-DICTIONARY.md, METHODS.md and MODEL-CARDS/ live in the REPO ROOT docs/ —
+│       they are shared with the pipeline, so they are not duplicated here)
 │
 └── output/                      # GIT-IGNORED
     └── runs/
@@ -337,8 +339,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA marts GRANT SELECT ON TABLES TO r_reader;
 #' MART_CONFIG in publish_marts.py). If none is configured, only the non-empty
 #' check applies and a warning is logged.
 #'
-#' Next gate to add once the audit columns are confirmed (docs/AUDIT.md): the latest
-#' marts DQ verdict in `audit.v_dq_latest` must have no FAIL.
+#' When `gate.check_audit` is true (the default) the run also honours the audit
+#' gate: the latest marts DQ verdict in `audit.v_dq_latest` must contain checks
+#' and no failure, and the latest `audit.pipeline_runs` row must be `SUCCESS` -
+#' or `PARTIAL` with successful marts table runs. Those queries live in
+#' `inst/sql/mart_dq_status.sql` and `inst/sql/pipeline_run_status.sql`.
 #' @param con A DBI connection.
 #' @param cfg Parsed analysis.yml.
 #' @param now Reference instant (injectable for tests).
@@ -380,13 +385,15 @@ assert_marts_ready <- function(con, cfg = cfg_analysis(), now = Sys.time()) {
 }
 ```
 
-Two more gate checks to add once you have confirmed the audit columns (`docs/AUDIT.md`):
+The audit side of the gate is already implemented (`.audit_problems()`, enabled by
+`gate.check_audit` in `analysis.yml`):
 
-- the latest marts DQ verdict in `audit.v_dq_latest` has **no FAIL** (R must honour the same
-  gate that blocks publish);
-- the latest `audit.pipeline_runs` row is `SUCCESS` (or `PARTIAL` with marts tables succeeded).
+- the latest marts DQ verdict in `audit.v_dq_latest` must contain checks and **no failure**
+  (R honours the same gate that blocks publish);
+- the latest `audit.pipeline_runs` row must be `SUCCESS`, or `PARTIAL` with successful marts
+  table runs.
 
-Put those queries in `inst/sql/` and call them from `assert_marts_ready()`.
+The queries are `inst/sql/mart_dq_status.sql` and `inst/sql/pipeline_run_status.sql`.
 
 > **Date marts and `max()`:** a date-grain mart (`month_start`, `month_opened`) is "fresh"
 > relative to the calendar month, not to hours. Give those marts `max_age_hours` ≈ 24 × 35.
@@ -575,7 +582,9 @@ record, the same "audit survives failure" idea as `ARCHITECTURE.md` section 7.
 2. Add a `step_<name>(ctx)` function to `main.R` that reads `ctx$data[[mart]]`, calls your
    function and writes under `ctx$run_dir` (`write_table()`); append the relative path to
    `ctx$manifest$outputs`.
-3. Register it in `STEP_INFO` and `STEP_FUNS` (the order of `STEP_INFO` is the run order).
+3. Register it in `STEP_INFO` (the order of `STEP_INFO` is the run order). Dispatch is by
+   name — `do.call(paste0("step_", name), list(ctx))` — so the function must be called
+   `step_<name>`; there is no separate function registry.
 
 ### 4.8 Docker image
 
@@ -620,21 +629,26 @@ What exists in `r/` today versus what this guide still describes as the target s
 | `DESCRIPTION`, `NAMESPACE` (export-all pattern until roxygen2 is introduced) | Done |
 | `R/`: `config`, `db`, `logging`, `run_context`, `gate`, `contracts`, `extract`, `cross_mart`, `utils`, `privacy`, `stats_helpers`, `plot_theme`, `figures`, `reconciliation`, `monitoring`, all 7 `mart_*` (Tier 1 descriptive functions wired into `main.R` `step_analyses`) | Done |
 | `config/analysis.yml` (`freshness_col`, thresholds, seed), `config/contracts.yml` (all 7 marts) | Done |
-| `tests/testthat/` — one test file per `R/` file (config, run_context, contracts, cross_mart, gate, reconciliation, utils, privacy, monitoring, plot_theme, stats_helpers) | Done — 19 test files cover 19 of 24 R files; 5 helper R files (`config`, `db`, `extract`, `figures`, `logging`) have no dedicated testthat files as they are pure utility functions without side effects |
+| `tests/testthat/` — one test file per `R/` file, plus `setup.R` (hermetic guard) | Done — **24 of 24** `R/` files have a `test-<name>.R`; `test-db.R`, `test-figures.R`, `test-logging.R` and `test-utils.R` are thin (1 test each) |
 | `_targets.R` (fingerprint → read → contract → analysis targets), Quarto `analyses/*/` (00–07 thin narratives + `_shared/_setup.R`), `docs/DATA-DICTIONARY.md`, `docs/METHODS.md` | Done |
 | `docs/MODEL-CARDS/` (template + fraud / PD / attrition cards) | Done — cards are populated with scaffold specifications; full model training requires live data (Phases 4–5 of section 12) |
 | Makefile / `tasks.bat` `r-*` targets (incl. `r-cov`), `.github/workflows/r-ci.yml` (lint + test + covr floor 60 + R CMD check) | Done |
 | `scripts/dump_mart_schema.R`, `scripts/check_gate.R`, `scripts/prune_runs.R`, `scripts/snapshot_renv.R` | Done |
 | `renv.lock` | **Done** — committed (R 4.5.1, 140+ packages pinned) |
-| Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **Partially done** — helper functions and model cards are in place; full models need live data + pinned packages. See Phase 5 of section 12 for ordering. |
+| Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper) | **Partially done** — forecasts (`backtest_forecast` vs `SNAIVE`, `forecast_future`) are complete; PD/fraud/attrition are WoE + `stats::glm` with a **time-ordered split** and out-of-time `binary_metrics()`; `cox_fit()` covers time-to-default. Still missing: clustering (`tidyclust`/`mclust`), DEA, association rules, calibration plots. See Phase 5 of section 12. |
 
-What was verified when the scaffold was written and after code review: all `R/`, test and `main.R` files parse; the gate (empty / stale / missing / fresh), the profile and the contract checks were exercised against an in-memory database; `main.R --list`, bad-usage exit code and a failed-preflight run (manifest written, later steps `SKIPPED`) behave as documented. **Not verified** (require live PostgreSQL, Docker, or Quarto environment):
+What was verified when the scaffold was written, after code review, and again on 2026-10-31
+against a live warehouse (`r/docs/REVIEW-LOG.md`): all `R/`, test and `main.R` files parse;
+the gate (empty / stale / missing / fresh), the profile and the contract checks run against an
+in-memory database and against live data; `main.R --list`, bad-usage exit code and a
+failed-preflight run (manifest written, later steps `SKIPPED`) behave as documented; a full
+live run finished `SUCCESS` with identical table checksums on re-run; `r_reader` was confirmed
+read-only; coverage 72.3% (floor 60); `R CMD check` passes with 1 WARNING + 2 NOTEs.
+
+**Not verified** (require Docker or the CI environment):
 - Docker build and `renv::restore()` in container
-- `Rscript r/main.R` full pipeline against real warehouse
-- Quarto render of `analyses/*/index.qmd` (requires `quarto` package)
-- Real `RPostgres` connection through `RPostgres` package
-- DuckDB gate tests (require `duckdb` package)
-- Model training (PD, fraud, attrition) on live data
+- Quarto render inside the container (`WITH_QUARTO=true`)
+- Model training (PD, fraud, attrition) on live labelled data — needs label columns
 - `renv::status()` lockfile sync in CI environment
 
 ---
@@ -686,7 +700,7 @@ never by averaging the ratio column.
 | **RFM-style segmentation** | Recency/frequency/monetary features → quantile scoring or k-means / GMM (`tidyclust`, `mclust`); pick *k* via silhouette + stability across seeds | Segment profile table |
 | **Product holding / cross-sell** | Association rules (`arules`) on product ownership; lift and confidence with min support | Next-best-product shortlist |
 | **Lifetime value** | Contribution-margin-based CLV; if you only have balances/fees, label it a *proxy* | CLV deciles |
-| **Attrition / dormancy risk** | Logistic / gradient-boosted model (`tidymodels`) with an **explicit, written outcome definition** (e.g. no activity N days) and a time-based split | Scored list + model card |
+| **Attrition / dormancy risk** | WoE + logistic (`fit_attrition_model()`) with an **explicit, written outcome definition** (e.g. no activity N days) and a time-based split (`time_split()`); gradient boosting would need `xgboost` pinned | Scored list + `predict_attrition_metrics` + model card |
 | **Segment drift** | Segment mix over time, PSI of features | Monitoring panel |
 
 Pitfalls: define the label window *before* modelling; no features from after the label date;
@@ -742,8 +756,8 @@ prediction intervals, not just point forecasts.
 | Portfolio quality | Delinquency buckets, NPL ratio, coverage — **recomputed from counts/balances** |
 | **Vintage analysis** | Cohort by `month_opened`, performance by months-on-book (cohort triangle heatmap) |
 | **Roll rates / transition matrices** | Bucket-to-bucket Markov transition probabilities (needs a bucket history; may require a mart extension) |
-| **Time-to-default / prepayment** | Kaplan–Meier + Cox PH (`survival`, `ggsurvfit`, `flexsurv`); handle censoring explicitly |
-| **Probability-of-default scorecard** | WoE/IV binning + logistic (`scorecard`), then discrimination (AUC, KS, Gini) **and calibration** (`probably`) |
+| **Time-to-default / prepayment** | Kaplan–Meier (`survival_fit()`) + Cox PH (`cox_fit()`, `survival`); handle censoring explicitly. `ggsurvfit`/`flexsurv` for curves and parametric hazards are later additions |
+| **Probability-of-default scorecard** | WoE/IV binning + logistic in-package (`fit_pd_scorecard()`, `stats::glm` — the `scorecard` package is not used), then discrimination (AUC, KS, Gini) **and calibration** (`probably`) |
 | Concentration | HHI by product / branch / segment; top-N exposure share |
 | Expected loss | PD × LGD × EAD **only** if LGD/EAD inputs exist; otherwise label as indicative |
 | Stress / sensitivity | Parametric shocks on PD or rates → delta in EL |
@@ -756,7 +770,7 @@ for any PD model; never present an uncalibrated score as a probability.
 | Analysis | Method / packages |
 |---|---|
 | Fraud rate profile | By hour, merchant category, channel, amount band, with Wilson/Bayesian intervals |
-| **Supervised model** | Gradient boosting / regularised logistic (`tidymodels`); **time-ordered split** (`rsample::initial_time_split`) |
+| **Supervised model** | WoE + logistic (`fit_fraud_model()`) today; gradient boosting / regularised logistic needs `xgboost`/`glmnet` pinned. **Time-ordered split** via `time_split()` (earliest `predictive.test_prop` of rows train) |
 | **Right metrics** | PR-AUC, recall at fixed alert budget, precision@k, expected cost — **not** accuracy or ROC-AUC alone |
 | **Threshold by cost** | Choose the cut-off from cost of a missed fraud vs cost of a false alert |
 | Unsupervised | Isolation forest (`isotree`) for novelty where labels lag |
@@ -807,10 +821,12 @@ Pitfall: tickets still open are censored, not "slow" — dropping them biases ev
 
 ## 6. The `targets` pipeline
 
-> **Status:** `main.R` (section 4.7) is the entry point today and runs plain function calls.
-> Adopt `targets` when you have several analyses with real dependencies: add one step to
-> `main.R` that calls `targets::tar_make()`. The run key, gate, manifest and exit codes stay in
-> `main.R`; `targets` only adds the dependency graph and caching.
+> **Status:** `main.R` (section 4.7) is the entry point and runs plain function calls; it has a
+> dedicated `targets` step that calls `targets::tar_make()` (and is skipped with a warning when
+> `_targets.R` or the package is missing). `_targets.R` currently wires the `kpi` and `txn`
+> blocks (fingerprint → read → contract → analyses → backtest); the other five marts still run
+> through `main.R` only. The run key, gate, manifest and exit codes stay in `main.R`;
+> `targets` only adds the dependency graph and caching.
 
 `targets` gives you a dependency graph, caching, and "only re-run what changed". The
 fingerprint targets make caching safe: a mart is re-read only if its row count or freshness
@@ -1108,14 +1124,19 @@ a smaller `renv.lock` is a more maintainable one.
    `renv.lock` (includes `duckdb`, `testthat`, `withr` so tests never skip).
 2. ~~Create the `r_reader` role; copy `r/.env.r.example` to `r/.env.r`~~ **Done** (role
    creation is a DBA step — confirm it exists in the target environment).
-3. `Rscript r/main.R --list`, then `Rscript r/main.R --only=preflight,gate` against the real
-   warehouse. *(Not run here — needs a live PostgreSQL.)*
+3. ~~`Rscript r/main.R --list`, then `Rscript r/main.R --only=preflight,gate` against the real
+   warehouse.~~ **Done** (gate + contracts verified on live data, 2026-10-31 —
+   `r/docs/REVIEW-LOG.md`).
 4. ~~Write `scripts/dump_mart_schema.R`, generate `docs/DATA-DICTIONARY.md`~~ **Done.**
 5. ~~Fill `config/analysis.yml` and `config/contracts.yml`~~ **Done** (all seven marts).
-6. Run the full `Rscript r/main.R`; inspect `output/runs/<run_key>/manifest.json` and the
-   profiles. *(Needs a live warehouse.)*
+6. ~~Run the full `Rscript r/main.R`; inspect `output/runs/<run_key>/manifest.json` and the
+   profiles.~~ **Done** (full live run `SUCCESS`, reproducible checksums, forced-failure
+   `FAILED` manifest — `r/docs/REVIEW-LOG.md`).
 7. ~~Add the `r-*` targets to both `Makefile` and `tasks.bat`; add `r-ci.yml`~~ **Done.**
 8. Build and run the image (section 4.8). *(Needs Docker daemon.)*
 9. Ship the first real analysis: `R/mart_kpi_monthly.R` + a `step_kpi` in `main.R`.
-   *(Helpers exist; the Quarto narrative is scaffolded; model training needs live data.)*
+   **Mostly done** — Tier 1 descriptive analyses run from `step_analyses`, forecasts from
+   `step_forecast`, risk scores + out-of-time metrics from `step_predict`; the Quarto
+   narratives read those tables. What remains is training on live labelled data (the marts
+   currently carry no `is_default` / `is_fraud` / `is_attrited` columns).
 10. ~~Add a pointer to `ARCHITECTURE.md` and record the `r/` subsystem~~ **Done.**

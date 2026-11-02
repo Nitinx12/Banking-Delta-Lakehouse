@@ -60,7 +60,7 @@
 - Very small samples may produce unstable PSI.
 - PSI isagnostic to direction of shift — always pair with a domain review.
 
-**Validation:** Unit test verifies `psi(x, x) < 0.01` for identical samples.
+**Validation:** Unit test verifies `psi(x, x) < 0.01` for identical samples and `psi(numeric(), x) == NA_real_` for an empty side. The former duplicate `calculate_psi()` was removed; `psi()` is the single implementation.
 
 
 ---
@@ -462,7 +462,7 @@
 **Assumptions & limits:**
 - Requires `survival` package.
 - Ties in event times are handled by Efron's approximation in `survfit`.
-- Survival curve is descriptive only — does not condition on covariates (use Cox PH for that).
+- Survival curve is descriptive only — does not condition on covariates (use the Cox model in section 23 for that).
 
 
 ---
@@ -484,6 +484,107 @@
 **Assumptions & limits:**
 - Cohort labels should be in "YYYY-MM" format or comparable date strings.
 - The sum `sum(x)` across all cohort/mob cells gives total outstanding principal.
+
+
+---
+
+
+## 21. Time-ordered train/test split
+
+**File:** `R/predictive.R::time_split()`<br>
+**Packages:** base R
+
+**Purpose:** Split a mart into a training sample (earliest rows) and an evaluation sample (latest rows) so that no future information can reach the model.
+
+**Input:** Data frame `df`, `date_col`, `prop` (share assigned to train, default 0.8).
+
+**Computation:**
+1. `ord <- order(df[[date_col]], na.last = TRUE)`
+2. `cut <- floor(n * prop)`; rows `ord[1:cut]` train, `ord[(cut+1):n]` test
+3. Return `list(train, test, train_idx, test_idx, cutoff)` where `cutoff` is the largest training date
+
+**Assumptions & limits:**
+- Errors when `date_col` has a single distinct value or `prop` is outside `(0, 1)` — a split that cannot be made honestly must fail, not fall back to a random split.
+- `main.R::step_predict` catches that error and reports the resulting metrics as `validation = in_sample`.
+- Ties on the date are broken by row order (stable), so results are reproducible.
+
+**Validation:** Unit tests cover the date separation, the returned indices/cutoff, and every rejection path.
+
+
+---
+
+
+## 22. Binary ranking metrics (with base rate)
+
+**File:** `R/predictive.R::binary_metrics()`, `R/mart_card_fraud.R::recall_at_k()`<br>
+**Packages:** base R + `avg_precision()`, `precision_at_k()`
+
+**Purpose:** Report discrimination of a binary score on a fixed sample, always next to the base rate, so a metric can never be read without its naive baseline.
+
+**Input:** `scores` (positive-class probabilities), `labels` (0/1), `k` (alert budget, default 10 from `analysis.yml` → `predictive.alert_budget`).
+
+**Output (one row):** `n`, `positives`, `base_rate`, `avg_precision`, `precision_at_k`, `recall_at_k`.
+
+**Computation of recall@k:** order by score descending, `sum(labels[top-k] == 1) / sum(labels == 1)`; `NA` when there are no positives.
+
+**Assumptions & limits:**
+- Accuracy is deliberately absent: with rare events it flatters every model.
+- `avg_precision` must beat `base_rate` to be a finding; a model at base rate adds nothing.
+- Metrics are only as honest as the split they run on — check the paired `validation` column (section 21).
+
+**Validation:** Unit tests on a clean ranking, an empty-positive case, and length mismatch.
+
+
+---
+
+
+## 23. Cox proportional-hazards model (time-to-default)
+
+**File:** `R/mart_loan_portfolio.R::cox_fit()`<br>
+**Packages:** `survival`
+
+**Purpose:** Model the hazard of default as a function of covariates while handling right-censored loans explicitly.
+
+**Input:** Data frame with `time_col` (positive exposure time, e.g. `months_on_book`), `event_col` (1 = default, 0 = censored), `features`.
+
+**Output:** `list(model, features, hazard_ratios, concordance)` — `hazard_ratios = exp(coef)`; `concordance` is the Harrell C of the fit.
+
+**Computation:**
+1. Validate columns, strictly positive times and at least one observed event
+2. Build `surv_obj <- Surv(time, event)` and fit `coxph(surv_obj ~ features)` (Efron ties, default)
+3. Return exponentiated coefficients and concordance
+
+**Assumptions & limits:**
+- Proportional hazards must hold; check with `survival::cox.zph()` before trusting a hazard ratio — not automated yet.
+- Requires `survival` installed; the function fails loudly otherwise rather than skipping silently.
+- Concordance measures ranking, not calibration; a hazard ratio is not a probability of default.
+
+**Validation:** Unit test on a simulated hazard verifies the coefficient direction and `concordance > 0.5`; input guards are tested.
+
+
+---
+
+
+## 24. CAGR with bootstrap confidence interval
+
+**File:** `R/mart_monthly_transactions.R::txn_cagr()`, `txn_cagr_ci()`<br>
+**Packages:** base R + `stats_helpers.R::bootstrap_ci()`
+
+**Purpose:** Compound annual growth rate of a measure, with an interval when the underlying series is available.
+
+**Input:** `start_value`, `end_value`, `n_years`, `conf` (default 0.95), optional `values` (ordered positive observations covering the period), `seed`.
+
+**Computation:**
+1. Point estimate: `cagr = (end/start)^(1/n_years) - 1`
+2. With `values`: per-period log growth `g <- diff(log(values))`; bootstrap the mean of `g` (`R = 1000`, fixed seed); annualise as `exp(mean_g * (length(values)-1)/n_years) - 1`
+3. Without `values` (or fewer than three observations, or any `<= 0`): `ci = NULL`
+
+**Assumptions & limits:**
+- Endpoint CAGR equals `exp(mean(g) * periods_per_year) - 1` exactly, so the point estimate and the interval describe the same quantity.
+- The bootstrap assumes the per-period growth rates are exchangeable; strong regime changes widen or bias the interval.
+- The interval reflects historical variability, not a forecast.
+
+**Validation:** Unit tests cover the point estimate, that the interval brackets it when a series is supplied, and the `NULL` paths.
 
 
 ---

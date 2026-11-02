@@ -2,7 +2,8 @@
 
 **Owner:** R Analysis Team  
 **Last trained:** N/A (scaffold only; model requires live warehouse + labelled data)  
-**Package version:** `tidymodels` (`rsample`, `recipes`, `parsnip`); `parsnip` with `glm` engine
+**Implementation:** `r/R/predictive.R::fit_attrition_model()` — WoE binning + logistic regression (`stats::glm`). `tidymodels`/`parsnip` are **not** used.  
+**Metrics written by:** `main.R::step_predict` → `output/runs/<run_key>/tables/predict_attrition_metrics.csv`
 
 ---
 
@@ -37,14 +38,23 @@ Binary classification: `is_attrited == 1` indicates the customer had no activity
 
 ## Model
 
-Scaffold uses **logistic regression** with `parsnip`/`glm` engine.
-
-- Model type: `logistic_reg() %>% set_engine("glm")`
-- Features: all columns except `customer_id`, `is_attrited`, `month_start`
+- Model type: logistic regression on WoE-encoded features (`fit_attrition_model()`, reported as `type = "logistic"`).
+- Features: all columns except `customer_id`, `is_attrited` and the date column (`month_start` / `month_opened`).
 
 ---
 
 ## Out-of-time metrics (mandatory)
+
+Written today by `binary_metrics()` on the held-out time slice (`time_split()`, earliest `predictive.test_prop` of rows by date train):
+
+| Metric | Notes |
+|---|---|
+| `avg_precision` | Ranking quality against `base_rate` |
+| `precision_at_k` / `recall_at_k` | `k = predictive.alert_budget` |
+| `base_rate` | Naive baseline |
+| `validation` + `cutoff` | `oos_time_ordered` when the split ran, otherwise `in_sample` |
+
+**Not yet reported — required before the model is relied on:** AUROC with a bootstrap interval, calibration plot, label immaturity exclusion, sensitivity of the inactivity window (30/60/90 days).
 
 | Metric | Target / threshold | Notes |
 |---|---|---|
