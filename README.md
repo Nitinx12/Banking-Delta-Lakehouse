@@ -1,7 +1,6 @@
 <p align="center">
   <img src="assets/logo/logo6.png" alt="Banking-Delta-Lakehouse" width="600">
 </p>
-</p>
 
 <h1 align="center">Banking Delta Lakehouse</h1>
 
@@ -91,6 +90,16 @@ flowchart LR
     class DASH ui
 ```
 
+| Metric | Value | How measured |
+| --- | --- | --- |
+| Source tables / collections | 10 | 5 MySQL + 2 MongoDB + 3 Databricks contracts |
+| Marts published | 9 | `mart_*` files in `sql/marts/` |
+| DQ checks across layers | 48 | 11 raw + 11 staging + 14 analytics + 12 marts |
+| Automated tests | 16 | 9 unit + 7 smoke tests |
+| Test coverage | `[TBD: run make ci]` | coverage output from CI |
+| Typical full-run time | `[TBD: run make profile]` | from audit tables or Airflow logs |
+| Largest table loaded | `[TBD: query warehouse]` | row count from warehouse |
+
 Colour legend (same as `ARCHITECTURE.md`): blue = sources, violet = orchestration,
 orange = `raw`, cyan = `staging`, green = `analytics`, pink = `marts`,
 yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
@@ -104,22 +113,17 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 <p align="center">
   <a href="https://banking-delta-lakehouse-a8rrtbxdaeacw2rsckfpyf.streamlit.app/">
     <img src="assets/images/dashboard_image2.png" width="90%" alt="Banking Delta Dashboard - marts schema" style="border-radius:12px; border:1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(15,23,42,0.12);" />
-  </a>
-</p>
-
-<p align="center">
-  <sub><code>Python</code> · <code>PySpark</code> · <code>R</code> · <code>PostgreSQL</code> · <code>MongoDB</code> · <code>Apache Airflow</code> · <code>Docker</code> · <code>MySQL</code> · <code>Databricks</code> · <code>Streamlit</code> · <code>Plotly</code> · <code>uv</code> · <code>Ruff</code> · <code>Latex</code></sub>
-</p>
+  </p>
 
 ## Business insights
 
-Curated findings from the `marts` schema, each traced to a mart and a reproducible query. Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
+Data loaded from external MySQL, MongoDB and Databricks `public` systems; no seed/generator script confirmed in repo. Curated findings from the `marts` schema, each traced to a mart and a reproducible query. Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
 
 | Question | Finding | Source |
 | --- | --- | --- |
-| Do a small group of customers drive most transaction value? | Top 10% of active customers hold 22.55% of transaction value. | `marts.mart_customer_360` |
-| How late is the loan book paying? | 12.01% of 600,005 loan payments are late. | `marts.mart_loan_portfolio` |
-| How much fraud is in card spend? | 0.499% of 3,005,000 card transactions (28,608,185.59). | `marts.mart_card_fraud` |
+| Is transaction value concentrated in a few customers? | Top 10% of active customers hold 22.55% of transaction value (mild concentration, since an even split would be 10%). | `marts.mart_customer_360` |
+| How often are loan payments late? | 12.01% of 600,005 loan payments are late. | `marts.mart_loan_portfolio` |
+| How much fraud is in card spend? | 0.499% of 3,005,000 card transactions (fraud amount: 28,608,185.59). | `marts.mart_card_fraud` |
 
 ## Quick start
 

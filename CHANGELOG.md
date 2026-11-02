@@ -59,6 +59,9 @@ the `release` workflow verifies before publishing.
 - **`sql/analytics/{03_dim_branch,05_dim_card,09_dim_txn_profile}.sql` — heartbeat**
   on no-change daily runs: when `inserted + updated = 0`, touch one non-Unknown row
   so `row_updated_at` advances and the metadata staleness gate does not false-positive.
+- **README & insights polish:** clarified customer concentration question, labeled
+  fraud amount, reworded loan payment frequency, added engineering at a glance table,
+  removed duplicate tech-stack line, fixed footer links and logo alignment.
 
 ### Fixed
 
