@@ -115,6 +115,35 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
     <img src="assets/images/dashboard_image2.png" width="90%" alt="Banking Delta Dashboard - marts schema" style="border-radius:12px; border:1px solid #e2e8f0; box-shadow: 0 8px 30px rgba(15,23,42,0.12);" />
   </p>
 
+## About the data
+
+The warehouse is built from the ten source tables listed in
+`contracts/registry.json` (5 MySQL, 2 MongoDB, 3 Databricks `public`). The repo
+ships full gzipped CSV snapshots of all ten under `data/raw/{mysql,mongo,databricks}/`
+(commit `edb2248`); maintainers refresh them from the live sources with
+`make export-raw-csv` (one full read per table, no watermarks), and a clone with
+no source access loads them with `make load-raw-csv` (polars + `COPY`,
+truncate-and-replace per table).
+
+**Origin: unverified.** No generator, seeder or dataset-import script exists in
+this repository or anywhere in its git history, so where the source data
+originally came from cannot be determined from the repo.
+TODO(owner): confirm whether the source systems were populated from a generator,
+a public dataset, or real data.
+
+**What the snapshots look like.** Observed directly in
+`data/raw/mysql/*.csv.gz`: sequential integer primary keys, addresses like
+`customer0@mailbank.com`, branch names like `Pune Branch 1`, IFSC codes like
+`BNK0000000`. These patterns are typical of generated data — an observation
+about the shipped files, not proof of their origin.
+
+**Limits.** Every figure in [docs/INSIGHTS.md](docs/INSIGHTS.md) — including the
+0.499% card-fraud rate, the 12.01% late-payment rate and the 22.55% top-decile
+value concentration — describes this dataset only. They are not real-world
+benchmarks: fraud rates, payment behaviour and value distributions here are not
+calibrated to any real bank, so the insights demonstrate analytical method on a
+banking-shaped dataset rather than findings about a real institution.
+
 ## Business insights
 
 Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).

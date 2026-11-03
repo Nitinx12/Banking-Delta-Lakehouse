@@ -3,6 +3,27 @@
 Index of the business questions answered by the `marts` schema. Each finding links to a
 detail file with the exact query and chart.
 
+## About the data
+
+The underlying rows are CSV snapshots of the ten source tables
+(`contracts/registry.json`: 5 MySQL, 2 MongoDB, 3 Databricks `public`) shipped
+under `data/raw/` and exported from the live sources by
+`scripts/export_raw_csv.py`; a clone loads them with `make load-raw-csv`.
+See the README's "About the data" section for the full description.
+
+- **Origin: unverified.** No generator or seed script exists anywhere in this
+  repository or its git history, so the original source of the rows cannot be
+  determined from the repo. TODO(owner): confirm whether the data was generated,
+  taken from a public dataset, or is real.
+- **Looks generated.** The shipped CSVs show sequential integer keys,
+  `customerN@mailbank.com` emails and branch names like `Pune Branch 1` —
+  patterns typical of generated data (observed in the files, not proof).
+- **Not a benchmark.** The fraud rate (0.499%), late-payment rate (12.01%) and
+  value concentration (22.55% in the top 10% of customers) are properties of
+  this dataset only, not real-world banking figures. Treat every finding below
+  as a demonstration of analytical method on synthetic-looking data, not as a
+  finding about any real bank.
+
 ## Insights
 
 | Question | Finding | Source mart | Detail |

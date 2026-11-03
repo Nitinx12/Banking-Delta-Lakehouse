@@ -11,6 +11,11 @@ the `release` workflow verifies before publishing.
 
 ### Added
 
+- **"About the data" disclosure.** README and `docs/INSIGHTS.md` now describe how the
+  shipped `data/raw` snapshots are produced, mark the origin as unverified
+  (`TODO(owner)`), and state that the insight figures (fraud rate, late-payment rate,
+  concentration) are properties of this dataset, not real-world benchmarks.
+
 - **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.
 - **Log management automation.** `scripts/monitor_logs.sh` to monitor and cleanup old/large log files.
