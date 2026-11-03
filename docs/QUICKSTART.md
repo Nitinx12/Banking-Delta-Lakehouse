@@ -65,6 +65,30 @@ python scripts/seed_watermarks.py --dry-run
 python scripts/seed_watermarks.py
 ```
 
+## 4b. Land the bundled raw data (no source systems needed)
+
+The repo ships gzipped CSV snapshots of all 10 source tables under
+`data/raw/{mysql,mongo,databricks}/`. If you cannot reach MySQL, MongoDB or
+Databricks, land them into `raw` instead (polars + `COPY`, one transaction per
+table, replace-snapshot semantics so a second run is safe):
+
+```bash
+make load-raw-csv                                # Windows: tasks load-raw-csv
+make load-raw-csv ARGS="--dry-run"               # plan only, writes nothing
+make load-raw-csv ARGS="--tables accounts"       # one table
+```
+
+Missing `raw` tables are created from `contracts/<source>/<table>.json`, so
+types match the project (money stays `NUMERIC(18,2)`, never float). Continue
+with `make staging && make dq-staging` from here.
+
+Maintainers refresh the snapshots with live source credentials (writes
+`*.csv.gz` in place):
+
+```bash
+make export-raw-csv
+```
+
 ## 5. Start the Airflow stack (optional)
 
 ```bash

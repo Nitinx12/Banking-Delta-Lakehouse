@@ -18,7 +18,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run setup-env monitor-logs) do (
+for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down load-raw-csv export-raw-csv run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run setup-env monitor-logs) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -35,7 +35,7 @@ echo Security  : leaks
 echo Gate      : ci   (lint + sql-lint + unit + smoke)
 echo Airflow   : up down
 echo Reports   : report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly
-echo Pipeline  : run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
+echo Pipeline  : load-raw-csv export-raw-csv run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
 echo Housekeep : clean monitor-logs
 exit /b 0
 
@@ -142,6 +142,14 @@ exit /b 0
 
 :t_down
 docker compose -f airflow/docker-compose.yml -f airflow/docker-compose.dev.yml --env-file airflow/.env.airflow down || exit /b 1
+exit /b 0
+
+:t_load-raw-csv
+uv run python scripts\load_raw_csv.py %ARGS% || exit /b 1
+exit /b 0
+
+:t_export-raw-csv
+uv run python scripts\export_raw_csv.py %ARGS% || exit /b 1
 exit /b 0
 
 :t_run-jobs

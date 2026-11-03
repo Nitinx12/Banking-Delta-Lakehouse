@@ -133,6 +133,7 @@ For a step-by-step guide see [docs/QUICKSTART.md](docs/QUICKSTART.md).
 make install     # runtime + dev dependencies (uv)
 make hooks       # enable the repo git hooks
 make ci          # local gate: lint + contracts + sql-lint + coverage + smoke
+make load-raw-csv  # raw layer from the bundled data/ CSVs (no source systems needed)
 make daily       # run the whole pipeline
 ```
 
@@ -142,6 +143,10 @@ make daily       # run the whole pipeline
 # Full gated pipeline (writes to warehouse + Databricks)
 make daily                      # or: python main.py
 make run-jobs                   # extracts only: mongo -> databricks -> mysql
+
+# No source-system access? The repo ships gzipped CSVs under data/raw/
+make load-raw-csv               # land them into raw (polars + COPY, idempotent)
+make export-raw-csv             # maintainers: refresh data/raw from live sources
 
 # Data quality gates
 make dq                         # raw -> staging -> analytics -> marts

@@ -31,6 +31,7 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 .PHONY: help install hooks lint format contracts contracts-sync sql-lint unit cov smoke spark-smoke \
 		sql-smoke integration smoke-live test leaks ci up down run-jobs run-notebooks staging analytics \
 		marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean \
+		load-raw-csv export-raw-csv \
 		report-fixture report-pdf report-tex report-docker report-clean report \
 		report-incident report-weekly \
 		r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run \
@@ -131,6 +132,12 @@ ci: ## Fast local gate == CI: lint + contracts + sql-lint + coverage + smoke + r
 ##@ Airflow stack (base + dev override, as the local stack runs)
 DC := docker compose -f airflow/docker-compose.yml -f airflow/docker-compose.dev.yml \
 	--env-file airflow/.env.airflow
+
+load-raw-csv: ## [0] Land data/raw CSVs into raw (fresh clone, no source systems)
+	$(PY) scripts/load_raw_csv.py $(ARGS)
+
+export-raw-csv: ## [0] Re-export data/raw CSVs from the live sources (needs creds)
+	$(PY) scripts/export_raw_csv.py $(ARGS)
 
 up: ## Start the local Airflow stack (GIT_SHA = local HEAD, -dirty if uncommitted)
 	GIT_SHA=$$(git rev-parse --short HEAD)$$(git diff --quiet || echo -dirty) \
