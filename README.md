@@ -95,8 +95,8 @@ flowchart LR
 | Source tables / collections | 10 | 5 MySQL + 2 MongoDB + 3 Databricks contracts |
 | Marts published | 9 | `mart_*` files in `sql/marts/` |
 | DQ checks across layers | 48 | 11 raw + 11 staging + 14 analytics + 12 marts |
-| Automated tests | 16 | 9 unit + 7 smoke tests |
-| Test coverage | 43% | `make ci` coverage output (260 unit tests) |
+| Automated tests | 320 | 266 unit + 54 smoke tests (`make test`) |
+| Test coverage | 43.7% | `make ci` coverage output (266 unit tests) |
 | Typical full-run time | ~9 min (median 8 min 37 s) | `audit.pipeline_runs`, 13 full scheduled runs (6:14–19:01) |
 | Largest table loaded | 3,005,000 rows | warehouse row count, `analytics.fact_card_transactions` (tied with `raw`/`staging.card_transactions`) |
 
