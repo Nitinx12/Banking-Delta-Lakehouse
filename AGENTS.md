@@ -4,7 +4,7 @@ Rules for AI agents working in Banking-Delta-Lakehouse. Read `ARCHITECTURE.md` f
 
 ## Project in one line
 
-Daily pipeline: MySQL, MongoDB and Databricks `public` → PySpark → PostgreSQL (landing → staging → core → mart) → Databricks `core`/`mart`. Airflow orchestrates, stored procedures transform, Great Expectations validates.
+Daily pipeline: MySQL, MongoDB and Databricks `public` → PySpark → PostgreSQL (landing → staging → core → mart) → Databricks `core`/`mart`. Airflow orchestrates, stored procedures transform, SQL DQ suites gate every layer (`audit.dq_*` in `tests/data-quality/`).
 
 ## Permissions
 
@@ -81,7 +81,7 @@ $$;
 
 ## Python standards
 
-- PEP 8, formatted and linted with `ruff`, typed (`mypy`), Python version pinned in `pyproject.toml`
+- PEP 8, formatted and linted with `ruff`, type-hinted, Python version pinned in `pyproject.toml`
 - Type hints on every function signature; short docstring on public functions
 - `Decimal` for money, timezone-aware UTC datetimes, `pathlib` for paths
 - Use the project logger from `src/utils/logger.py`. No `print`, and never log row values or credentials
@@ -95,7 +95,7 @@ $$;
 - Names follow `ARCHITECTURE.md` §4.2 (`etl.sp_<action>_<target>`, `dim_*`, `fact_*`, `_run_id`)
 - Money is `NUMERIC(18,2)`, times are `timestamptz`
 - Procedures never `COMMIT` or `ROLLBACK`, take the advisory lock, and return counts through `OUT` parameters
-- Schema changes go in a new Flyway file: `V<n>__name.sql`, or `R__name.sql` for procedures
+- Schema changes go in a new numbered file in the owning folder (`sql/<area>/NN_<name>.sql`, next free number), never a rewrite of an applied one
 
 ## Pipeline rules that must not break
 
@@ -106,7 +106,7 @@ $$;
 
 ## Scripts and automation
 
-- `Makefile` is the entry point. Targets: `help`, `lint`, `test`, `up`, `down`, `migrate`, `dag-test`, `report-fixture`, `report-pdf`, `report-tex`, `report-docker`, `report`, `report-incident`, `report-weekly`, `report-clean`
+- `Makefile` is the entry point. Targets: `help`, `install`, `lint`, `contracts`, `sql-lint`, `unit`, `cov`, `smoke`, `test`, `ci`, `up`, `down`, `load-raw-csv`, `export-raw-csv`, `run-jobs`, `staging`, `analytics`, `marts`, `publish`, `dq`, `daily`, `report-fixture`, `report-pdf`, `report-tex`, `report-docker`, `report`, `report-incident`, `report-weekly`, `report-clean`
 - Every `.sh` starts with `set -euo pipefail`
 - Every `.bat` starts with `@echo off` and `setlocal`, and mirrors the matching `make` target for Windows
 - GitHub Actions: least-privilege `permissions:`, actions pinned by commit SHA, no `pull_request_target`, never echo secrets
