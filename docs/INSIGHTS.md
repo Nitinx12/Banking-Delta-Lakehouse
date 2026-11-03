@@ -3,14 +3,6 @@
 Index of the business questions answered by the `marts` schema. Each finding links to a
 detail file with the exact query and chart.
 
-## Data provenance
-
-Source data is loaded from external MySQL, MongoDB and Databricks `public` systems; no
-seed or generator script was found in this repository, so whether the data is synthetic
-or from a public dataset could not be confirmed. TODO(owner): confirm data source. If
-the data is synthetic, treat these insights as demonstrations of analytical method
-rather than real-world findings.
-
 ## Insights
 
 | Question | Finding | Source mart | Detail |
