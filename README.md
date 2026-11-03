@@ -216,6 +216,7 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 | [docs/CONTRACTS.md](docs/CONTRACTS.md) | Data contracts: source → `raw` landing. |
 | [docs/DATA-QUALITY.md](docs/DATA-QUALITY.md) | DQ contract per layer and how it gates publish. |
 | [docs/INSIGHTS.md](docs/INSIGHTS.md) | Business questions, findings and reproducible queries. |
+| [docs/DECISIONS.md](docs/DECISIONS.md) | Architecture decision log: what was chosen, what was rejected and why. |
 | [docs/AUDIT.md](docs/AUDIT.md) | Audit tables, watermarks and run lineage. |
 | [docs/AIRFLOW.md](docs/AIRFLOW.md) | DAGs, schedule and task gating. |
 | [docs/TESTING.md](docs/TESTING.md) | Test markers, layouts and how to run them. |

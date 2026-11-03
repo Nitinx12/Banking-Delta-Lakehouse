@@ -15,6 +15,10 @@ the `release` workflow verifies before publishing.
   shipped `data/raw` snapshots are produced, mark the origin as unverified
   (`TODO(owner)`), and state that the insight figures (fraud rate, late-payment rate,
   concentration) are properties of this dataset, not real-world benchmarks.
+- **Architecture decision log.** `docs/DECISIONS.md` records nine decisions (stored
+  procedures vs dbt, four Postgres layers, PySpark for extraction, watermarks and late
+  arrivals, Airflow, DQ gates, Delta publish, read-only consumers, landing contracts)
+  with alternatives, rationale and trade-offs; linked from the README docs table.
 
 - **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.
