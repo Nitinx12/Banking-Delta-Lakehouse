@@ -24,9 +24,13 @@ This workflow covers adding a new data quality check to one of the four gated la
 
 3. **Register the Check**
    - Add the `CALL audit.dq_<layer>_<check_name>();` to `tests/data-quality/<layer>/00_master_<layer>_tests.sql`.
+   - If the check is config-driven (JSONB lists in `02` primary keys, `07` schema
+     contract, `08` completeness, `10` value domains, ...), add the new
+     table/column entries there too.
 
 4. **Validate the Check**
-   - Run the check specifically: `python scripts/run_<layer>_tests.py --only NN`.
+   - Run the check specifically: `python scripts/run_<layer>_tests.py --only NN`
+     (or `make dq-<layer>` for the whole suite; exit code 1 on any violation).
    - **Prove it can fail**: Insert a bad row into a disposable DB, verify the check fails (exit code != 0), then clean up.
 
 ## Example

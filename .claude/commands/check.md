@@ -1,5 +1,5 @@
 # /check
-Runs linting, typechecking, and tests to verify code correctness.
+Runs linting and tests to verify code correctness.
 
 ## Sequence
 1. Run `make lint` via Bash.

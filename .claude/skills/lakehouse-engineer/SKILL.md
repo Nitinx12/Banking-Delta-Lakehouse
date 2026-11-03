@@ -1,50 +1,72 @@
 ---
 name: lakehouse-engineer
 description: "Use this skill when adding a new table or modifying existing pipeline logic across the Medallion layers"
-trigger: "add table, modify procedure, new source, update mart"
+trigger: "add table, modify procedure, new source, update mart, change landing"
 ---
 
 # Lakehouse Engineer Skill
 
-This skill handles the end-to-end flow of adding or modifying tables within the Medallion architecture (Raw $\rightarrow$ Staging $\rightarrow$ Core/Analytics $\rightarrow$ Marts).
+End-to-end flow for adding or modifying tables across the Medallion layers
+(raw → staging → analytics → marts), respecting layer ownership from
+`ARCHITECTURE.md` (each schema has exactly one writer).
 
 ## Workflow for Table Modifications
 
-Follow these steps sequentially to ensure data consistency and pipeline integrity:
+1. **Contract & registry (the schema source of truth)**
+   - Add/extend the entry in `sql/scripts/03_register_sources.sql` and mirror it
+     in `contracts/registry.json`; add `contracts/<source>/<table>.json` with
+     Postgres column types (money `NUMERIC(18,2)`, times `timestamptz`).
+   - Validate with `make contracts`. There are **no Flyway `V<n>__` files** here —
+     SQL lives in numbered files under `sql/<area>/`, next free number, and
+     applied scripts are never rewritten in a way that breaks idempotency.
 
-1. **Contract & Schema Update**
-   - Define the source schema.
-   - Create/update Flyway migration files (`V<n>__name.sql`) for the target tables in PostgreSQL.
-   - Ensure money is `NUMERIC(18,2)` and times are `timestamptz`.
+2. **Landing (extractors are registry-driven)**
+   - `scripts/run_jobs.py` → `src/utils/spark_io.py` `read_mysql`/`read_mongo`/
+     `read_databricks` pick up new registry entries automatically; only add code
+     for a genuinely new source system.
+   - `raw.<table>` is created on first run by `promote_staging`
+     (`_batch_id`, `_loaded_at` NOT NULL). Every load must be safe to run twice;
+     incremental tables advance watermarks only inside the load transaction
+     (seed new incremental tables with `scripts/seed_watermarks.py`).
 
-2. **Extractor Verification**
-   - Check the PySpark extractor logic.
-   - Ensure the new table is included in the landing process (MySQL/MongoDB $\rightarrow$ PostgreSQL landing).
-   - Verify idempotency (tagging with `_run_id`).
+3. **Staging procedure**
+   - `sql/staging/NN_sp_load_<table>_scd1.sql` → `staging.sp_load_<table>_scd1`
+     (clean, cast, hash for change detection), `OUT` counts, no internal
+     `COMMIT`/`ROLLBACK`, advisory lock.
+   - Register the `CALL` in `sql/staging/00_master_load.sql` (invoked via
+     `staging.sp_load_all()`).
 
-3. **Staging Procedure Implementation**
-   - Create or modify the staging procedure (`etl.sp_load_stg_<target>`).
-   - Implement data cleaning, casting, and hashing for change detection.
-   - Use `OUT` parameters for row counts.
+4. **Analytics / marts procedures**
+   - `analytics.sp_load_dim_<target>` / `analytics.sp_load_fact_<target>` in
+     `sql/analytics/NN_<target>.sql`; SCD2 dims carry `effective_to`,
+     `is_current`, `_hash_t2`. Marts: `marts.sp_load_mart_<name>` — see the
+     `adding-new-mart` skill.
+   - Register every `CALL` in the layer's `00_master_load.sql` in dependency
+     order.
 
-4. **Analytics/Mart Procedure Implementation**
-   - Implement the Core/Mart load procedure (`etl.sp_load_dim_<target>` or `etl.sp_load_fact_<target>`).
-   - Handle SCD Type 2 logic where applicable (effective dates, `is_current`).
-   - Ensure procedures take advisory locks and do not contain internal `COMMIT`/`ROLLBACK`.
+5. **Data quality (SQL suites, not Great Expectations)**
+   - Add/extend checks under `tests/data-quality/<layer>/` (procedures
+     `audit.dq_<layer>_*`, next free `NN_`, registered in that layer's
+     `00_master_*_tests.sql`). Critical failures block publish — never weaken a
+     check to go green.
+   - Run: `make dq-raw|dq-staging|dq-analytics|dq-marts` or all with `make dq`.
 
-5. **Data Quality (DQ) Tests**
-   - Define Great Expectations suites or SQL-based validation tests.
-   - Ensure critical DQ failures block the publish step.
+6. **Optional CSV bootstrap path**
+   - `make export-raw-csv` refreshes `data/raw/*.csv.gz` so clones without source
+     access can run `make load-raw-csv` into `raw`.
 
 ## References
-- **Architecture**: See `ARCHITECTURE.md` for layer definitions and naming conventions.
-- **Agent Rules**: See `AGENTS.md` for coding standards (Python/SQL) and permissions.
+
+- **Architecture / ownership / naming**: `ARCHITECTURE.md` (wins on design)
+- **Agent rules and permissions**: `AGENTS.md`
+- **Detailed skills**: `adding-new-source`, `adding-new-mart`, `writing-dq-tests`
 
 ## Done Checklist
-- [ ] Flyway migrations created and tested.
-- [ ] PySpark extractor updated and verified.
-- [ ] Staging and Core/Mart procedures follow `etl.sp_<action>_<target>` naming.
-- [ ] Procedures use `OUT` parameters for counts.
-- [ ] No `float` used for money; `NUMERIC(18,2)` used instead.
-- [ ] DQ tests implemented and passing.
+
+- [ ] Registry + column contract updated; `make contracts` passes.
+- [ ] Layer procedures created, registered in `00_master_load.sql`, schema-qualified names
+      (`staging.sp_*`, `analytics.sp_*`, `marts.sp_load_mart_*`).
+- [ ] No `float` for money; `NUMERIC(18,2)` used; no internal `COMMIT`/`ROLLBACK`;
+      `OUT` counts present.
+- [ ] DQ suites extended for the new columns/tables; `make dq` passes.
 - [ ] `make lint` and `make test` pass.

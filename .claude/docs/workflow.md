@@ -13,7 +13,7 @@ The project uses a PySpark-based ETL pipeline orchestrating data from MySQL, Mon
 - **Auto-format**: `make format` or `tasks format` (`ruff check --fix` + `ruff format`)
 - **SQL Lint**: `make sql-lint` or `tasks sql-lint` (`sqlfluff lint` for postgres dialect)
 - **Contract Validation**: `make contracts` or `tasks contracts` (`python -m contracts.validate`)
-- **Typecheck**: Not explicitly in Makefile; typically handled via `uv run mypy .` (refer to `pyproject.toml` for config).
+- **Typecheck**: None — there is no mypy/`make typecheck` target; type hints are mandatory and `make lint` (ruff) is the gate.
 
 ### Testing
 - **Unit Tests**: `make unit` or `tasks unit` (`pytest -m unit`)
@@ -24,7 +24,7 @@ The project uses a PySpark-based ETL pipeline orchestrating data from MySQL, Mon
 - **Live Health Checks**: `make smoke-live` or `tasks smoke-live` (`pytest -m live`)
 
 ### Database & Pipeline
-- **Migrations**: Handled via Flyway (refer to `ARCHITECTURE.md` for file naming `V<n>__name.sql`).
+- **Migrations**: Numbered SQL files per folder (`sql/<area>/NN_<name>.sql`, next free number); see `ARCHITECTURE.md` and `AGENTS.md`.
 - **Local Stack**: `make up` / `make down` (Docker Compose for Airflow)
 - **Full Pipeline Run**: `make daily` or `tasks daily` (Runs `run-jobs` $\to$ `dq-raw` $\to$ `staging` $\to$ `dq-staging` $\to$ `analytics` $\to$ `dq-analytics` $\to$ `marts` $\to$ `dq-marts` $\to$ `publish`)
 - **Data Quality (DQ) Gates**: `make dq` or `tasks dq` (runs all layer-specific DQ scripts in `scripts/run_<layer>_tests.py`)
@@ -42,9 +42,9 @@ The CI gate ensures parity across environments and blocks merges on failure:
 ## Connections
 - **Orchestration**: Airflow triggers the PySpark jobs defined in `src/jobs/`.
 - **Transformation**: PySpark lands data; PostgreSQL stored procedures (`sql/`) handle internal transformations.
-- **Validation**: `Great Expectations` is used for DQ validation before publishing to the final mart.
+- **Validation**: SQL DQ suites (`audit.dq_*` procedures in `tests/data-quality/`), one gate per layer before publish.
 
 ## Open questions / UNVERIFIED
-- **Typechecking**: `mypy` is mentioned in `AGENTS.md` but not present as a `Makefile` target.
-- **Migration Tool**: Flyway is mentioned in `AGENTS.md`, but the `Makefile` lacks a direct `make migrate` target (likely run via external CI or manual CLI).
+
+
 - **R-Analysis**: The `r-` targets in `Makefile` exist but are noted as "NOT part of ci".

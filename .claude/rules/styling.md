@@ -4,7 +4,7 @@ globs: ["**/*.py", "**/*.sql"]
 # Styling Rules
 
 ## Python Styling
-- **Standards:** Follow PEP 8. Format and lint with `ruff`, type-check with `mypy`.
+- **Standards:** Follow PEP 8. Format and lint with `ruff` (`make lint`); there is no typecheck target — type hints are mandatory instead.
 - **Naming:** 
     - Files/Functions: `snake_case`.
     - Constants: `UPPER_SNAKE_CASE`.

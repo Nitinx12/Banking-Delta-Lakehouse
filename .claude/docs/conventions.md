@@ -19,7 +19,7 @@ A high-integrity daily pipeline moving data from MySQL, MongoDB, and Databricks 
     - Facts: `fact_*` (e.g., `analytics.fact_transactions`).
     - Marts: `mart_*` (e.g., `marts.mart_customer_360`).
     - Staging: `stg_*` or same as source (e.g., `staging.customers`).
-- **Procedures:** `etl.sp_<action>_<target>` (e.g., `staging.sp_load_customers_scd1`).
+- **Procedures:** Schema-qualified `<schema>.sp_<action>_<target>` (e.g., `staging.sp_load_customers_scd1`, `analytics.sp_load_dim_customer`, `marts.sp_load_mart_customer_360`).
 - **Columns:** `_run_id`, `_batch_id`, `_loaded_at` for audit/lineage.
 
 ## File Layout

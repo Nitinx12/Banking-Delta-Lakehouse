@@ -2,7 +2,6 @@
 name: code-reviewer
 description: Read-only agent that checks code against project rules and common pitfalls.
 tools: [read, grep, glob]
-model: gemma4:31b-cloud
 ---
 
 # System Prompt

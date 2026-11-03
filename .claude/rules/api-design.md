@@ -4,7 +4,7 @@ globs: ["sql/**/*.sql", "src/**/*.py"]
 # API Design Rules
 
 ## SQL Naming
-- **Procedures:** Use `etl.sp_<action>_<target>` (e.g., `staging.sp_load_customers_scd1`).
+- **Procedures:** Schema-qualified `<schema>.sp_<action>_<target>` (e.g., `staging.sp_load_customers_scd1`, `analytics.sp_load_dim_customer`, `marts.sp_load_mart_customer_360`).
 - **Tables:** 
     - Dimensions: `dim_*`
     - Facts: `fact_*`

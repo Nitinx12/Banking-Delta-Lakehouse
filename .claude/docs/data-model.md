@@ -38,7 +38,7 @@ State is managed via two distinct watermark stores in the `audit` schema to ensu
 4. **Publishing**: `src/jobs/publish_marts.py` $\to$ Parquet $\to$ Databricks Unity Catalog $\to$ Delta Tables.
 
 ### Migrations
-Follows a Flyway-style sequential script approach located in `sql/scripts/`:
+Follows a numbered sequential script approach located in `sql/scripts/`:
 - `00_create_database.sql`: DB initialization.
 - `01_init_schemas.sql`: Schema creation.
 - `02_audit_tables.sql`: Audit system setup.

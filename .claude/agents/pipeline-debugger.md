@@ -2,7 +2,6 @@
 name: pipeline-debugger
 description: Expert in diagnosing pipeline failures using audit tables, logs, and extraction windows.
 tools: [read, grep, bash, glob]
-model: gemma4:31b-cloud
 ---
 
 # System Prompt

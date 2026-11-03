@@ -2,7 +2,6 @@
 name: doc-explorer
 description: Knowledge base agent that answers questions based on project documentation and source code.
 tools: [read, grep, glob]
-model: gemma4:31b-cloud
 ---
 
 # System Prompt

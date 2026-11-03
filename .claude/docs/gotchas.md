@@ -17,7 +17,7 @@ Fragility is concentrated in the Spark-to-Postgres JDBC boundary and Databricks 
 
 ## 🚫 "Do Not Edit" Zones & Generated Files
 - **Layer Ownership**: Only the designated owners may write to `raw`, `staging`, `analytics`, and `marts` schemas. Hand-editing these tables bypasses the audit trail and watermarking (`ARCHITECTURE.md:276`).
-- **Migration Immutability**: Never edit a Flyway migration (`sql/scripts/V<n>__*.sql`) once merged. Always create a new migration file (`AGENTS.md:28`).
+- **Migration Immutability**: Never rewrite an applied SQL file (`sql/**/NN_*.sql`). Add a new numbered file in that folder instead (`AGENTS.md`, SQL standards).
 - **Contracts**: Files in `contracts/` are validated against JSON schemas. Use `make contracts-sync` to generate missing ones via introspection rather than manual editing (`Makefile:61`).
 
 ## 🧪 Flaky Tests & Testing Tiers

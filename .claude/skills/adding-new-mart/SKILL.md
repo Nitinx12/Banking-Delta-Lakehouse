@@ -1,45 +1,70 @@
 ---
 name: adding-new-mart
 description: Create a new business table in the marts layer and publish it to Databricks Delta.
-trigger: adding a new mart, creating a business table, publish mart
+trigger: adding a new mart, creating a business table, publish mart, new mart table
 ---
 
 # Adding a New Mart
 
-This workflow covers creating a new business mart in the `marts` layer and ensuring it is published to the Databricks Delta Lakehouse.
+This workflow creates a new business mart in the `marts` layer and gets it
+published to Databricks Delta. Publishing is **auto-discovered** — no publish
+code changes are needed.
 
 ## Procedure
 
-1. **Design the Mart**
-   - Determine the source tables from the `analytics` (dim/fact) layer.
-   - Define the business logic and required columns.
+1. **Design from `analytics`**
+   - Sources are the dims/facts in `analytics` (`dim_*`, `fact_*`). Check
+     `sql/analytics/` for what exists and `ARCHITECTURE.md` for layer ownership.
+   - Decide the grain and the composite key (business keys become DQ config).
 
-2. **Implement SQL Transformation**
-   - Create a new procedure `etl.sp_load_mart_<name>` in `sql/marts/`.
-   - Follow naming conventions: `marts.mart_<name>`.
-   - Ensure the procedure uses `NUMERIC(18,2)` for money and `timestamptz` for times.
-   - Implement the load as an idempotent operation.
+2. **Write the mart file**
+   - New numbered file `sql/marts/NN_mart_<name>.sql` (next free number), procedure
+     `marts.sp_load_mart_<name>`.
+   - Copy the structure of an existing file (e.g. `sql/marts/04_mart_loan_portfolio.sql`):
+     dependency guards (`IF to_regclass(...) IS NULL THEN RAISE EXCEPTION`),
+     `DROP PROCEDURE IF EXISTS marts.sp_load_mart_<name>(UUID, TEXT, BOOLEAN, UUID);`
+     before `CREATE OR REPLACE`, then the procedure with signature
+     `(p_table_run_id UUID, p_source_batch_id TEXT, p_force_full BOOLEAN, p_pipeline_run_id UUID)`.
+   - Conventions: money `NUMERIC(18,2)`, times `timestamptz`, no `COMMIT`/
+     `ROLLBACK`, `OUT` counts, audit seeding so manual runs still record
+     `audit.table_runs`, full-refresh idempotent (`TRUNCATE`+`INSERT` or `ON
+     CONFLICT` upsert).
+   - Table name: `marts.mart_<name>` (CREATE TABLE IF NOT EXISTS inside the file).
 
-3. **Register in Master Load**
-   - Add the `CALL etl.sp_load_mart_<name>(...)` to `sql/marts/00_master_load.sql`.
+3. **Register the CALL**
+   - Add one `CALL marts.sp_load_mart_<name>(...);` at the marked place in
+     `sql/marts/00_master_load.sql` (`>>> ADD NEW MARTS HERE <<<`), respecting
+     dependencies between marts.
 
-4. **Configure Publishing**
-   - Update `src/jobs/publish_marts.py` (or its config) to include the new mart for publishing to Databricks.
-   - Verify the publishing logic handles the watermark for the new table.
+4. **Extend the marts DQ suite**
+   - Add the mart to the JSONB config of `tests/data-quality/marts/`:
+     `02` (primary/composite key), `04` (orphans vs analytics parents),
+     `05` (business rules), `07` (schema contract column types),
+     `08` (completeness/row counts), `10` (value domains) — wherever the new
+     columns apply. Checks are enforced by `marts.sp_load_all` gate before publish.
 
-5. **Verify End-to-End**
-   - Run the marts load: `python main.py --only marts-load`.
-   - Run the publish job: `python main.py --only publish`.
-   - Verify data in Databricks `marts.mart_<name>`.
+5. **Run and verify locally**
+   - `make marts` (CALLs `marts.sp_load_all()`), then `make dq-marts`.
+   - Single mart: `python main.py --only marts-load`, or
+     `psql ... -c 'CALL marts.sp_load_mart_<name>();'`.
 
-## Example
-Creating `mart_monthly_revenue`:
-- Create `sql/marts/sp_load_mart_monthly_revenue.sql`.
-- Add `CALL etl.sp_load_mart_monthly_revenue(...)` to `sql/marts/00_master_load.sql`.
-- Add `mart_monthly_revenue` to the publish list in `publish_marts.py`.
+6. **Publish**
+   - `src/jobs/publish_marts.py` discovers every table in the `marts` schema
+     automatically (`_discover`), so there is **no list to edit**.
+   - Smoke it for one table first:
+     `python src/jobs/publish_marts.py --tables mart_<name> --full`, then
+     `make publish` for the normal incremental path.
+   - Verify the Delta table in the Databricks `marts` schema.
+
+7. **Docs**
+   - If this adds a published mart, refresh the metrics table in `README.md`
+     ("Marts published", "DQ checks across layers").
 
 ## Done Checklist
-- [ ] Mart table created in `marts` schema.
-- [ ] Transformation procedure implemented and registered in `00_master_load.sql`.
-- [ ] Mart successfully published to Databricks Delta.
-- [ ] `make sql-lint` passes.
+
+- [ ] `sql/marts/NN_mart_<name>.sql` follows an existing mart file's structure.
+- [ ] `CALL` registered in `00_master_load.sql` at the marker.
+- [ ] `make marts && make dq-marts` pass.
+- [ ] `make publish` lands the table in Databricks `marts` (auto-discovered).
+- [ ] README metrics and `docs/` updated if counts changed.
+- [ ] `make lint` and `make test` pass.

@@ -1,45 +1,69 @@
 ---
 name: debugging-pipeline
 description: Use audit tables and logs to identify and fix pipeline failures.
-trigger: debugging pipeline, finding failures, pipeline error, why did it fail
+trigger: debugging pipeline, finding failures, pipeline error, why did it fail, dq failed
 ---
 
 # Debugging the Pipeline
 
-This workflow covers the process of identifying the root cause of a pipeline failure using the built-in audit system and logs.
+Root-cause a pipeline failure using the audit system, the DQ runners and logs.
 
 ## Procedure
 
-1. **Identify the Failing Step**
-   - Check the Airflow log or `main.py` output to see which of the 9 steps failed.
-   - Example: `staging-tests` failed $\rightarrow$ look at DQ. `analytics-load` failed $\rightarrow$ look at SQL procedure.
+1. **Identify the failing step**
+   - Airflow log for the DAG run, or the `main.py` / `make daily` output.
+   - `python main.py --list` shows the 9 steps in order: `raw-inject`,
+     `raw-tests`, `staging-load`, `staging-tests`, `analytics-load`,
+     `analytics-tests`, `marts-load`, `marts-tests`, `publish`.
+   - `*-tests` failed → data problem (step 2). `*-load` failed → SQL procedure
+     problem (step 4). `publish` failed → Databricks/connector problem.
 
-2. **Query the Audit System**
-   - **For DQ Failures**:
-     - Query `audit.dq_run` to find the latest failed check.
-     - Query `audit.dq_violation` using the `run_id` to see specific bad rows and error messages.
-   - **For Load Failures**:
-     - Check `audit.table_runs` to see which table was being processed when the failure occurred.
-     - Check `audit.pipeline_runs` for overall status and timing.
+2. **DQ failures**
+   - `SELECT run_id, script_name, status, violation_count, finished_at
+     FROM audit.dq_run WHERE status = 'FAIL' ORDER BY finished_at DESC LIMIT 5;`
+   - `SELECT message FROM audit.dq_violation WHERE run_id = '<id>';` — each row is
+     one human-readable violation (`schema.table: ...`).
+   - Re-run just the failing suite with detail:
+     `python scripts/run_<layer>_tests.py --only 02 --verbose`, or `make dq-<layer>`.
 
-3. **Inspect the Data**
-   - Use the violation details from `audit.dq_violation` to find the offending rows in the layer's table.
-   - Verify if the issue is a source data anomaly or a bug in the transformation logic.
+3. **Load failures**
+   - `SELECT source_table, target_table, status, started_at, ended_at, error_id
+     FROM audit.table_runs WHERE status = 'FAILED' ORDER BY started_at DESC;`
+   - `SELECT * FROM audit.pipeline_runs WHERE status <> 'SUCCESS'
+     ORDER BY started_at DESC LIMIT 5;` (also holds run durations).
+   - `audit.pipeline_errors` keeps the error text for `error_id`.
 
-4. **Trace Watermarks**
-   - For incremental load issues, check `audit.extract_watermarks` or `audit.etl_watermarks` to see if the pipeline is missing data or reprocessing too much.
+4. **Inspect the data**
+   - Pull offending rows with the violation message (e.g. null/duplicate keys),
+     then decide: source anomaly, transformation bug, or genuinely missing
+     expectation. Fix the cause — **never relax a DQ check just to go green**.
 
-5. **Reproduce and Fix**
-   - Use `python main.py --only <step>` to rerun only the failing part after applying a fix.
+5. **Trace watermarks (incremental tables)**
+   - `SELECT * FROM audit.etl_watermarks;` (ETL) and `audit.extract_watermarks`
+     (extract). Missing data → watermark too high or a failed transaction that
+     committed early; duplicate reprocessing → watermark stuck or not seeded
+     (`scripts/seed_watermarks.py`).
+
+6. **Reproduce and verify**
+   - Re-run only the failing step: `python main.py --only <step>` or the matching
+     `make` target (`make staging`, `make dq-staging`, ...).
+   - Confirm the audit rows now show `SUCCESS`/`PASS`.
 
 ## Example
-`main.py` fails at `raw-tests`:
-- Query `SELECT * FROM audit.dq_run WHERE status = 'FAIL' ORDER BY created_at DESC LIMIT 1;`
-- Get `run_id`, then `SELECT * FROM audit.dq_violation WHERE run_id = <id>;`
-- Find that `raw.customers` has nulls in `customer_id`.
-- Fix the source system or adjust the DQ threshold if it's an expected anomaly.
+
+`make daily` stops at `raw-tests` (i.e. `raw-tests` step failed):
+
+```sql
+SELECT run_id, script_name, violation_count FROM audit.dq_run
+WHERE status = 'FAIL' ORDER BY finished_at DESC LIMIT 1;
+SELECT message FROM audit.dq_violation WHERE run_id = '<id>';
+-- e.g. raw.customers: 3 rows with NULL customer_id
+```
+
+Then fix the source/extract, re-run `make dq-raw`, continue with `make daily`.
 
 ## Done Checklist
-- [ ] Identified the failing step and root cause.
-- [ ] Verified the fix by running the specific step via `main.py`.
-- [ ] Confirmed that the audit tables reflect the successful run.
+
+- [ ] Failing step and root cause identified from `audit.*`.
+- [ ] Fix applied at the cause, not by weakening a check.
+- [ ] Re-run of that step passes; audit tables reflect `SUCCESS`/`PASS`.

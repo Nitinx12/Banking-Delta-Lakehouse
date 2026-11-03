@@ -2,12 +2,17 @@
 
 This skill provides instructions for refreshing project documentation used by AI agents (`CLAUDE.md` and `.claude/docs/`) to ensure they remain synchronized with the current codebase.
 
+**Precedence:** `AGENTS.md` is the source of truth over `CLAUDE.md`; `ARCHITECTURE.md`
+wins over both. When refreshing, fix `CLAUDE.md` toward `AGENTS.md`, never the
+other way round.
+
 ## When to run
 Run this process whenever there are significant changes to:
 - Project architecture or data flow.
 - Tech stack or key dependencies.
 - Core API contracts or database schemas.
 - Deployment or build pipelines.
+- Makefile targets, scripts, or DQ suites referenced by `.claude/skills/`.
 
 ## Workflow
 
@@ -17,10 +22,11 @@ Run this process whenever there are significant changes to:
 - **Update:** If new commands were added to `Makefile` or new linting rules were introduced, update the corresponding sections.
 - **Verification:** Run the commands listed in `CLAUDE.md` to ensure they still work.
 
-### 2. Refresh `.claude/docs/`
+### 2. Refresh `.claude/docs/` and `.claude/skills/`
 Detailed documentation in this folder should reflect the current state of the system.
 - **Identify Changes:** Use `git diff main...HEAD` to identify modified modules.
 - **Update Docs:** For every modified core module, check if there is a corresponding `.md` file in `.claude/docs/`. Update the documentation to reflect new logic, changed parameters, or deprecated functions.
+- **Update Skills:** For changed workflows (Makefile targets, scripts, DQ suites, contracts), verify each `SKILL.md` still describes commands that exist — stale commands mislead agents more than no skill.
 - **Verification:** Ensure all cross-references between docs and code (e.g., file paths) are accurate.
 
 ### 3. Cross-Verification

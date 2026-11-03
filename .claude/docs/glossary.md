@@ -35,4 +35,4 @@ This glossary defines the domain terms and project-specific jargon used across t
 ## Open Questions / UNVERIFIED
 
 - **SCD2 Implementation:** `AGENTS.md:62` mentions an SCD2 load for `dim_customer`, but the `ARCHITECTURE.md` primarily highlights SCD1 in the staging layer. Verification is needed to see if SCD2 is used exclusively in the Analytics layer.
-- **Great Expectations:** `AGENTS.md:7` mentions Great Expectations for validation, but `ARCHITECTURE.md` describes DQ gates as SQL suites. Need to verify if GE is used for specific validations or if it has been replaced by the SQL-based suite.
+- **Great Expectations:** Not used. DQ is the SQL suite (`audit.dq_*` in `tests/data-quality/`); `AGENTS.md` now states this.

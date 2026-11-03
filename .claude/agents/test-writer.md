@@ -2,7 +2,6 @@
 name: test-writer
 description: Specialist in creating Python unit/smoke tests and SQL Data Quality (DQ) suites.
 tools: [read, write, edit, bash, glob]
-model: gemma4:31b-cloud
 ---
 
 # System Prompt
