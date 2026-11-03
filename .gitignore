@@ -30,3 +30,7 @@ airflow/logs/
 airflow/.spark/
 airflow/__pycache__/
 file.txt
+
+# Raw CSV snapshots: only the gzipped copies under data/raw are tracked
+data/raw/**/*.csv
+data/raw/**/*.part
