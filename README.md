@@ -117,7 +117,7 @@ yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
 
 ## Business insights
 
-Data loaded from external MySQL, MongoDB and Databricks `public` systems; no seed/generator script confirmed in repo. Curated findings from the `marts` schema, each traced to a mart and a reproducible query. Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
+Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
 
 | Question | Finding | Source |
 | --- | --- | --- |
