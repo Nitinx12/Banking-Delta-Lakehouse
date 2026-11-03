@@ -6,6 +6,8 @@ import pytest
 
 from src.utils.spark_io import _norm_ts
 
+pytestmark = pytest.mark.unit
+
 
 class TestNormTs:
     """Tests for _norm_ts function - canonical UTC format."""
