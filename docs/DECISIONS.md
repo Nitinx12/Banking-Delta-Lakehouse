@@ -2,8 +2,7 @@
 
 Why the pipeline is built the way it is. Each entry derives from `ARCHITECTURE.md`,
 `docs/`, the code and commit messages. Where no rationale is documented, the entry
-describes what the code actually does and marks the gap with
-`TODO(owner): confirm reasoning`.
+describes what the code actually does.
 
 | # | Decision | Status |
 |---|---|---|
@@ -32,11 +31,15 @@ scripts without procedures.
 
 **Why:** Procedures keep each load in a single transaction with the advisory lock,
 `OUT` row counts and the watermark advance (`AGENTS.md` SQL standards;
-`ARCHITECTURE.md` §6). Idempotency and the watermark-in-transaction invariant live
-in one place instead of in client code. Commits `de3e289` (analytics procedures),
-`98157e5` (mart procedures), `4c5bcba` (deploy via `psql`) show the layer-by-layer
-adoption. No dbt configuration exists anywhere in the repo.
-TODO(owner): confirm reasoning — no document records why dbt was rejected.
+`ARCHITECTURE.md` §6). The watermark-advance-in-transaction invariant
+(`ARCHITECTURE.md` §2.4) is therefore enforced by the procedure that performs the
+write, so a crash leaves both the data and the watermark untouched and a retry
+re-reads the same window. Idempotency is built from the same transaction boundary:
+loads are safe to run twice, and full loads `TRUNCATE` + `INSERT` atomically
+(`ARCHITECTURE.md` §6). Commits `de3e289` (analytics procedures), `98157e5` (mart
+procedures), `4c5bcba` (deploy via `psql`) show the layer-by-layer adoption. No dbt
+configuration exists anywhere in the repo. This explains why procedures meet the
+invariants; the repo does not record a separate evaluation of dbt.
 
 **Trade-offs / at larger scale:** Procedures couple the transforms to PostgreSQL and
 their lineage is weaker than dbt's graph. I would keep the transactional invariants
