@@ -63,7 +63,7 @@ jobs:
         run: uv sync --locked --group dev
 
       - name: Run SQL smoke tests
-        run: uv run pytest -m smoke --sql-smoke
+        run: uv run pytest -m smoke
 
   integration:
     name: full dependency audit (pip-audit)
