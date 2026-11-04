@@ -23,6 +23,9 @@ the `release` workflow verifies before publishing.
   tests, covering the audit writer, Spark I/O helpers, extract runner, all four DQ
   runners, engine/session, script CLIs, Airflow preflight/callbacks/audit reader and
   the report collector; `make cov` and `make ci` stay green.
+- **Insight segment views.** `docs/INSIGHTS.md` now adds one segmentation query per
+  domain (income band, loan size, card tier, region, branch region, issue type) with
+  the measured result and a "So what" line; the six detail docs link their query.
 
 - **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.

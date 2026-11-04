@@ -6,6 +6,8 @@
 
 **Finding:** Fraud accounts for 0.499% of 3,005,000 card transactions (15,006 transactions, 28,608,185.59), with rates between 0.497% and 0.524% across merchant categories. ![chart](../../assets/insights/03-card-fraud.png)
 
+**Segment view:** Fraud rate is 0.479% for Platinum and 0.507% for Classic, and Debit cards (tier N/A) carry 15,673,144.60 of the fraud amount. So what: tier-specific blocking would miss most of the exposure; keep velocity and amount rules on every tier and watch Debit first. Query: `docs/insights/queries/card_fraud_segments.sql`.
+
 **So what:** Shift fraud controls to velocity and amount thresholds rather than merchant-category blocking, and size the investigator queue to ~15,000 alerts per period.
 
 **Reproduce:** `docs/insights/queries/card_fraud.sql` with `psql -U postgres -d banking_delta -f docs/insights/queries/card_fraud.sql`

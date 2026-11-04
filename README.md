@@ -146,7 +146,8 @@ banking-shaped dataset rather than findings about a real institution.
 
 ## Business insights
 
-Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md).
+Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md), including segment views and a
+"So what" line per finding.
 
 | Question | Finding | Source |
 | --- | --- | --- |

@@ -34,3 +34,16 @@ See the README's "About the data" section for the full description.
 | Is transaction value concentrated in a few channels? | Six channels split value almost evenly (16.62% to 16.70%). | `marts.mart_monthly_transactions` | [04-transactions.md](insights/04-transactions.md) |
 | Are branches evenly loaded? | Accounts per employee range from 27.55 to 211.33 across 151 branches. | `marts.mart_branch_performance` | [05-branches.md](insights/05-branches.md) |
 | Is customer support meeting its SLA? | 79.67% of 25,300 tickets resolved; 39.95% scored 2 or below. | `marts.mart_support_performance` | [06-support.md](insights/06-support.md) |
+
+## Segment views
+
+Each result is reproducible with the linked SQL against `banking_delta`.
+
+| Domain | Segment result | So what | SQL |
+| --- | --- | --- | --- |
+| Customers | Upper-Mid (36.12%) and High (32.88%) income bands hold 69.00% of transaction value from 32,786 of 47,640 active customers; average value is flat at 250,807-255,284 across every band. | Target the value decile, not the income tier: average customer value barely moves by income, so income-based offers would over-serve low-value customers in high bands. | [customer_segments.sql](insights/queries/customer_segments.sql) |
+| Loans | Late-payment rate is flat by loan size: 11.88% (<1L) to 12.04% (1-5L), a 0.16pp spread; loan types span 11.85-12.19%. | Run reminders and collections across the whole book; there is no small-ticket or large-ticket segment to prioritise. | [loan_segments.sql](insights/queries/loan_segments.sql) |
+| Card fraud | Fraud rate is 0.479% (Platinum) to 0.507% (Classic), a 0.028pp spread; Debit cards (tier N/A) carry the largest fraud amount (15,673,144.60). | Tier-based blocking would miss most fraud; keep velocity and amount rules running on all tiers, especially Debit. | [card_fraud_segments.sql](insights/queries/card_fraud_segments.sql) |
+| Transactions | Value is 26.76% North, 24.15% South, 23.29% West, 15.92% Central, 9.88% East - a 2.7x North-to-East spread, while the six channels stay within 0.08pp. | Set capacity, pricing and marketing by region; channel mix is too even to justify shifting traffic for share reasons. | [transaction_segments.sql](insights/queries/transaction_segments.sql) |
+| Branches | West branches carry the highest load (65.38 accounts per employee) against North (53.11); regional late-payment rates stay within 11.96-12.14%. | Rebalance staff toward West and Central offices; do not build region-specific collections playbooks from a 0.18pp late-rate spread. | [branch_segments.sql](insights/queries/branch_segments.sql) |
+| Support | Resolution is 78.61% for Account Statement to 81.15% for Net Banking Issue; satisfaction stays 2.97-3.04 across issue types, and the Low income band resolves worst (78.36%). | Fix the statement, KYC and loan-query workflows first, and investigate why satisfaction does not move with resolution - the driver looks systemic, not issue-specific. | [support_segments.sql](insights/queries/support_segments.sql) |
