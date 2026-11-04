@@ -19,6 +19,10 @@ the `release` workflow verifies before publishing.
   procedures vs dbt, four Postgres layers, PySpark for extraction, watermarks and late
   arrivals, Airflow, DQ gates, Delta publish, read-only consumers, landing contracts)
   with alternatives, rationale and trade-offs; linked from the README docs table.
+- **Unit coverage raised from 43.7% to 91.0%.** The unit tier grew from 266 to 732
+  tests, covering the audit writer, Spark I/O helpers, extract runner, all four DQ
+  runners, engine/session, script CLIs, Airflow preflight/callbacks/audit reader and
+  the report collector; `make cov` and `make ci` stay green.
 
 - **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.

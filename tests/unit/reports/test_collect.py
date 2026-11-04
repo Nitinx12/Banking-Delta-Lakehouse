@@ -198,3 +198,113 @@ def test_window_seconds_parses_iso_windows() -> None:
     assert _window_seconds("PT24H") == 86400.0
     assert _window_seconds("P1DT2H") == 93600.0
     assert _window_seconds("nonsense") == 0.0
+
+
+def test_freshness_uses_watermarks_and_degrades_to_loaded_at(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = datetime.now(UTC)
+    registry = [
+        {
+            "target_table": "branches",
+            "load_strategy": "full",
+            "source_id": "mysql_source",
+        },
+        {
+            "target_table": "events",
+            "load_strategy": "incremental",
+            "source_id": "mongo_source",
+        },
+        {
+            "target_table": "cards",
+            "load_strategy": "full",
+            "source_id": "databricks_source",
+        },
+        {
+            "target_table": "logs",
+            "load_strategy": "incremental",
+            "source_id": "mysql_source",
+        },
+        {
+            "target_table": "orders",
+            "load_strategy": "incremental",
+            "source_id": "mysql_source",
+        },
+    ]
+    watermarks = {
+        "events": (now - timedelta(hours=30)).isoformat(),
+        "logs": None,
+        "orders": "not-a-timestamp",
+    }
+    loaded = iter([now - timedelta(hours=1), None, now - timedelta(minutes=5), None])
+    calls: list[tuple[str, tuple]] = []
+
+    def fake_fetch(conn: object, query: str, params: tuple = ()):
+        calls.append((query, params))
+        if "load_strategy" in query:
+            return registry
+        if "extract_watermarks" in query:
+            return [{"last_watermark_value": watermarks[params[0]]}]
+        if "max(_loaded_at)" in query:
+            return [{"loaded": next(loaded)}]
+        if "SELECT status, total_tables" in query:
+            return [
+                {
+                    "status": "SUCCESS",
+                    "total_tables": 5,
+                    "successful_tables": 5,
+                    "failed_tables": 0,
+                    "skipped_tables": 0,
+                    "started_at": now,
+                    "ended_at": now,
+                    "duration_seconds": 0,
+                }
+            ]
+        return []
+
+    from psycopg2 import sql
+
+    monkeypatch.setattr(
+        sql.Composable,
+        "as_string",
+        lambda self, context=None: "SELECT max(_loaded_at)",
+    )
+    monkeypatch.setattr(
+        sql.Identifier,
+        "as_string",
+        lambda self, context=None: "SELECT max(_loaded_at)",
+    )
+    monkeypatch.setattr(collect, "_fetch", fake_fetch)
+    monkeypatch.setattr(
+        collect.paths,
+        "load_report_config",
+        lambda: {"thresholds": {"freshness_default_window": "PT24H"}},
+    )
+    monkeypatch.setattr(
+        collect.paths,
+        "load_slo_config",
+        lambda: {"tables": {"events": {"window": "PT24H", "severity": "CRITICAL"}}},
+    )
+
+    context = collect.collect(kind="daily", dag_id="d", dag_run_id="r", conn=object())
+
+    assert context["sections_failed"] == []
+    rows = {row["table"]: row for row in context["freshness"]}
+
+    assert rows["branches"]["window"] == "N/A (full reload)"
+    assert rows["branches"]["breached"] is False
+    assert rows["branches"]["severity"] == "INFO"
+    assert 3000 < rows["branches"]["age_s"] < 4200
+
+    assert rows["cards"]["age_s"] is None
+    assert rows["cards"]["breached"] is False
+
+    assert rows["events"]["window"] == "PT24H"
+    assert rows["events"]["severity"] == "CRITICAL"
+    assert rows["events"]["breached"] is True
+
+    assert rows["logs"]["breached"] is False
+    assert 0 <= rows["logs"]["age_s"] < 900
+
+    assert rows["orders"]["age_s"] is None
+    assert rows["orders"]["breached"] is False
