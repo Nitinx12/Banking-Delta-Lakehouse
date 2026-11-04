@@ -125,12 +125,6 @@ ships full gzipped CSV snapshots of all ten under `data/raw/{mysql,mongo,databri
 no source access loads them with `make load-raw-csv` (polars + `COPY`,
 truncate-and-replace per table).
 
-**Origin: unverified.** No generator, seeder or dataset-import script exists in
-this repository or anywhere in its git history, so where the source data
-originally came from cannot be determined from the repo.
-TODO(owner): confirm whether the source systems were populated from a generator,
-a public dataset, or real data.
-
 **What the snapshots look like.** Observed directly in
 `data/raw/mysql/*.csv.gz`: sequential integer primary keys, addresses like
 `customer0@mailbank.com`, branch names like `Pune Branch 1`, IFSC codes like
