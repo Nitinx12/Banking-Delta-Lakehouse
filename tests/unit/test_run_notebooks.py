@@ -47,6 +47,11 @@ class TestKillTree:
         proc = _Proc()
         commands: list[list[str]] = []
         monkeypatch.setattr(
+            run_notebooks,
+            "os",
+            SimpleNamespace(name="nt", environ=run_notebooks.os.environ),
+        )
+        monkeypatch.setattr(
             run_notebooks.subprocess,
             "run",
             lambda cmd, **kw: commands.append(cmd),
