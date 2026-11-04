@@ -269,6 +269,9 @@ class TestSilenceWindowsKill:
     def test_wraps_taskkill_once(self, monkeypatch: pytest.MonkeyPatch) -> None:
         import pyspark.java_gateway as gateway
 
+        monkeypatch.setattr(
+            engine, "os", SimpleNamespace(name="nt", environ=engine.os.environ)
+        )
         calls: list[tuple[tuple, dict]] = []
 
         def _fake_popen(args, *rest, **kwargs):
