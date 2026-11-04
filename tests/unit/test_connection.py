@@ -95,3 +95,148 @@ def test_connection_failures_count_as_transient() -> None:
     assert databricks_transient(TimeoutError("timed out"))
     assert databricks_transient(RuntimeError("RESOURCE_EXHAUSTED"))
     assert not databricks_transient(ValueError("Bad timestamp watermark"))
+
+
+class TestGetters:
+    def test_pg_connection_sets_utc_and_lock_timeout(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        seen: dict[str, object] = {}
+        monkeypatch.setenv("PG_HOST", "db")
+        monkeypatch.setenv("PG_DB", "warehouse")
+        monkeypatch.setenv("PG_USER", "loader")
+        monkeypatch.setenv("PG_LOCK_TIMEOUT", "30s")
+        monkeypatch.setattr("psycopg2.connect", lambda **kw: seen.update(kw) or "conn")
+
+        assert connection.get_pg_connection("unit") == "conn"
+        assert seen["application_name"] == "unit"
+        assert "-c timezone=UTC" in str(seen["options"])
+        assert "lock_timeout=30s" in str(seen["options"])
+
+    def test_pg_connection_requires_host(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.delenv("PG_HOST", raising=False)
+
+        with pytest.raises(RuntimeError, match="PG_HOST"):
+            connection.get_pg_connection()
+
+    def test_mysql_connection_forces_utc(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        executed: list[str] = []
+
+        class _Cur:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *exc: object) -> None:
+                return None
+
+            def execute(self, query: str) -> None:
+                executed.append(query)
+
+        class _Conn:
+            def cursor(self) -> _Cur:
+                return _Cur()
+
+        seen: dict[str, object] = {}
+        monkeypatch.setenv("MYSQL_HOST", "db")
+        monkeypatch.setenv("MYSQL_USER", "reader")
+        monkeypatch.setenv("MYSQL_DB", "source")
+        monkeypatch.setattr("pymysql.connect", lambda **kw: seen.update(kw) or _Conn())
+
+        connection.get_mysql_connection()
+
+        assert seen["autocommit"] is True
+        assert seen["charset"] == "utf8mb4"
+        assert executed == ["SET time_zone = '+00:00'"]
+
+    def test_mongo_client_uses_uri(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        seen: dict[str, object] = {}
+        monkeypatch.setenv("MONGO_URI", "mongodb://db")
+        monkeypatch.setattr(
+            "pymongo.MongoClient",
+            lambda uri, **kw: seen.update(uri=uri, **kw) or "client",
+        )
+
+        assert connection.get_mongo_client() == "client"
+        assert seen["uri"] == "mongodb://db"
+        assert seen["appname"] == "banking-pipeline"
+
+    def test_databricks_connection_includes_optional_schema(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        seen: dict[str, object] = {}
+        monkeypatch.setenv("DATABRICKS_HOST", "host")
+        monkeypatch.setenv("DATABRICKS_HTTP_PATH", "/sql")
+        monkeypatch.setenv("DATABRICKS_TOKEN", "token")
+        monkeypatch.setenv("DATABRICKS_SCHEMA", "core")
+        monkeypatch.setenv("DATABRICKS_CATALOG", "main")
+        monkeypatch.setattr(
+            "databricks.sql.connect", lambda **kw: seen.update(kw) or "conn"
+        )
+
+        assert connection.get_databricks_connection() == "conn"
+        assert seen["schema"] == "core"
+        assert seen["catalog"] == "main"
+
+    def test_databricks_connection_omits_blank_schema(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        seen: dict[str, object] = {}
+        monkeypatch.setenv("DATABRICKS_HOST", "host")
+        monkeypatch.setenv("DATABRICKS_HTTP_PATH", "/sql")
+        monkeypatch.setenv("DATABRICKS_TOKEN", "token")
+        monkeypatch.delenv("DATABRICKS_SCHEMA", raising=False)
+        monkeypatch.setenv("DATABRICKS_CATALOG", "main")
+        monkeypatch.setattr(
+            "databricks.sql.connect", lambda **kw: seen.update(kw) or "conn"
+        )
+
+        connection.get_databricks_connection()
+
+        assert "schema" not in seen
+
+
+class TestJdbcSettings:
+    def test_mysql_jdbc_streams_and_converts_zero_dates(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("MYSQL_HOST", "db")
+        monkeypatch.setenv("MYSQL_USER", "reader")
+        monkeypatch.setenv("MYSQL_DB", "source")
+        monkeypatch.delenv("MYSQL_SERVER_TZ", raising=False)
+
+        opts = connection.mysql_jdbc()
+
+        assert opts["url"].startswith("jdbc:mysql://db:3306/source?")
+        assert "useCursorFetch=true" in opts["url"]
+        assert "zeroDateTimeBehavior=CONVERT_TO_NULL" in opts["url"]
+        assert "serverTimezone=UTC" in opts["url"]
+        assert opts["driver"] == "com.mysql.cj.jdbc.Driver"
+
+    def test_pg_jdbc_batches_and_keeps_secrets_out_of_url(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("PG_HOST", "db")
+        monkeypatch.setenv("PG_USER", "loader")
+        monkeypatch.setenv("PG_DB", "warehouse")
+        monkeypatch.setenv("PG_PASS", "secret")
+
+        opts = connection.pg_jdbc()
+
+        assert opts["url"] == (
+            "jdbc:postgresql://db:5432/warehouse"
+            "?reWriteBatchedInserts=true&stringtype=unspecified"
+            "&ApplicationName=banking-spark"
+        )
+        assert opts["password"] == "secret"
+        assert "secret" not in opts["url"]
+
+    def test_mongo_settings_passes_database(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv("MONGO_URI", "mongodb://db")
+        monkeypatch.setenv("MONGO_DB_NAME", "source")
+
+        assert connection.mongo_settings() == {
+            "uri": "mongodb://db",
+            "database": "source",
+        }

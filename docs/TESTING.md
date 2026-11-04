@@ -47,7 +47,7 @@ tests/
 │   ├── test_repo_contract.py   # required files, markers, hermetic ci, untracked .env
 │   ├── test_sql_contract.py    # master loads, unique numbering, DQ suite contract
 │   └── test_env_contract.py    # every require()d var is in .env.example
-├── unit/                  # (to grow — see "What still needs tests")
+├── unit/                  # one test module per source module, all collaborators faked
 ├── integration/           # disposable PG only
 └── data-quality/          # SQL DQ suites — do not move (docs/DATA-QUALITY.md)
 airflow/tests/             # Airflow wiring: DAG integrity, commands, summary, redaction

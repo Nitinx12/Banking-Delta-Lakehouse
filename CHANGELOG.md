@@ -11,6 +11,22 @@ the `release` workflow verifies before publishing.
 
 ### Added
 
+- **"About the data" disclosure.** README and `docs/INSIGHTS.md` now describe how the
+  shipped `data/raw` snapshots are produced, mark the origin as unverified
+  (`TODO(owner)`), and state that the insight figures (fraud rate, late-payment rate,
+  concentration) are properties of this dataset, not real-world benchmarks.
+- **Architecture decision log.** `docs/DECISIONS.md` records nine decisions (stored
+  procedures vs dbt, four Postgres layers, PySpark for extraction, watermarks and late
+  arrivals, Airflow, DQ gates, Delta publish, read-only consumers, landing contracts)
+  with alternatives, rationale and trade-offs; linked from the README docs table.
+- **Unit coverage raised from 43.7% to 91.0%.** The unit tier grew from 266 to 732
+  tests, covering the audit writer, Spark I/O helpers, extract runner, all four DQ
+  runners, engine/session, script CLIs, Airflow preflight/callbacks/audit reader and
+  the report collector; `make cov` and `make ci` stay green.
+- **Insight segment views.** `docs/INSIGHTS.md` now adds one segmentation query per
+  domain (income band, loan size, card tier, region, branch region, issue type) with
+  the measured result and a "So what" line; the six detail docs link their query.
+
 - **Business insights docs.** `docs/INSIGHTS.md` index plus six per-domain write-ups under `docs/insights/` with reproducible SQL in `docs/insights/queries/` and charts in `assets/insights/`.
 - **Environment setup automation.** `scripts/setup_env.sh` to initialize `.env` files from `.example` templates.
 - **Log management automation.** `scripts/monitor_logs.sh` to monitor and cleanup old/large log files.
