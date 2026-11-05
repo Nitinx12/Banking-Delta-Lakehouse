@@ -109,7 +109,7 @@ Restricted (ask first): `make spark-smoke`, `ALLOW_SQL_SMOKE=1 make sql-smoke in
 | `spark_io._dbx_where` uses strict `>` on the lower bound | boundary row re-landed every run |
 | `engine._clean_packages` drops `#` comments, resolves Maven coordinates | comment text reaching Maven |
 | `main.py` forces UTF-8 before building the Rich console | cp1252 crash on Windows |
-| `main.py` step order = the 9 gated steps; `--only` accepts each name | Airflow task ↔ step name drift |
+| `main.py` step order = the 10 gated steps (`preflight` first); `--only` accepts each name | Airflow task ↔ step name drift |
 | `run_jobs.py` order `mongo → databricks → mysql`; exit 0 only if all sources 0 | extract ordering / silent failure |
 | `finish_pipeline_run` rolls up using the latest attempt per table only | wrong SUCCESS/PARTIAL/FAILED |
 | `summary.decide_status` never returns SUCCESS when a step state is missing | false-green mail |

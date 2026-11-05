@@ -22,7 +22,7 @@ flowchart TB
 
     subgraph ORCH["Orchestration"]
         AF["Airflow 3.3.2<br/>CeleryExecutor<br/>banking_delta_daily · 02:00 IST"]
-        MAIN["main.py<br/>9 gated steps"]
+        MAIN["main.py<br/>10 gated steps"]
         RUNJOBS["scripts/run_jobs.py<br/>mongo → databricks → mysql"]
     end
 
@@ -104,7 +104,7 @@ cross-cutting, red = DQ gates and failures, indigo = read-only consumers.
 
 ```text
 Banking-Delta-Lakehouse/
-├── main.py                     # 9 gated steps; the manual entry point
+├── main.py                     # 10 gated steps; the manual entry point
 ├── Makefile / tasks.bat        # single source of truth for dev tasks (Linux / Windows)
 ├── pyproject.toml              # deps, pytest markers, coverage floor, ruff config
 ├── AGENTS.md · ARCHITECTURE.md # rules for agents · this blueprint
@@ -152,21 +152,23 @@ Banking-Delta-Lakehouse/
 
 ## 4. The daily run, step by step
 
-`python main.py` runs nine steps in gate order (`--list` prints them). Airflow runs the
-same names as tasks.
+`python main.py` runs ten steps in gate order (`--list` prints them): `preflight`
+first, then the nine the Airflow DAG runs as its own tasks.
 
 ```mermaid
 flowchart LR
-    S1["1 raw-inject<br/>run_jobs.py"]
-    G1{"2 raw-tests<br/>DQ pass?"}
-    S3["3 staging-load<br/>CALL staging.sp_load_all"]
-    G2{"4 staging-tests<br/>DQ pass?"}
-    S5["5 analytics-load<br/>CALL analytics.sp_load_all"]
-    G3{"6 analytics-tests<br/>DQ pass?"}
-    S7["7 marts-load<br/>CALL marts.sp_load_all"]
-    G4{"8 marts-tests<br/>DQ pass?"}
-    S9["9 publish<br/>publish_marts.py"]
+    PRE["1 preflight<br/>src/utils/preflight.py"]
+    S1["2 raw-inject<br/>run_jobs.py"]
+    G1{"3 raw-tests<br/>DQ pass?"}
+    S3["4 staging-load<br/>CALL staging.sp_load_all"]
+    G2{"5 staging-tests<br/>DQ pass?"}
+    S5["6 analytics-load<br/>CALL analytics.sp_load_all"]
+    G3{"7 analytics-tests<br/>DQ pass?"}
+    S7["8 marts-load<br/>CALL marts.sp_load_all"]
+    G4{"9 marts-tests<br/>DQ pass?"}
+    S9["10 publish<br/>publish_marts.py"]
 
+    PRE --> S1
     S1 --> G1
     G1 -->|yes| S3
     G1 -->|no| STOP["stop · publish blocked"]
@@ -184,16 +186,23 @@ flowchart LR
     classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
     classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
     classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
-    class S1,S3,S5,S7,S9 step
+    class PRE,S1,S3,S5,S7,S9 step
     class G1,G2,G3,G4,STOP gate
     class DELTA delta
 ```
 
-Only steps 1, 2, 4, 6, 8 and 9 are Python jobs; the three `*-load` steps are a single
+Only steps 2, 3, 5, 7, 9 and 10 are Python jobs (plus step 1, which runs inside
+`main.py`); the three `*-load` steps are a single
 `CALL <schema>.sp_load_all(...)` inside PostgreSQL (`main.py:run_load`). A failing step
 stops the run unless `--keep-going` is passed.
 
-### Extracts in detail (step 1)
+Step 1 (`preflight`, `src/utils/preflight.py`) sends one cheap statement to each
+source - PostgreSQL, MySQL, MongoDB, Databricks - with capped exponential backoff, so
+an unreachable source or a rejected Databricks token stops the run before Spark starts.
+Airflow keeps its own `banking_airflow.preflight` task (Java, disk, Maven, SMTP) and
+runs the other nine through `main.py --only <step>`.
+
+### Extracts in detail (step 2)
 
 The three extractors share `src/utils/extract_runner.py`. Each table follows the same
 safe, twice-runnable loop (`src/utils/spark_io.py`):
@@ -441,7 +450,8 @@ flowchart LR
     class FAIL,VERDICT bad
 ```
 
-- Suites: `tests/data-quality/{raw,staging,analytics,marts}/` — 10 / 10 / 13 / 11 checks.
+- Suites: `tests/data-quality/{raw,staging,analytics,marts}/` — 10 / 10 / 13 / 11 checks
+  (plus the DDL-only `analytics/00_lp_check_upstream_freshness.sql` helper function).
 - Each file defines **one** procedure `audit.dq_<layer>_<check>()` that writes
   `audit.dq_run` + `audit.dq_violation`, updates the verdict, **`COMMIT`s, then `RAISE`s**
   on failure — the one intentional `COMMIT` inside SQL, so the reason survives the rollback.
@@ -451,7 +461,7 @@ flowchart LR
 - The smoke suite (`tests/smoke/test_sql_contract.py`) enforces the per-file contract
   (master file present, unique numeric prefixes, `audit.dq_*` name, COMMIT-before-RAISE).
 
-## 9. Publish to Databricks Delta (step 9)
+## 9. Publish to Databricks Delta (step 10)
 
 ```mermaid
 flowchart LR

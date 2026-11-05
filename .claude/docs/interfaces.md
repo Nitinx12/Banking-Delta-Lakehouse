@@ -8,7 +8,8 @@ The `main.py` script acts as the local orchestrator for the daily pipeline.
 **Flow: Input $\rightarrow$ Execution $\rightarrow$ Output**
 - **Input**: CLI arguments (`--from`, `--only`, `--keep-going`).
 - **Execution**: 
-    - `build_steps()` defines the sequence: `raw-inject` $\rightarrow$ `raw-tests` $\rightarrow$ `staging-load` $\rightarrow$ `staging-tests` $\rightarrow$ `analytics-load` $\rightarrow$ `analytics-tests` $\rightarrow$ `marts-load` $\rightarrow$ `marts-tests` $\rightarrow$ `publish`.
+    - `build_steps()` defines the sequence: `preflight` $\rightarrow$ `raw-inject` $\rightarrow$ `raw-tests` $\rightarrow$ `staging-load` $\rightarrow$ `staging-tests` $\rightarrow$ `analytics-load` $\rightarrow$ `analytics-tests` $\rightarrow$ `marts-load` $\rightarrow$ `marts-tests` $\rightarrow$ `publish`.
+    - **Preflight step**: `run_preflight()` (in-process, `src/utils/preflight.py`) probes PostgreSQL, MySQL, MongoDB and Databricks with capped backoff; it raises on failure and `main()` records the step as `FAILED`.
     - **Script-based steps**: Executed via `subprocess.run` (e.g., `scripts/run_jobs.py`).
     - **Load-based steps**: `run_load()` deploys SQL procedures using `psql -f` and calls `schema.sp_load_all()`.
 - **Output**: A rich console table summarizing the status, duration, and details of each step.

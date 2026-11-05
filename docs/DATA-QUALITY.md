@@ -39,6 +39,7 @@ tests/data-quality/
 ├── raw/        10 tests + 00_master_raw_tests.sql
 ├── staging/    10 tests + 00_master_staging_tests.sql
 ├── analytics/  13 tests + 00_master_analytics_tests.sql
+│               + 00_lp_check_upstream_freshness.sql (helper function)
 └── marts/      11 tests + 00_master_marts_tests.sql
 ```
 
@@ -68,11 +69,18 @@ unique numeric prefixes (excluding `00`/`99`), procedure named `audit.dq_*`, `dq
 `dq_violation` written, procedure called by `00_master_<layer>_tests.sql`, and
 COMMIT-before-RAISE (comment lines ignored).
 
+A `00_*` file other than the master is a **DDL-only helper**: it defines a function
+other checks `CALL` (e.g. `analytics/00_lp_check_upstream_freshness.sql` →
+`audit.dq_analytics_upstream_lag()`), declares no procedure and writes no audit rows, so
+it is excluded from the contract above and never `CALL`ed. Because the runner applies
+files it discovers, a full run creates it before `01` needs it — running `--only 01` on
+its own uses whatever version is already in the database (re-apply it with `--only 00`).
+
 ## Check catalogue
 
 | # | Check | What it proves |
 |---|---|---|
-| 01 | metadata_col | `_batch_id` / `_loaded_at` present, NOT NULL, timestamptz, not future, fresh |
+| 01 | metadata_col | `_batch_id` / `_loaded_at` present, NOT NULL, timestamptz, not future, and not more than 1 h behind the staging table it is built from (30 days of silence warns, never fails) |
 | 02 | primary_keys | PK/unique columns are non-null and unique |
 | 03 | bad_dates | no NULL/impossible/future dates |
 | 04 | orphan_rows | every FK has a parent row (e.g. accounts → customers) |

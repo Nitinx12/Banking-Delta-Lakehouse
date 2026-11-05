@@ -70,7 +70,7 @@ staging into raw would only be reconsidered if landing became typed.
 
 ## 3. PySpark used for extraction only
 
-**Decision:** Spark appears only in step 1 (`run_jobs.py` → `extract_*.py` →
+**Decision:** Spark appears only in step 2 (`run_jobs.py` → `extract_*.py` →
 `src/utils/spark_io.py`) to read the three sources and write `raw._stg_<table>`.
 All transformation is SQL inside PostgreSQL.
 
@@ -172,7 +172,7 @@ column cannot ship without a check.
 
 ## 7. Publish marts to Databricks Delta
 
-**Decision:** Step 9 (`src/jobs/publish_marts.py`) reads PostgreSQL `marts.mart_*`
+**Decision:** Step 10 (`src/jobs/publish_marts.py`) reads PostgreSQL `marts.mart_*`
 windowed by the watermark read **from the Delta target itself**, writes local
 Parquet via pyarrow, uploads to a Unity Catalog volume and runs one
 `MERGE INTO … USING read_files(...)` (keyed marts) or `INSERT OVERWRITE`

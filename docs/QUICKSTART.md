@@ -125,7 +125,7 @@ make daily          # or: python main.py
 Single layer or step:
 
 ```bash
-python main.py --list                  # show the 9 steps
+python main.py --list                  # show the 10 steps
 python main.py --only staging-load
 make staging && make dq-staging
 make analytics && make dq-analytics

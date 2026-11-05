@@ -31,7 +31,7 @@ flowchart TB
 
     subgraph ORCH["Orchestration"]
         AF["Airflow 3.3.2<br/>CeleryExecutor<br/>banking_delta_daily"]
-        MAIN["main.py<br/>9 gated steps"]
+        MAIN["main.py<br/>10 gated steps"]
         RUNJOBS["scripts/run_jobs.py<br/>one subprocess per source"]
     end
 
@@ -149,7 +149,7 @@ as stored procedures. Every DQ suite writes its verdict to `audit.dq_run` /
 
 | Entry point | Use | Orchestrated by |
 |---|---|---|
-| `python main.py` | manual / CI full run, 9 gated steps in order | human, `make daily` |
+| `python main.py` | manual / CI full run, 10 gated steps in order | human, `make daily` |
 | `airflow/dags/banking_delta_daily.py` | scheduled production run (02:00 IST) | Airflow scheduler |
 
 Both call the **same** scripts (`scripts/run_jobs.py`, `scripts/run_*_tests.py`,
@@ -157,18 +157,19 @@ Both call the **same** scripts (`scripts/run_jobs.py`, `scripts/run_*_tests.py`,
 (`sql/{staging,analytics,marts}/00_master_load.sql`). Airflow adds retries, pools, per-task
 state and alerting — it contains no pipeline logic of its own.
 
-The 9 steps of `main.py` (`python main.py --list`):
+The 10 steps of `main.py` (`python main.py --list`):
 
 ```
-1  raw        raw-inject        land MySQL, MongoDB, Databricks into raw
-2  raw        raw-tests         DQ gate on raw
-3  staging    staging-load      CALL staging.sp_load_all()
-4  staging    staging-tests     DQ gate on staging
-5  analytics  analytics-load    CALL analytics.sp_load_all()
-6  analytics  analytics-tests   DQ gate on analytics
-7  marts      marts-load        CALL marts.sp_load_all()
-8  marts      marts-tests       DQ gate on marts
-9  marts      publish           publish marts to Databricks Delta
+1  sources    preflight         probe PostgreSQL, MySQL, MongoDB, Databricks
+2  raw        raw-inject        land MySQL, MongoDB, Databricks into raw
+3  raw        raw-tests         DQ gate on raw
+4  staging    staging-load      CALL staging.sp_load_all()
+5  staging    staging-tests     DQ gate on staging
+6  analytics  analytics-load    CALL analytics.sp_load_all()
+7  analytics  analytics-tests   DQ gate on analytics
+8  marts      marts-load        CALL marts.sp_load_all()
+9  marts      marts-tests       DQ gate on marts
+10 marts      publish           publish marts to Databricks Delta
 ```
 
 ## A scheduled Airflow run, end to end
@@ -261,7 +262,7 @@ date watermarks re-read the last N months (late arrivals, `--lookback`
 make daily                          # full gated run (writes to warehouse + Databricks!)
 python main.py                      # same, stops at first failing step
 python main.py --only staging-load  # one layer
-python main.py --list               # show the 9 steps
+python main.py --list               # show the 10 steps
 
 # one layer at a time (debugging)
 python scripts/run_jobs.py                     # extracts: mongo -> databricks -> mysql

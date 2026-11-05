@@ -22,19 +22,22 @@ The system follows a **gated pipeline pattern**. Each layer must pass a set of D
 
 ### 1. Orchestration
 - **Airflow**: The primary scheduler. The DAG `airflow/dags/banking_delta_daily.py` wires tasks together but contains no business logic.
-- **CLI**: `main.py` allows manual execution of the same 9-step gated sequence.
+- **CLI**: `main.py` allows manual execution of the same 10-step gated sequence.
 
 ### 2. Execution Sequence
-`main.py` (and the Airflow DAG) executes the following sequence:
-1.  **`raw-inject`**: Calls `scripts/run_jobs.py` $\rightarrow$ invokes Spark extractors.
-30: 2.  **`raw-tests`**: Calls `scripts/run_raw_tests.py`.
-31: 3.  **`staging-load`**: Calls `staging.sp_load_all()` in PostgreSQL.
-32: 4.  **`staging-tests`**: Calls `scripts/run_staging_tests.py`.
-33: 5.  **`analytics-load`**: Calls `analytics.sp_load_all()` in PostgreSQL.
-34: 6.  **`analytics-tests`**: Calls `scripts/run_analytics_tests.py`.
-35: 7.  **`marts-load`**: Calls `marts.sp_load_all()` in PostgreSQL.
-36: 8.  **`marts-tests`**: Calls `scripts/run_marts_tests.py`.
-9.  **`publish`**: Runs `src/jobs/publish_marts.py` to push data to Databricks.
+`main.py` executes the following sequence; the Airflow DAG runs steps 2-10 as separate
+tasks and does its own environment check with `banking_airflow.preflight` instead of
+step 1:
+1.  **`preflight`**: Probes PostgreSQL, MySQL, MongoDB and Databricks with capped backoff (`src/utils/preflight.py`, in-process).
+2.  **`raw-inject`**: Calls `scripts/run_jobs.py` $\rightarrow$ invokes Spark extractors.
+3.  **`raw-tests`**: Calls `scripts/run_raw_tests.py`.
+4.  **`staging-load`**: Calls `staging.sp_load_all()` in PostgreSQL.
+5.  **`staging-tests`**: Calls `scripts/run_staging_tests.py`.
+6.  **`analytics-load`**: Calls `analytics.sp_load_all()` in PostgreSQL.
+7.  **`analytics-tests`**: Calls `scripts/run_analytics_tests.py`.
+8.  **`marts-load`**: Calls `marts.sp_load_all()` in PostgreSQL.
+9.  **`marts-tests`**: Calls `scripts/run_marts_tests.py`.
+10. **`publish`**: Runs `src/jobs/publish_marts.py` to push data to Databricks.
 
 ## Key Design Patterns
 - **Idempotency**: Every load is safe to run twice. This is achieved via watermarks and "Truncate-and-Insert" for full loads.

@@ -12,11 +12,14 @@ Root-cause a pipeline failure using the audit system, the DQ runners and logs.
 
 1. **Identify the failing step**
    - Airflow log for the DAG run, or the `main.py` / `make daily` output.
-   - `python main.py --list` shows the 9 steps in order: `raw-inject`,
-     `raw-tests`, `staging-load`, `staging-tests`, `analytics-load`,
+   - `python main.py --list` shows the 10 steps in order: `preflight`,
+     `raw-inject`, `raw-tests`, `staging-load`, `staging-tests`, `analytics-load`,
      `analytics-tests`, `marts-load`, `marts-tests`, `publish`.
-   - `*-tests` failed → data problem (step 2). `*-load` failed → SQL procedure
-     problem (step 4). `publish` failed → Databricks/connector problem.
+   - `preflight` failed → a source did not answer; read the summary `Detail` and the
+     `banking.utils.preflight` log lines (auth errors are not retried, budgets are
+     `PREFLIGHT_*`). It runs in-process, so it writes no `audit.*` row.
+   - `*-tests` failed → data problem (§2 below). `*-load` failed → SQL procedure
+     problem (§3 below). `publish` failed → Databricks/connector problem.
 
 2. **DQ failures**
    - `SELECT run_id, script_name, status, violation_count, finished_at

@@ -15,7 +15,7 @@ and produces statistical analyses, models, forecasts and Quarto reports.
 **What I took from `ARCHITECTURE.md`:** layer ownership (§5), the eight contracts (§14),
 hermetic CI and Makefile/`tasks.bat` parity (§12), env-only secrets (§11), the existing
 `reports/` LaTeX subsystem (§16), and the fact that marts exist in two places: PostgreSQL
-(`marts.*`) and Databricks Delta (`marts.*`, published by step 9).
+(`marts.*`) and Databricks Delta (`marts.*`, published by step 10).
 
 **What I could not see — confirm before coding:**
 
@@ -39,7 +39,7 @@ It must not weaken any contract in `ARCHITECTURE.md` §14.
 | Contract (§14) | What it means for R |
 |---|---|
 | Layers written only by owners | R has **no write grant** on `raw/staging/analytics/marts/audit`. Results go to files (`r/output/`), not tables. |
-| A critical DQ failure blocks publish | R refuses to analyse marts that did not pass step 8 (`assert_marts_ready()`, §4.3). |
+| A critical DQ failure blocks publish | R refuses to analyse marts that did not pass step 9 (`assert_marts_ready()`, §4.3). |
 | Money is `NUMERIC(18,2)` | R reads money as `double` for modelling, but **reconciles to the cent in SQL** (or as integer cents), never with `==` on doubles. |
 | Instants are `timestamptz` UTC | Connection sets `timezone = "UTC"` / `timezone_out = "UTC"`; every `POSIXct` carries `tz = "UTC"`. |
 | Idempotent by construction | Same inputs + same `renv.lock` + same seed ⇒ identical outputs. Analyses are pure functions of their inputs. |
@@ -65,7 +65,7 @@ Four R-specific principles on top:
 
 ```mermaid
 flowchart LR
-    MRT[("PostgreSQL<br/>marts.mart_*<br/>after step 8 gate")]
+    MRT[("PostgreSQL<br/>marts.mart_*<br/>after step 9 gate")]
     DMART[("Databricks Delta<br/>marts.mart_*")]
     AUD[("audit.*<br/>read-only")]
 
@@ -97,8 +97,8 @@ flowchart LR
 
 | Option | Use when | Trade-off |
 |---|---|---|
-| **PostgreSQL `marts.*`** (default) | Analysis, modelling, anything you want to run right after step 8 | Source of truth; available even if publish (step 9) failed. Needs a read-only role. |
-| **Databricks Delta `marts.*`** | You must match exactly what the dashboard shows | Only fresh after step 9; Databricks credentials; slower for iterative work. |
+| **PostgreSQL `marts.*`** (default) | Analysis, modelling, anything you want to run right after step 9 | Source of truth; available even if publish (step 10) failed. Needs a read-only role. |
+| **Databricks Delta `marts.*`** | You must match exactly what the dashboard shows | Only fresh after step 10; Databricks credentials; slower for iterative work. |
 | **Both** (parity check only) | A scheduled reconciliation analysis (§5.1) | Doubles connections; run weekly, not daily. |
 
 **Rule:** read `marts.*` only. If a mart is too aggregated for the question (e.g. you need

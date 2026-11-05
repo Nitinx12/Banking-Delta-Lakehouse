@@ -24,25 +24,26 @@ One end-to-end run of the project, with the gates that protect each layer.
 
 ```bash
 make daily          # shell orchestrator: every step in order, stops on first failure
-python main.py      # same 9 steps with audit correlation and rich output
+python main.py      # same 10 steps with audit correlation and rich output
 python main.py --list                  # show steps
 python main.py --only staging-load     # run a single step
 python main.py --only raw-tests        # re-run one gate
 ```
 
-The 9 steps, in order — each `*-tests` gate must pass before its layer proceeds:
+The 10 steps, in order — each `*-tests` gate must pass before its layer proceeds:
 
 | # | Step | What it does |
 | --- | --- | --- |
-| 1 | `raw-inject` | extracts MySQL/MongoDB/Databricks → `raw.*` (`make run-jobs`) |
-| 2 | `raw-tests` | DQ gate (`make dq-raw`) |
-| 3 | `staging-load` | `CALL staging.sp_load_all()` (`make staging`) |
-| 4 | `staging-tests` | DQ gate (`make dq-staging`) |
-| 5 | `analytics-load` | `CALL analytics.sp_load_all()` (`make analytics`) |
-| 6 | `analytics-tests` | DQ gate (`make dq-analytics`) |
-| 7 | `marts-load` | `CALL marts.sp_load_all()` (`make marts`) |
-| 8 | `marts-tests` | DQ gate (`make dq-marts`) |
-| 9 | `publish` | marts → Databricks Delta (`make publish`) |
+| 1 | `preflight` | probe PostgreSQL/MySQL/MongoDB/Databricks with capped backoff (in-process, no `audit.*` row) |
+| 2 | `raw-inject` | extracts MySQL/MongoDB/Databricks → `raw.*` (`make run-jobs`) |
+| 3 | `raw-tests` | DQ gate (`make dq-raw`) |
+| 4 | `staging-load` | `CALL staging.sp_load_all()` (`make staging`) |
+| 5 | `staging-tests` | DQ gate (`make dq-staging`) |
+| 6 | `analytics-load` | `CALL analytics.sp_load_all()` (`make analytics`) |
+| 7 | `analytics-tests` | DQ gate (`make dq-analytics`) |
+| 8 | `marts-load` | `CALL marts.sp_load_all()` (`make marts`) |
+| 9 | `marts-tests` | DQ gate (`make dq-marts`) |
+| 10 | `publish` | marts → Databricks Delta (`make publish`) |
 
 Rules that hold during any run:
 
@@ -89,7 +90,8 @@ Fix the cause; never weaken a check to get a green run.
 
 ## Done Checklist
 
-- [ ] All 9 steps `SUCCESS` in `audit.pipeline_runs`.
+- [ ] All 10 steps `SUCCESS` in the summary (`preflight` runs in-process, so it has
+      no `audit.pipeline_runs`/`table_runs` row of its own).
 - [ ] Every `audit.dq_run` since the run shows `PASS`.
 - [ ] Row counts in marts look sane; publish landed (if credentials present).
 - [ ] No `.env`/secrets were logged or committed.

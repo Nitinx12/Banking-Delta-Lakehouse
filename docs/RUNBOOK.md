@@ -9,7 +9,7 @@ Day-to-day operations: run it, watch it, recover it. Diagram colour legend:
 |---|---|---|
 | Scheduled | Airflow `banking_delta_daily`, `0 2 * * *` Asia/Kolkata | created **paused** — un-pause deliberately |
 | Manual (Airflow) | `airflow dags trigger banking_delta_daily` | `--conf '{"publish_full": true}'` for a full republish |
-| Manual (host) | `python main.py` or `make daily` | same 9 gated steps, stops at first failure |
+| Manual (host) | `python main.py` or `make daily` | same 10 gated steps (`preflight` first), stops at first failure |
 
 `max_active_runs=1`: a trigger fired while a run is active **waits** and then runs the
 whole pipeline again — it does not run concurrently.
@@ -86,7 +86,7 @@ Rules while triaging:
 ## Running one layer (debugging)
 
 ```bash
-python main.py --list                        # the 9 step names
+python main.py --list                        # the 10 step names
 python main.py --only staging-load           # one step
 python scripts/run_jobs.py --sources mongo   # one extract
 python scripts/run_staging_tests.py --list   # what a DQ runner would do

@@ -11,6 +11,13 @@ the `release` workflow verifies before publishing.
 
 ### Added
 
+- **`main.py` step 1 — `preflight`.** New `src/utils/preflight.py` probes PostgreSQL,
+  MySQL, MongoDB and Databricks (SELECT 1 / ping) with capped exponential backoff and
+  equal jitter before any extract runs. Credential failures are never retried (they
+  fail in seconds as `PreflightError`); anything else retries until its budget runs
+  out and then stops the run with the last error in the summary table. Budgets:
+  `PREFLIGHT_TIMEOUT` (60s) and `PREFLIGHT_DATABRICKS_TIMEOUT` (300s), each with
+  `PREFLIGHT_BASE` / `PREFLIGHT_CAP` overrides for tests. The pipeline is now 10 steps.
 - **"About the data" disclosure.** README and `docs/INSIGHTS.md` now describe how the
   shipped `data/raw` snapshots are produced, mark the origin as unverified
   (`TODO(owner)`), and state that the insight figures (fraud rate, late-payment rate,
@@ -58,6 +65,20 @@ the `release` workflow verifies before publishing.
 
 ### Changed
 
+- **Analytics check #7 staleness now compares layers, not the wall clock.**
+  `tests/data-quality/analytics/00_lp_check_upstream_freshness.sql` (new) defines
+  `audit.dq_analytics_upstream_lag()`, and `01_lp_check_metadata_col.sql` calls it
+  instead of its own 7-day `now()` window: a table fails only when its
+  `max(row_updated_at)` is more than **1 hour** behind the staging table it is built
+  from (mapping lives in the function), and 30 days without rows
+  is a `RAISE WARNING`, never a failure. The helper is a `00_` file, so the runner
+  applies it before `01` on a full run — `--only 01` on its own uses whatever
+  version is already in the database.
+- **Docs and skills follow the 10-step order.** `ARCHITECTURE.md`, `README.md`,
+  `docs/{PIPELINE,PROBLEM,QUICKSTART,RUNBOOK,TESTING,DATA-QUALITY}.md`,
+  `.claude/docs/interfaces.md` and the `operate-the-pipeline` /
+  `debugging-pipeline` skills list `preflight` first; `docs/DATA-QUALITY.md` also
+  documents the DDL-only `00_` helper contract.
 - Data-quality procedures are documented per file and grouped under per-layer
   master gate procedures.
 - `make sql-lint` is green: added an explicit `.sqlfluff` baseline (dialect,
@@ -81,12 +102,22 @@ the `release` workflow verifies before publishing.
 
 ### Fixed
 
+- **Analytics `01_lp_check_metadata_col.sql` false-positive staleness.** The 2026-11-05
+  run (`audit.dq_run` 3729) failed with 5 violations — `dim_loan`,
+  `fact_card_transactions`, `fact_loan_payments`, `fact_support_tickets` and
+  `fact_transactions` "stale, limit 7 days" — although staging, their upstream, was
+  *older* still (2026-10-20 vs 2026-10-28). Freshness is now the upstream lag rule
+  above, so a quiet source no longer fails the gate while a real load gap still does
+  (proved by inserting a newer staging row: the check fails, and passes again after
+  the row is removed). The heartbeat workaround above is no longer load-bearing for
+  this check and is left in place.
 - **Pipeline failure at `analytics-tests`**: `01_lp_check_metadata_col.sql` check #7
   flagged `dim_branch`, `dim_card` and `dim_txn_profile` as stale (`max(row_updated_at)`
   = 2026-10-18, past the 7-day limit). Root cause: `analytics-load` found no source
   changes, so no `UPDATE` fired the `set_updated_at('row_updated_at')` trigger and
   `row_updated_at` stayed stuck. The heartbeat fix advances it on no-change runs;
-  the 7-day staleness rule itself is unchanged.
+  the 7-day rule stood at that point and is now superseded by the upstream-lag rule
+  above.
 
 ### Removed
 

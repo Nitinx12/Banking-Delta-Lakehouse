@@ -75,7 +75,7 @@ flowchart TB
 
     subgraph ORCH["Orchestration · airflow/"]
         AF["banking_delta_daily<br/>02:00 IST"]
-        MAIN["main.py<br/>9 gated steps"]
+        MAIN["main.py<br/>10 gated steps"]
     end
 
     subgraph PG["PostgreSQL warehouse · banking_delta"]
@@ -172,29 +172,30 @@ Only one writer may touch a schema, so two jobs can never fight over the same ta
 
 ### 4.2 Every run is a chain of gates
 
-Nine steps in order; a failing data-quality check stops the run before the next layer
+Ten steps in order; a failing data-quality check stops the run before the next layer
 loads, so nothing downstream ever reads a half-loaded table.
 
 ```mermaid
 flowchart LR
-    S1["1 raw-inject"] --> G1{"2 raw-tests<br/>DQ pass?"}
-    G1 -->|yes| S3["3 staging-load"]
+    PRE["1 preflight"] --> S1["2 raw-inject"]
+    S1 --> G1{"3 raw-tests<br/>DQ pass?"}
+    G1 -->|yes| S3["4 staging-load"]
     G1 -->|no| STOP["stop<br/>publish blocked"]
-    S3 --> G2{"4 staging-tests<br/>DQ pass?"}
-    G2 -->|yes| S5["5 analytics-load"]
+    S3 --> G2{"5 staging-tests<br/>DQ pass?"}
+    G2 -->|yes| S5["6 analytics-load"]
     G2 -->|no| STOP
-    S5 --> G3{"6 analytics-tests<br/>DQ pass?"}
-    G3 -->|yes| S7["7 marts-load"]
+    S5 --> G3{"7 analytics-tests<br/>DQ pass?"}
+    G3 -->|yes| S7["8 marts-load"]
     G3 -->|no| STOP
-    S7 --> G4{"8 marts-tests<br/>DQ pass?"}
-    G4 -->|yes| S9["9 publish"]
+    S7 --> G4{"9 marts-tests<br/>DQ pass?"}
+    G4 -->|yes| S9["10 publish"]
     G4 -->|no| STOP
     S9 --> DELTA[("Databricks marts")]
 
     classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
     classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
     classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
-    class S1,S3,S5,S7,S9 step
+    class PRE,S1,S3,S5,S7,S9 step
     class G1,G2,G3,G4,STOP gate
     class DELTA delta
 ```
@@ -259,7 +260,7 @@ flowchart LR
     subgraph AF["airflow/ · orchestration"]
         DAG["banking_delta_daily<br/>02:00 IST"]
         WD["banking_watchdog<br/>every 3h"]
-        RUN["main.py → 9 gated steps"]
+        RUN["main.py → 10 gated steps"]
     end
     PG[("PostgreSQL<br/>warehouse")]
     DELTA[("Databricks<br/>marts.mart_*")]

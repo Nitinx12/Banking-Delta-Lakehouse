@@ -8,6 +8,7 @@ Colour legend: `docs/PIPELINE.md`.
 
 | Symptom | Likely cause | Fix |
 |---|---|---|
+| `python main.py` stops at `preflight` (step 1) | a source is down, or the Databricks token was rejected (auth errors are never retried, everything else backs off until the budget runs out) | fix what the summary's `Detail` column names; budgets are `PREFLIGHT_*` (`docs/DEPLOYMENT.md`), e.g. `DATABRICKS_HOST=wrong.host.invalid PREFLIGHT_DATABRICKS_TIMEOUT=15 python main.py --only preflight` |
 | First incremental run landed everything | watermark not seeded | `python scripts/seed_watermarks.py` (never for MySQL); then re-run |
 | Boundary row re-lands every run | lower bound was `>=` | already fixed: `spark_io._dbx_where` uses strict `>` — do not regress it |
 | Duplicate rows in `raw.*` | expected: incremental appends keep history | staging `ROW_NUMBER()` dedupe collapses them — check staging, not raw |
@@ -35,7 +36,7 @@ Colour legend: `docs/PIPELINE.md`.
 | Watchdog `[STUCK]` | run older than `WATCHDOG_STUCK_HOURS=5` (or scheduler dead) | inspect the run; `finalize_audit` reaps orphans after a kill |
 | Worker OOM / killed | Spark inside the 6 GB `mem_limit` | raise `WORKER_MEM_LIMIT`, lower `EXTRACT_SPARK_DRIVER_MEMORY` |
 | Jars re-download every start | `spark_cache` volume missing | ensure the compose `spark_cache:/opt/banking/.spark` mount |
-| `preflight` fails fast | Java missing/unsupported, <5 GB disk, source unreachable, Maven blocked | fix what it names; SMTP failures are warnings only |
+| `preflight` (Airflow task) fails fast | Java missing/unsupported, <5 GB disk, source unreachable, Maven blocked | fix what it names; SMTP failures are warnings only. The host run's own `main.py --only preflight` is a separate, backoff-based source probe (row above) |
 | Task cannot reach host services | running outside dev override | use `docker-compose.dev.yml` (adds `host.docker.local:host-gateway`) |
 
 ## Python / tests / tooling
