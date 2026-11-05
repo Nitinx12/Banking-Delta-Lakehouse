@@ -15,7 +15,8 @@
 --               4. No NULL or blank source_batch_id
 --               5. No NULL source_row_updated_at
 --               6. No load timestamps in the future
---               7. Data is fresh (max row_updated_at within window)
+--               7. Data is not behind the staging table it is
+--                  built from (see 00_lp_check_upstream_freshness.sql)
 -- Unknown rows : dimension rows with *_key = -1 are the Unknown
 --                 member; they carry no source lineage by design
 -- Note        : Run with autocommit (psql, pg_cron, or the runner).
@@ -27,7 +28,6 @@ AS $$
 DECLARE
     -- ---------- configuration ----------
     v_schema        CONSTANT TEXT     := 'analytics';
-    v_max_staleness CONSTANT INTERVAL := INTERVAL '7 days';
     v_source_exempt CONSTANT TEXT[]   := ARRAY['dim_txn_profile']::TEXT[];  -- no source lineage columns
 
     -- dimension tables and the surrogate key that marks the Unknown member
@@ -166,11 +166,8 @@ BEGIN
             v_violations := v_violations ||
                 format('%I.%I: %s rows with load timestamps in the future', v_schema, v_tbl.relname, v_future);
         END IF;
-        IF v_max_upd IS NOT NULL AND v_max_upd < now() - v_max_staleness THEN
-            v_violations := v_violations ||
-                format('%I.%I: stale data, latest row_updated_at is %s (limit %s)',
-                       v_schema, v_tbl.relname, v_max_upd, v_max_staleness);
-        END IF;
+        v_violations := v_violations
+            || audit.dq_analytics_upstream_lag(v_tbl.relname, v_max_upd);
 
         -- ---- source columns: nulls, blanks, future values ----
         IF v_source_ok THEN
