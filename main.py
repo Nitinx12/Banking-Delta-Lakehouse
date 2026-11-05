@@ -1,9 +1,9 @@
 """Run the full daily pipeline in gate order with a rich run report.
 
-Order: raw extract -> raw DQ -> staging load -> staging DQ -> analytics load
--> analytics DQ -> marts load -> marts DQ -> publish to Databricks. A failing
-step stops the run, so nothing downstream sees half-loaded data, unless
---keep-going is passed.
+Order: source preflight -> raw extract -> raw DQ -> staging load -> staging DQ
+-> analytics load -> analytics DQ -> marts load -> marts DQ -> publish to
+Databricks. A failing step stops the run, so nothing downstream sees half-loaded
+data, unless --keep-going is passed.
 
     python main.py                       # whole pipeline
     python main.py --list                # show the steps in order
@@ -37,6 +37,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 from utils.audit import start_pipeline_run  # noqa: E402 - project path is set above
 from utils.connection import get_pg_connection  # noqa: E402 - project path is set above
+from utils.preflight import run_preflight  # noqa: E402 - project path is set above
 
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 SQL_DIR = PROJECT_ROOT / "sql"
@@ -83,6 +84,11 @@ class StepResult:
 def build_steps() -> tuple[Step, ...]:
     """Return every pipeline step in execution order."""
     return (
+        Step(
+            "preflight",
+            "sources",
+            "Probe PostgreSQL, MySQL, MongoDB and Databricks before any extract",
+        ),
         Step(
             "raw-inject",
             "raw",
@@ -318,6 +324,9 @@ def run_step(
     step: Step, dag_id: str | None = None, dag_run_id: str | None = None
 ) -> tuple[str, str]:
     """Run a single step, whichever kind it is."""
+    if step.name == "preflight":
+        run_preflight()  # raises; main() records it as a failed step
+        return SUCCESS, ""
     if step.schema:
         return run_load(step.schema, dag_id, dag_run_id)
     if step.script is None:
@@ -416,7 +425,10 @@ def print_summary(results: list[StepResult], total_seconds: float) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Run the daily pipeline in gate order: extract, DQ, loads, publish."
+        description=(
+            "Run the daily pipeline in gate order:"
+            " preflight, extract, DQ, loads, publish."
+        )
     )
     parser.add_argument(
         "--from",
