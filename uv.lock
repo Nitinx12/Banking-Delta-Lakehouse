@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.13"
 resolution-markers = [
     "python_full_version >= '3.14' and sys_platform == 'win32'",
@@ -363,6 +363,7 @@ wheels = [
 name = "banking"
 version = "0.1.0"
 source = { virtual = "." }
+default-groups = ["dev", "reports"]
 dependencies = [
     { name = "databricks-sdk" },
     { name = "databricks-sql-connector" },
@@ -409,7 +410,7 @@ requires-dist = [
     { name = "pyarrow", specifier = ">=15" },
     { name = "pymongo", specifier = ">=4.7" },
     { name = "pymysql", specifier = ">=1.1" },
-    { name = "pyspark", specifier = ">=3.5.3,<3.6" },
+    { name = "pyspark", specifier = ">=3.5.3,<4.4" },
     { name = "python-dotenv", specifier = ">=1.0" },
     { name = "rich", specifier = ">=15.0.0" },
     { name = "seaborn", specifier = ">=0.13.2" },
@@ -2592,7 +2593,7 @@ name = "pexpect"
 version = "4.9.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "ptyprocess", marker = "sys_platform != 'emscripten' and sys_platform != 'win32'" },
+    { name = "ptyprocess" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
@@ -3162,12 +3163,12 @@ wheels = [
 
 [[package]]
 name = "pyspark"
-version = "3.5.9"
+version = "4.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "py4j" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/95/ce/81e53e729790556e3983e95de1a7d5df91a34adfcd34b5a5ab0e0c6e9b33/pyspark-3.5.9.tar.gz", hash = "sha256:ea27adc39ddac9413b8951e45aa748cbed6c785971b81386efc41938f6243d93", size = 317858593, upload-time = "2026-07-16T08:52:04.494Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/46/b2/4e28aaffe28db4745ac5df3ee9115719c1b5da5cce4106bee99c82d1eb2c/pyspark-4.3.0.tar.gz", hash = "sha256:e8c517948eff7088a7aa07449aa8eafa4a15a8d50319de2525a6fd26622476c6", size = 455910862, upload-time = "2026-10-30T15:30:57.079Z" }
 
 [[package]]
 name = "pytest"
