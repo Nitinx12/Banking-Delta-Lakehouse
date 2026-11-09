@@ -155,7 +155,10 @@ safe to repeat.
 `functions/NN_*.sql` files only `CREATE OR REPLACE FUNCTION` — applying a file
 installs it, and it is executed by a plain `SELECT`. All three live in the `audit`
 schema, take optional filters (defaults work with no arguments) and read the audit
-tables only, so they are safe against any environment.
+tables only, so they are safe against any environment. `fn_pipeline_summary`
+counts what is actually in `audit.table_runs` (the declared `total_tables` /
+`failed_tables` rollups on `pipeline_runs` are often NULL or disagree) and
+attributes each DQ failure to at most one run.
 
 ```sql
 -- what ran in the last 7 days, with table/error/DQ rollups
