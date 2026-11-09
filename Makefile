@@ -95,6 +95,9 @@ sql-smoke: ## Apply bootstrap + procedures to a DISPOSABLE Postgres (ALLOW_SQL_S
 	for f in $$(ls sql/scripts/*.sql | sort | grep -v -e 00_create_database -e 05_switch); do \
 	  echo "apply $$f"; $(PSQL) -f "$$f"; \
 	done; \
+	for f in $$(ls sql/functions/*.sql | sort); do \
+	  echo "apply $$f"; $(PSQL) -f "$$f"; \
+	done; \
 	for d in staging analytics marts; do \
 	  for f in $$(ls sql/$$d/*.sql | sort | grep -v -e /00_master -e /99_debug); do \
 	    echo "apply $$f"; $(PSQL) -f "$$f"; \

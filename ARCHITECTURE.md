@@ -134,6 +134,7 @@ Banking-Delta-Lakehouse/
 │   ├── staging/                # sp_load_*_scd1.sql + 00_master_load.sql
 │   ├── analytics/              # dim_* / fact_* + master load
 │   ├── marts/                  # mart_* + master load
+│   ├── functions/              # audit.fn_* reporting functions (pipeline/DQ summaries)
 │   ├── raw / metadata          # exploration queries (not part of the run)
 │
 ├── tests/

@@ -15,6 +15,7 @@ Airflow DAG apply them and then `CALL` the layer's master procedure.
 | `marts/` | 7 `sp_load_mart_*` procedures + `00_master_load` | yes |
 | `raw/` | `explore_raw_*` queries | no — exploration only |
 | `metadata/` | `list_*` catalog queries | no — exploration only |
+| `functions/` | `NN_*` files defining `audit.fn_*` reporting functions over the audit tables | no — ops/reporting helpers |
 
 `99_debug_*` files are developer helpers and are never called by the pipeline.
 
@@ -148,6 +149,32 @@ psql -U postgres -d banking_delta -v ON_ERROR_STOP=1 \
 
 The first command installs/updates the procedure; the second executes it. Both are
 safe to repeat.
+
+## Audit reporting functions
+
+`functions/NN_*.sql` files only `CREATE OR REPLACE FUNCTION` — applying a file
+installs it, and it is executed by a plain `SELECT`. All three live in the `audit`
+schema, take optional filters (defaults work with no arguments) and read the audit
+tables only, so they are safe against any environment.
+
+```sql
+-- what ran in the last 7 days, with table/error/DQ rollups
+SELECT * FROM audit.fn_pipeline_summary();
+
+-- only failed runs, last 30 days
+SELECT * FROM audit.fn_pipeline_summary(p_days => 30, p_status => 'FAILED');
+
+-- drill into one run: per-table rows, durations, latest error
+SELECT * FROM audit.fn_table_runs(p_pipeline_run_id => '<uuid>');
+
+-- recent table runs without a run id (defaults to 7 days, all statuses)
+SELECT * FROM audit.fn_table_runs(p_status => 'FAILED');
+
+-- DQ health per script, one layer only
+SELECT * FROM audit.fn_dq_summary(p_days => 14, p_layer => 'staging');
+```
+
+`make sql-smoke` applies them right after the bootstrap scripts.
 
 ## Conventions
 
