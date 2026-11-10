@@ -154,11 +154,11 @@ Full index in [docs/INSIGHTS.md](docs/INSIGHTS.md), including segment views and 
 For a step-by-step guide see [docs/QUICKSTART.md](docs/QUICKSTART.md).
 
 ```bash
-make install     # runtime + dev dependencies (uv)
-make hooks       # enable the repo git hooks
-make ci          # local gate: lint + contracts + sql-lint + coverage + smoke
-make load-raw-csv  # raw layer from the bundled data/ CSVs (no source systems needed)
-make daily       # run the whole pipeline
+make install         # runtime + dev dependencies (uv)
+make hooks           # enable the repo git hooks
+make ci              # local gate: lint + contracts + sql-lint + coverage + smoke
+make load-raw-csv    # raw layer from the bundled data/ CSVs (no source systems needed)
+make daily           # run the whole pipeline
 ```
 
 ## Common commands
