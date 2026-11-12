@@ -1,7 +1,11 @@
 # =============================================================================
-# Banking-Delta-Lakehouse task runner (GNU Make >= 3.82, bash).
+# Banking-Delta-Lakehouse task runner (GNU Make >= 3.82).
 # Windows / cmd.exe users: use tasks.bat (same target names).
 # CI calls these same targets, so `make ci` green locally == CI green.
+#
+# Windows GNU Make ignores SHELL and runs recipes in cmd.exe, so every recipe
+# must be portable: no POSIX-only commands, no shell `$$` or `%VAR%` writes,
+# double quotes around Rscript -e. tests/smoke/test_make_parity.py enforces it.
 #
 #   make help
 #   make unit ARGS="-k audit -x"
@@ -16,17 +20,7 @@ PY       ?= $(UV) run python
 PYTEST   ?= $(UV) run pytest
 RUFF     ?= $(UV) run ruff
 SQLFLUFF ?= $(UV) run sqlfluff
-PSQL     ?= psql -v ON_ERROR_STOP=1 -X -q
 ARGS     ?=
-
-# Load .env (shell-style) and map the project's PG_* names to libpq's PG* names.
-# Already-exported PGHOST/... win. Used only by targets that call psql.
-PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
-	export PGHOST="$${PGHOST:-$$PG_HOST}" \
-	       PGPORT="$${PGPORT:-$$PG_PORT}" \
-	       PGDATABASE="$${PGDATABASE:-$$PG_DB}" \
-	       PGUSER="$${PGUSER:-$$PG_USER}" \
-	       PGPASSWORD="$${PGPASSWORD:-$$PG_PASS}";
 
 .PHONY: help install hooks lint format contracts contracts-sync sql-lint unit cov smoke spark-smoke \
 		sql-smoke integration smoke-live test leaks ci up down run-jobs run-notebooks staging analytics \
@@ -42,8 +36,8 @@ PG_ENV := set -a; [ ! -f .env ] || . ./.env; set +a; \
 help: ## Show this help
 	@$(PY) scripts/make_help.py
 
-setup-env: ## Initialize .env files from templates
-	bash scripts/setup_env.sh
+setup-env: ## Initialize .env files from templates (ARGS="--non-interactive")
+	bash scripts/setup_env.sh $(ARGS)
 
 install: ## Install runtime + dev dependencies (uv)
 	$(UV) sync --group dev
@@ -88,30 +82,10 @@ spark-smoke: ## Local-Spark tests (needs Java 8/11/17/21)
 
 ##@ Tests that need a database
 sql-smoke: ## Apply bootstrap + procedures to a DISPOSABLE Postgres (ALLOW_SQL_SMOKE=1)
-	@[ "$${ALLOW_SQL_SMOKE:-}" = "1" ] || { \
-	  echo "Refusing: set ALLOW_SQL_SMOKE=1 and point PG_* at a THROWAWAY database (never the real warehouse)."; \
-	  exit 1; }
-	@$(PG_ENV) \
-	for f in $$(ls sql/scripts/*.sql | sort | grep -v -e 00_create_database -e 05_switch); do \
-	  echo "apply $$f"; $(PSQL) -f "$$f"; \
-	done; \
-	for f in $$(ls sql/functions/*.sql | sort); do \
-	  echo "apply $$f"; $(PSQL) -f "$$f"; \
-	done; \
-	for d in staging analytics marts; do \
-	  for f in $$(ls sql/$$d/*.sql | sort | grep -v -e /00_master -e /99_debug); do \
-	    echo "apply $$f"; $(PSQL) -f "$$f"; \
-	  done; \
-	done; \
-	for l in raw staging analytics marts; do \
-	  for f in $$(ls tests/data-quality/$$l/*.sql | sort | grep -v /00_master); do \
-	    echo "apply $$f"; $(PSQL) -f "$$f"; \
-	  done; \
-	done
-	@echo "sql-smoke OK"
+	$(PY) scripts/apply_sql_smoke.py
 
 integration: ## Behavioural tests on a disposable Postgres (ALLOW_SQL_SMOKE=1)
-	@[ "$${ALLOW_SQL_SMOKE:-}" = "1" ] || { echo "Refusing: set ALLOW_SQL_SMOKE=1 (disposable DB only)."; exit 1; }
+	$(if $(filter 1,$(ALLOW_SQL_SMOKE)),,$(error Refusing: set ALLOW_SQL_SMOKE=1 (disposable DB only)))
 	$(PYTEST) -m integration $(ARGS)
 
 smoke-live: ## READ-ONLY health checks against the configured environment (real creds)
@@ -119,7 +93,7 @@ smoke-live: ## READ-ONLY health checks against the configured environment (real 
 
 ##@ Security
 leaks: ## gitleaks over git history (needs gitleaks installed)
-	@command -v gitleaks >/dev/null 2>&1 || { echo "gitleaks not found: https://github.com/gitleaks/gitleaks#installing"; exit 1; }
+	$(if $(filter True,$(shell $(PY) -c "import shutil;print(bool(shutil.which('gitleaks')))")),,$(error gitleaks not found: https://github.com/gitleaks/gitleaks#installing))
 	gitleaks git --redact -v --config .gitleaks.toml
 
 ##@ Gate
@@ -142,9 +116,10 @@ load-raw-csv: ## [0] Land data/raw CSVs into raw (fresh clone, no source systems
 export-raw-csv: ## [0] Re-export data/raw CSVs from the live sources (needs creds)
 	$(PY) scripts/export_raw_csv.py $(ARGS)
 
+# GIT_SHA is exported only for `up`: compose labels the stack with it (else "unknown").
+up: export GIT_SHA := $(shell git rev-parse --short HEAD)$(shell git diff --quiet || echo -dirty)
 up: ## Start the local Airflow stack (GIT_SHA = local HEAD, -dirty if uncommitted)
-	GIT_SHA=$$(git rev-parse --short HEAD)$$(git diff --quiet || echo -dirty) \
-		$(DC) up -d
+	$(DC) up -d
 
 down: ## Stop the local Airflow stack
 	$(DC) down
@@ -157,13 +132,13 @@ run-notebooks: ## Execute the project notebooks (ARGS="--notebooks mysql")
 	$(PY) scripts/run_notebooks.py $(ARGS)
 
 staging: ## [2] CALL staging.sp_load_all()
-	@$(PG_ENV) $(PSQL) -f sql/staging/00_master_load.sql
+	$(PY) main.py --only staging-load
 
 analytics: ## [3] CALL analytics.sp_load_all()
-	@$(PG_ENV) $(PSQL) -f sql/analytics/00_master_load.sql
+	$(PY) main.py --only analytics-load
 
 marts: ## [4] CALL marts.sp_load_all()
-	@$(PG_ENV) $(PSQL) -f sql/marts/00_master_load.sql
+	$(PY) main.py --only marts-load
 
 publish: ## [5] Publish marts to Databricks Delta
 	$(PY) src/jobs/publish_marts.py $(ARGS)
@@ -205,7 +180,7 @@ report-pdf: ## Compile every fixture to PDF (needs latexmk)
 	$(PY) -m reports.scripts.build --all-fixtures
 
 report-tex: ## Compile every fixture and check log and page budget (tex tier)
-	$(PYTEST) -m tex
+	$(PYTEST) -m tex $(ARGS)
 
 report-docker: ## Compile the fixtures inside the TeX image (needs docker)
 	docker build -t banking-report-tex -f reports/Dockerfile .
@@ -221,34 +196,33 @@ report-weekly: ## Weekly digest against the warehouse
 	$(PY) -m reports.scripts.build --kind weekly --dag-id $(or $(DAG_ID),banking_report_weekly)
 
 report-clean: ## Delete generated report artefacts
-	rm -rf reports/build reports/output reports/figures/*.pdf
+	$(PY) scripts/clean.py --reports
 
 ##@ Housekeeping
 clean: ## Remove caches and coverage output (keeps .spark/ jar cache)
-	rm -rf .pytest_cache .ruff_cache .coverage htmlcov
-	find . -type d -name __pycache__ -not -path "./.venv/*" -prune -exec rm -rf {} +
+	$(PY) scripts/clean.py
 
-monitor-logs: ## Monitor and cleanup log files
-	bash scripts/monitor_logs.sh
+monitor-logs: ## Monitor and cleanup log files (ARGS="clean -y")
+	bash scripts/monitor_logs.sh $(ARGS)
 
 ##@ R targets (R.md §8.4)
 r-restore: ## install pinned packages
-	Rscript -e 'renv::restore(project = "r")'
+	Rscript -e "renv::restore(project = 'r')"
 
 r-lint:      ## style + static checks
-	Rscript -e 'lintr::lint_package("r")'
+	Rscript -e "lintr::lint_package('r')"
 
 r-test:      ## hermetic unit + contract tests — safe for ci
-	Rscript -e 'testthat::test_local("r")'
+	Rscript -e "testthat::test_local('r')"
 
 r-cov:       ## coverage report with floor — safe for ci
-	Rscript -e 'cov <- covr::package_coverage("r", type = "tests"); pct <- covr::percent_coverage(cov); message(sprintf("coverage: %.1f%%", pct)); if (pct < 60) quit(status = 1)'
+	Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(paste0('coverage: ', round(pct, 1), '%')); if (pct < 60) quit(status = 1)"
 
 r-run:       ## full analysis against the real warehouse — NOT part of ci
 	Rscript r/main.R
 
 r-docker-build:  ## build the image (needs Docker) — NOT part of ci
-	docker build -t banking-delta-r --build-arg GIT_SHA=$$(git rev-parse --short HEAD) r/
+	docker build -t banking-delta-r --build-arg GIT_SHA=$(shell git rev-parse --short HEAD) r/
 
 r-docker-run:    ## run in the container against the real warehouse — NOT part of ci
 	docker run --rm --env-file r/.env.r -v "$(CURDIR)/r/output:/app/output" banking-delta-r

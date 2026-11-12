@@ -28,14 +28,15 @@ exit /b 2
 :t_help
 echo Usage: tasks ^<target^> [extra args]
 echo.
-echo Setup     : install hooks setup-env
-echo Static    : lint format contracts sql-lint
+echo Setup     : help install hooks setup-env
+echo Static    : lint format contracts contracts-sync sql-lint
 echo Tests     : unit cov smoke test spark-smoke sql-smoke integration smoke-live
 echo Security  : leaks
-echo Gate      : ci   (lint + sql-lint + unit + smoke)
+echo Gate      : ci   (lint + contracts + sql-lint + cov + smoke + report-fixture)
 echo Airflow   : up down
 echo Reports   : report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly
-echo Pipeline  : load-raw-csv export-raw-csv run-jobs staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
+echo Pipeline  : load-raw-csv export-raw-csv run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
+echo R         : r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run
 echo Housekeep : clean monitor-logs
 exit /b 0
 
@@ -104,9 +105,8 @@ if not "%ALLOW_SQL_SMOKE%"=="1" (
   echo Refusing: set ALLOW_SQL_SMOKE=1 and point PG_* at a THROWAWAY database ^(never the real warehouse^).
   exit /b 1
 )
-echo Apply sql/scripts, sql/{staging,analytics,marts} and tests/data-quality by hand,
-echo or use the Make target ^(needs bash + psql^).
-exit /b 1
+uv run python scripts\apply_sql_smoke.py || exit /b 1
+exit /b 0
 
 :t_integration
 if not "%ALLOW_SQL_SMOKE%"=="1" (
@@ -121,6 +121,10 @@ uv run pytest -m live %ARGS% || exit /b 1
 exit /b 0
 
 :t_leaks
+where gitleaks >nul 2>&1 || (
+  echo gitleaks not found: https://github.com/gitleaks/gitleaks#installing
+  exit /b 1
+)
 gitleaks git --redact -v --config .gitleaks.toml || exit /b 1
 exit /b 0
 
@@ -212,10 +216,7 @@ call :t_publish || exit /b 1
 exit /b 0
 
 :t_clean
-for /d /r . %%D in (__pycache__) do @if exist "%%D" (echo "%%D" | findstr /i /l /c:".venv" /c:".spark" >nul || rd /s /q "%%D")
-for %%D in (.pytest_cache .ruff_cache .mypy_cache htmlcov) do @if exist "%%D" rd /s /q "%%D"
-if exist .coverage del /q .coverage
-if exist coverage.xml del /q coverage.xml
+uv run python scripts\clean.py || exit /b 1
 exit /b 0
 
 :t_report-fixture
@@ -236,22 +237,24 @@ docker run --rm -v "%cd%/reports/output:/work/reports/output" banking-report-tex
 exit /b 0
 
 :t_report
-uv run python -m reports.scripts.build --kind daily --dag-id banking_delta_daily || exit /b 1
+if "%DAG_ID%"=="" set "DAG_ID=banking_delta_daily"
+uv run python -m reports.scripts.build --kind daily --dag-id %DAG_ID% || exit /b 1
 exit /b 0
 
 :t_report-incident
-uv run python -m reports.scripts.build --kind incident --dag-id banking_delta_daily --dag-run-id %RUN% || exit /b 1
+if "%DAG_ID%"=="" set "DAG_ID=banking_delta_daily"
+uv run python -m reports.scripts.build --kind incident --dag-id %DAG_ID% --dag-run-id %RUN% || exit /b 1
 exit /b 0
 
 :t_report-weekly
-uv run python -m reports.scripts.build --kind weekly --dag-id banking_report_weekly || exit /b 1
+if "%DAG_ID%"=="" set "DAG_ID=banking_report_weekly"
+uv run python -m reports.scripts.build --kind weekly --dag-id %DAG_ID% || exit /b 1
 exit /b 0
 
 :t_report-clean
-if exist reports\build rmdir /s /q reports\build
-if exist reports\output rmdir /s /q reports\output
-if exist reports\figures\*.pdf del /q reports\figures\*.pdf
+uv run python scripts\clean.py --reports || exit /b 1
 exit /b 0
+
 :t_r-restore
 Rscript -e "renv::restore(project = 'r')" || exit /b 1
 exit /b 0
@@ -265,7 +268,7 @@ Rscript -e "testthat::test_local('r')" || exit /b 1
 exit /b 0
 
 :t_r-cov
-Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(sprintf('coverage: %.1f%%', pct)); if (pct < 60) quit(status = 1)" || exit /b 1
+Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(paste0('coverage: ', round(pct, 1), '%')); if (pct < 60) quit(status = 1)" || exit /b 1
 exit /b 0
 
 :t_r-run
@@ -273,7 +276,8 @@ Rscript r\main.R || exit /b 1
 exit /b 0
 
 :t_r-docker-build
-docker build -t banking-delta-r --build-arg GIT_SHA=unknown r/ || exit /b 1
+for /f "delims=" %%G in ('git rev-parse --short HEAD') do set "GIT_SHA=%%G"
+docker build -t banking-delta-r --build-arg GIT_SHA=%GIT_SHA% r/ || exit /b 1
 exit /b 0
 
 :t_r-docker-run
