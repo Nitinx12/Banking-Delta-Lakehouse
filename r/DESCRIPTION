@@ -1,6 +1,6 @@
 Package: bankinganalytics
 Title: Banking-Delta-Lakehouse R Analysis Layer
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: person("Banking Delta Lakehouse", role = c("aut", "cre"),
     email = "data-platform@example.com")
 Description: Read-only R analysis layer consuming marts.mart_*.

@@ -9,6 +9,8 @@ the `release` workflow verifies before publishing.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-12
+
 ### Added
 
 - **Shared runner scripts for the task runners.** `scripts/apply_sql_smoke.py`
@@ -208,5 +210,6 @@ Delta where a read-only Streamlit dashboard serves them.
 - **Runbook docs.** `main.py` (`--list`, `--from`, `--only`, `--keep-going`) and the
   raw exploration scripts under `sql/`.
 
-[Unreleased]: https://github.com/Nitinx12/Banking-Delta-Lakehouse/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Nitinx12/Banking-Delta-Lakehouse/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Nitinx12/Banking-Delta-Lakehouse/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Nitinx12/Banking-Delta-Lakehouse/releases/tag/v0.1.0
