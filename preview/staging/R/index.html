@@ -1,0 +1,4180 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../REPORTING/">
+      
+      
+        <link rel="next" href="../DECISIONS/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>R analysis layer - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+  <meta name="robots" content="noindex">
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#r-analysis-guide-banking-delta-lakehouse-marts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              R analysis layer
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-scope-and-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Scope and assumptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-principles-r-inherits-the-pipelines-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Principles — R inherits the pipeline's contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-where-r-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Where R fits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Where R fits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-which-copy-of-the-marts-should-r-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Which copy of the marts should R read?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-r-vs-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 r/ vs reports/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-folder-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Folder layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Folder layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-core-modules-the-production-skeleton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Core modules (the production skeleton)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Core modules (the production skeleton)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-rconfigr-the-only-env-reader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 R/config.R — the only env reader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-rdbr-read-only-utc-time-boxed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 R/db.R — read-only, UTC, time-boxed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-rgater-refuse-to-analyse-un-gated-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 R/gate.R — refuse to analyse un-gated data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-rcontractsr-fail-loudly-when-a-mart-changes-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 R/contracts.R — fail loudly when a mart changes shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-rextractr-fingerprints-make-caching-safe-and-a-name-allow-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 R/extract.R — fingerprints make caching safe (and a name allow-list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-scriptsdump_mart_schemar-generate-the-data-dictionary-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 scripts/dump_mart_schema.R — generate the data dictionary first
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-mainr-the-entry-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 main.R — the entry point
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 Docker image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-scaffold-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 Scaffold status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-what-analyses-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. What analyses to run
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. What analyses to run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-tier-0-cross-mart-data-trust-build-this-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Tier 0 — cross-mart data trust (build this first)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-mart_kpi_monthly-executive-kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 mart_kpi_monthly — executive KPIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-mart_customer_360-customer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 mart_customer_360 — customer view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-mart_monthly_transactions-volumes-and-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 mart_monthly_transactions — volumes and values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-mart_loan_portfolio-credit-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 mart_loan_portfolio — credit portfolio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-mart_card_fraud-fraud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 mart_card_fraud — fraud
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-mart_branch_performance-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 mart_branch_performance — branches
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-mart_support_performance-support-mongodb-sourced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 mart_support_performance — support (MongoDB-sourced)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-cross-cutting-analyses-that-connect-marts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Cross-cutting analyses that connect marts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-targets-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The targets pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-statistical-rigor-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Statistical rigor standards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-linting-and-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing, linting and CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Testing, linting and CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-hermetic-guard-the-r-twin-of-no_network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Hermetic guard — the R twin of no_network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-example-unit-test-with-an-in-memory-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Example unit test with an in-memory database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-quality-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Quality tooling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-makefile-tasksbat-integration-mind-the-parity-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Makefile / tasks.bat integration — mind the parity test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-outputs-manifest-and-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Outputs, manifest and retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-and-data-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Security and data governance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-optional-scheduling-with-airflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Optional: scheduling with Airflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-rollout-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Rollout roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-definition-of-done-and-anti-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Definition of done and anti-patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Definition of done and anti-patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-an-analysis-is-production-ready-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 An analysis is production-ready when
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-anti-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 Anti-patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-package-set-pin-in-renvlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A — Package set (pin in renv.lock)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-first-week-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix B — First-week checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#0-scope-and-assumptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0. Scope and assumptions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-principles-r-inherits-the-pipelines-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Principles — R inherits the pipeline's contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-where-r-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Where R fits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Where R fits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-which-copy-of-the-marts-should-r-read" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Which copy of the marts should R read?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-r-vs-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 r/ vs reports/
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-folder-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Folder layout
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Folder layout">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-core-modules-the-production-skeleton" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Core modules (the production skeleton)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Core modules (the production skeleton)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-rconfigr-the-only-env-reader" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 R/config.R — the only env reader
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-rdbr-read-only-utc-time-boxed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 R/db.R — read-only, UTC, time-boxed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-rgater-refuse-to-analyse-un-gated-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 R/gate.R — refuse to analyse un-gated data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-rcontractsr-fail-loudly-when-a-mart-changes-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 R/contracts.R — fail loudly when a mart changes shape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-rextractr-fingerprints-make-caching-safe-and-a-name-allow-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 R/extract.R — fingerprints make caching safe (and a name allow-list)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#46-scriptsdump_mart_schemar-generate-the-data-dictionary-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.6 scripts/dump_mart_schema.R — generate the data dictionary first
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#47-mainr-the-entry-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.7 main.R — the entry point
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#48-docker-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.8 Docker image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#49-scaffold-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.9 Scaffold status
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-what-analyses-to-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. What analyses to run
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. What analyses to run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-tier-0-cross-mart-data-trust-build-this-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Tier 0 — cross-mart data trust (build this first)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-mart_kpi_monthly-executive-kpis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 mart_kpi_monthly — executive KPIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-mart_customer_360-customer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 mart_customer_360 — customer view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-mart_monthly_transactions-volumes-and-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 mart_monthly_transactions — volumes and values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-mart_loan_portfolio-credit-portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 mart_loan_portfolio — credit portfolio
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-mart_card_fraud-fraud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 mart_card_fraud — fraud
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-mart_branch_performance-branches" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 mart_branch_performance — branches
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-mart_support_performance-support-mongodb-sourced" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 mart_support_performance — support (MongoDB-sourced)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#59-cross-cutting-analyses-that-connect-marts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.9 Cross-cutting analyses that connect marts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-the-targets-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. The targets pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-statistical-rigor-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Statistical rigor standards
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-linting-and-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing, linting and CI
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Testing, linting and CI">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-hermetic-guard-the-r-twin-of-no_network" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Hermetic guard — the R twin of no_network
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-example-unit-test-with-an-in-memory-database" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Example unit test with an in-memory database
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-quality-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Quality tooling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-makefile-tasksbat-integration-mind-the-parity-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Makefile / tasks.bat integration — mind the parity test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-outputs-manifest-and-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Outputs, manifest and retention
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-security-and-data-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Security and data governance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-optional-scheduling-with-airflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Optional: scheduling with Airflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-rollout-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Rollout roadmap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-definition-of-done-and-anti-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Definition of done and anti-patterns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Definition of done and anti-patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#131-an-analysis-is-production-ready-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.1 An analysis is production-ready when
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#132-anti-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13.2 Anti-patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-a-package-set-pin-in-renvlock" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix A — Package set (pin in renv.lock)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#appendix-b-first-week-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Appendix B — First-week checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="r-analysis-guide-banking-delta-lakehouse-marts">R Analysis Guide — Banking-Delta-Lakehouse Marts</h1>
+<blockquote>
+<p>How to build a production-grade R analysis layer on top of <code>marts.mart_*</code>: what the
+<code>r/</code> folder looks like, which analyses to run on which mart, and the standards that keep
+it reproducible, safe and testable. Read <code>ARCHITECTURE.md</code> first; this guide extends it
+and never overrides it. If this file and the code disagree, the code wins — then fix this file.</p>
+</blockquote>
+<h2 id="0-scope-and-assumptions">0. Scope and assumptions</h2>
+<p><strong>What this guide covers.</strong> A read-only R subsystem that consumes the seven marts
+(<code>mart_customer_360</code>, <code>mart_branch_performance</code>, <code>mart_monthly_transactions</code>,
+<code>mart_loan_portfolio</code>, <code>mart_card_fraud</code>, <code>mart_support_performance</code>, <code>mart_kpi_monthly</code>)
+and produces statistical analyses, models, forecasts and Quarto reports.</p>
+<p><strong>What I took from <code>ARCHITECTURE.md</code>:</strong> layer ownership (§5), the eight contracts (§14),
+hermetic CI and Makefile/<code>tasks.bat</code> parity (§12), env-only secrets (§11), the existing
+<code>reports/</code> LaTeX subsystem (§16), and the fact that marts exist in two places: PostgreSQL
+(<code>marts.*</code>) and Databricks Delta (<code>marts.*</code>, published by step 10).</p>
+<p><strong>What I could not see — confirm before coding:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Unknown</th>
+<th>Where to confirm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Column names, grain and keys of each mart</td>
+<td><code>sql/marts/*.sql</code> — or run <code>scripts/dump_mart_schema.R</code> (§4.6)</td>
+</tr>
+<tr>
+<td>Freshness column per mart</td>
+<td><code>MART_CONFIG</code> in <code>src/jobs/publish_marts.py</code></td>
+</tr>
+<tr>
+<td>Exact env-var names for the warehouse</td>
+<td><code>.env.example</code> and <code>src/utils/connection.py</code></td>
+</tr>
+<tr>
+<td>Columns of <code>audit.v_dq_latest</code> / <code>audit.pipeline_runs</code> timestamps</td>
+<td><code>docs/AUDIT.md</code>, <code>sql/scripts/</code></td>
+</tr>
+</tbody>
+</table>
+<p>Every R snippet below uses column names as <strong>function arguments or config values</strong>, never
+hard-coded guesses, for exactly this reason.</p>
+<hr />
+<h2 id="1-principles-r-inherits-the-pipelines-contracts">1. Principles — R inherits the pipeline's contracts</h2>
+<p>R is a <strong>read-only consumer</strong> (indigo in the repo legend, like the Streamlit dashboard).
+It must not weaken any contract in <code>ARCHITECTURE.md</code> §14.</p>
+<table>
+<thead>
+<tr>
+<th>Contract (§14)</th>
+<th>What it means for R</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Layers written only by owners</td>
+<td>R has <strong>no write grant</strong> on <code>raw/staging/analytics/marts/audit</code>. Results go to files (<code>r/output/</code>), not tables.</td>
+</tr>
+<tr>
+<td>A critical DQ failure blocks publish</td>
+<td>R refuses to analyse marts that did not pass step 9 (<code>assert_marts_ready()</code>, §4.3).</td>
+</tr>
+<tr>
+<td>Money is <code>NUMERIC(18,2)</code></td>
+<td>R reads money as <code>double</code> for modelling, but <strong>reconciles to the cent in SQL</strong> (or as integer cents), never with <code>==</code> on doubles.</td>
+</tr>
+<tr>
+<td>Instants are <code>timestamptz</code> UTC</td>
+<td>Connection sets <code>timezone = "UTC"</code> / <code>timezone_out = "UTC"</code>; every <code>POSIXct</code> carries <code>tz = "UTC"</code>.</td>
+</tr>
+<tr>
+<td>Idempotent by construction</td>
+<td>Same inputs + same <code>renv.lock</code> + same seed ⇒ identical outputs. Analyses are pure functions of their inputs.</td>
+</tr>
+<tr>
+<td>Audit survives failure</td>
+<td>Each run writes a <code>manifest.json</code> <em>before</em> analysis and updates it in a <code>finally</code>, so a failed run is still recorded.</td>
+</tr>
+<tr>
+<td>Never weaken a test or check to get green</td>
+<td>Same rule: no <code>skip_on_ci()</code> to dodge a failing test, no lowering <code>fail_under</code>.</td>
+</tr>
+<tr>
+<td>Secrets only in the environment</td>
+<td>R reads <code>Sys.getenv()</code> only. No credentials in code, <code>.Rprofile</code>, Quarto files or <code>renv.lock</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Four R-specific principles on top:</p>
+<ol>
+<li><strong>Pure core, thin shell.</strong> Analysis functions take data frames and return data frames,
+   models or plots. Only <code>R/db.R</code> and <code>R/extract.R</code> touch the network (mirrors the thin
+   <code>scripts/</code> wrappers on the Python side).</li>
+<li><strong>SQL stays in SQL, statistics stay in R.</strong> Aggregate and filter in the warehouse via
+   <code>dbplyr</code>/<code>.sql</code> files; pull only what the statistic needs.</li>
+<li><strong>Everything is pinned.</strong> <code>renv.lock</code> for packages, a fixed seed for randomness,
+   <code>targets</code> for the dependency graph.</li>
+<li><strong>Aggregates leave the building, rows don't.</strong> Reports contain aggregated, small-cell-suppressed
+   results only (§10).</li>
+</ol>
+<hr />
+<h2 id="2-where-r-fits">2. Where R fits</h2>
+<pre class="mermaid"><code>flowchart LR
+    MRT[("PostgreSQL&lt;br/&gt;marts.mart_*&lt;br/&gt;after step 9 gate")]
+    DMART[("Databricks Delta&lt;br/&gt;marts.mart_*")]
+    AUD[("audit.*&lt;br/&gt;read-only")]
+
+    subgraph RSYS["r/ · read-only analysis subsystem"]
+        GATE["gate + contracts&lt;br/&gt;assert_marts_ready"]
+        TAR["targets pipeline&lt;br/&gt;_targets.R"]
+        CORE["pure analysis functions&lt;br/&gt;R/*.R"]
+        QMD["Quarto reports&lt;br/&gt;analyses/*"]
+    end
+
+    OUT[("r/output/runs/run_key&lt;br/&gt;figures · tables · report · manifest")]
+
+    MRT --&gt;|SELECT via r_reader| GATE
+    AUD --&gt;|SELECT| GATE
+    DMART -.-&gt;|optional parity check| GATE
+    GATE --&gt; TAR --&gt; CORE --&gt; QMD --&gt; OUT
+
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef ui fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    class MRT marts
+    class DMART delta
+    class AUD audit
+    class GATE,TAR,CORE,QMD,OUT ui</code></pre>
+<h3 id="21-which-copy-of-the-marts-should-r-read">2.1 Which copy of the marts should R read?</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Use when</th>
+<th>Trade-off</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>PostgreSQL <code>marts.*</code></strong> (default)</td>
+<td>Analysis, modelling, anything you want to run right after step 9</td>
+<td>Source of truth; available even if publish (step 10) failed. Needs a read-only role.</td>
+</tr>
+<tr>
+<td><strong>Databricks Delta <code>marts.*</code></strong></td>
+<td>You must match exactly what the dashboard shows</td>
+<td>Only fresh after step 10; Databricks credentials; slower for iterative work.</td>
+</tr>
+<tr>
+<td><strong>Both</strong> (parity check only)</td>
+<td>A scheduled reconciliation analysis (§5.1)</td>
+<td>Doubles connections; run weekly, not daily.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Rule:</strong> read <code>marts.*</code> only. If a mart is too aggregated for the question (e.g. you need
+payment-level data for vintage analysis), the right fix is a <strong>new or extended mart built by
+<code>marts.sp_load_*</code></strong> — not reading <code>raw</code>/<code>staging</code> from R. If you must read <code>analytics.*</code>,
+make that an explicit, documented, <code>SELECT</code>-only exception in <code>r/config/analysis.yml</code>.</p>
+<h3 id="22-r-vs-reports">2.2 <code>r/</code> vs <code>reports/</code></h3>
+<p><code>reports/</code> is the pipeline's <strong>operational</strong> report (per-run PDF/LaTeX attached to the daily
+email). <code>r/</code> is <strong>analytical</strong> work (segmentation, forecasts, models). Keep them separate;
+if an R result should appear in the daily PDF later, export a small table/figure into
+<code>reports/</code> through its existing build script rather than coupling the two.</p>
+<hr />
+<h2 id="3-folder-layout">3. Folder layout</h2>
+<p><code>r/</code> is a standard <strong>R package</strong> (so <code>devtools</code>, <code>testthat</code>, <code>lintr</code> and <code>R CMD check</code> work
+out of the box) driven by a <strong><code>targets</code></strong> pipeline and rendered with <strong>Quarto</strong>.</p>
+<div class="highlight"><pre><span></span><code>r/
+├── DESCRIPTION                  # package metadata + Imports (the dependency contract)
+├── NAMESPACE                    # generated by roxygen2 — never hand-edit
+├── .Rbuildignore
+├── .Rprofile                    # ONE line: source("renv/activate.R")
+├── .lintr                       # lint rules (line length, naming)
+├── .gitignore                   # output/ · .Renviron · _targets/ · *.rds
+├── renv.lock                    # pinned package versions — committed
+├── renv/                        # activate.R + settings.json committed; library/ ignored
+├── main.R                       # ENTRY POINT: preflight → gate → extract → profile → report
+├── Dockerfile                   # container image: pinned R, non-root, secrets at run time
+├── .dockerignore · .env.r.example   # build context filter · variable names for --env-file
+├── _targets.R                   # (next step) dependency-graph pipeline, called from main.R
+│
+├── config/
+│   ├── analysis.yml             # marts list, freshness cols, thresholds, seeds, horizons
+│   └── contracts.yml            # per-mart expected columns, keys, types, ranges
+│
+├── R/                           # FUNCTIONS ONLY — no side effects when sourced
+│   ├── config.R                 # THE only place Sys.getenv() is read
+│   ├── db.R                     # connect (read-only, UTC), query helpers
+│   ├── gate.R                   # assert_marts_ready(), freshness, DQ verdict
+│   ├── contracts.R              # assert_contract(): columns, keys, nulls, ranges
+│   ├── extract.R                # read_mart(), mart_fingerprint()
+│   ├── run_context.R            # run_key, git SHA, manifest read/write
+│   ├── logging.R                # logger wrapper — no row values, ever
+│   ├── privacy.R                # small-cell suppression, id hashing
+│   ├── stats_helpers.R          # gini, psi, bootstrap CI, shrinkage
+│   ├── plot_theme.R             # one ggplot theme + palette for every figure
+│   ├── utils.R                  # %||%
+│   ├── cross_mart.R             # profile_mart(), write_table() — Tier 0, works on any mart
+│   ├── predictive.R             # time_split(), binary_metrics(), WoE + glm fit, scoring
+│   └── mart_&lt;name&gt;.R            # pure analysis functions, ONE FLAT FILE PER MART
+│                                #   e.g. mart_kpi_monthly.R, mart_card_fraud.R
+│
+├── inst/sql/                    # parametrised read queries — SQL out of R strings
+│   ├── mart_freshness.sql
+│   └── mart_schema_dump.sql
+│
+├── analyses/                    # Quarto narratives (thin: call package functions, show results)
+│   ├── 00_data_trust/           #   profile · contracts · reconciliation · freshness
+│   ├── 01_customer_360/
+│   ├── 02_branch_performance/
+│   ├── 03_monthly_transactions/
+│   ├── 04_loan_portfolio/
+│   ├── 05_card_fraud/
+│   ├── 06_support_performance/
+│   ├── 07_kpi_monthly/
+│   └── _shared/                 #   _setup.R — reads run-dir tables for the narratives
+│
+├── scripts/
+│   ├── check_gate.R             # exit 0/1 — usable from Make or Airflow
+│   └── dump_mart_schema.R       # writes docs/DATA-DICTIONARY.md from information_schema
+│
+├── tests/
+│   ├── testthat.R
+│   └── testthat/
+│       ├── setup.R              # unsets DB env vars — the R twin of conftest no_network
+│       ├── fixtures/            # optional reusable frames; most tests build synthetic
+│       │                        #   data inline, so this folder may be empty
+│       └── test-*.R             # one file per R/ file
+│
+├── docs/
+│   ├── REVIEW-LOG.md            # dated lint / test / live-run log
+│   └── (DATA-DICTIONARY.md, METHODS.md and MODEL-CARDS/ live in the REPO ROOT docs/ —
+│       they are shared with the pipeline, so they are not duplicated here)
+│
+└── output/                      # GIT-IGNORED
+    └── runs/
+        └── &lt;run_key&gt;/           # manifest.json · session_info.txt · figures/ · tables/ · report.html
+</code></pre></div>
+<h3 id="31-conventions">3.1 Conventions</h3>
+<table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>File ↔ test</td>
+<td><code>R/foo.R</code> ⇒ <code>tests/testthat/test-foo.R</code>. A function without a test does not merge.</td>
+</tr>
+<tr>
+<td>Function names</td>
+<td><code>snake_case</code>, verb first (<code>fit_</code>, <code>plot_</code>, <code>assert_</code>, <code>read_</code>). Exported functions have roxygen docs.</td>
+</tr>
+<tr>
+<td>Quarto files</td>
+<td>Thin: parameters + calls + narrative. <strong>No analysis logic in <code>.qmd</code></strong> — it can't be unit-tested.</td>
+</tr>
+<tr>
+<td>Config</td>
+<td>Thresholds, horizons, seeds, mart lists live in <code>config/analysis.yml</code>, not in code.</td>
+</tr>
+<tr>
+<td><code>R/</code> is flat</td>
+<td>R packages do not allow sub-folders under <code>R/</code> (they are ignored by <code>R CMD INSTALL</code>). Use a prefix instead: <code>mart_kpi_monthly.R</code>, <code>mart_card_fraud.R</code>.</td>
+</tr>
+<tr>
+<td>ASCII only</td>
+<td>Keep <code>R/</code>, <code>config/*.yml</code>, <code>main.R</code> and <code>Dockerfile</code> ASCII. A non-UTF-8 locale silently breaks YAML parsing on a stray em dash.</td>
+</tr>
+<tr>
+<td>No globals</td>
+<td>No <code>setwd()</code>, no <code>&lt;&lt;-</code>, no <code>source()</code> in <code>R/</code>, no <code>library()</code> in <code>R/</code> (use <code>pkg::fn</code>).</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>Only under <code>output/runs/&lt;run_key&gt;/</code>. Nothing written into the repo tree.</td>
+</tr>
+<tr>
+<td>Run key</td>
+<td>Same sanitiser as <code>reports/</code> (<code>[^A-Za-z0-9_]+ → "_"</code>, trimmed) so a run can be correlated with <code>audit.pipeline_runs</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-core-modules-the-production-skeleton">4. Core modules (the production skeleton)</h2>
+<h3 id="41-rconfigr-the-only-env-reader">4.1 <code>R/config.R</code> — the only env reader</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Configuration. This is the ONLY file that reads environment variables.</span>
+<span class="c1"># Credentials come from the environment only - never from code, .Rprofile or Quarto files.</span>
+
+<span class="c1">#' Path relative to the project root</span>
+<span class="c1">#'</span>
+<span class="c1">#' The root is set once by `main.R` via `options(bankinganalytics.root = ...)`.</span>
+<span class="c1">#' @param ... Path components.</span>
+<span class="c1">#' @export</span>
+<span class="n">project_path</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="kc">...</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">file.path</span><span class="p">(</span><span class="nf">getOption</span><span class="p">(</span><span class="s">"bankinganalytics.root"</span><span class="p">,</span><span class="w"> </span><span class="nf">getwd</span><span class="p">()),</span><span class="w"> </span><span class="kc">...</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#' Read an environment variable</span>
+<span class="c1">#' @param name Variable name.</span>
+<span class="c1">#' @param default Returned when the variable is unset or empty. If NULL, a missing</span>
+<span class="c1">#'   variable is an error.</span>
+<span class="c1">#' @export</span>
+<span class="n">cfg_env</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">default</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">val</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">Sys.getenv</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">unset</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA_character_</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">val</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="nf">nzchar</span><span class="p">(</span><span class="n">val</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.null</span><span class="p">(</span><span class="n">default</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="kr">return</span><span class="p">(</span><span class="n">default</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"Missing required environment variable: %s"</span><span class="p">,</span><span class="w"> </span><span class="n">name</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="n">val</span>
+<span class="p">}</span>
+
+<span class="c1">#' Load config/analysis.yml</span>
+<span class="c1">#' @param path Path to the YAML file.</span>
+<span class="c1">#' @export</span>
+<span class="n">cfg_analysis</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">project_path</span><span class="p">(</span><span class="s">"config"</span><span class="p">,</span><span class="w"> </span><span class="s">"analysis.yml"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">file.exists</span><span class="p">(</span><span class="n">path</span><span class="p">))</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Config not found: "</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="n">yaml</span><span class="o">::</span><span class="nf">read_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#' Load config/contracts.yml</span>
+<span class="c1">#' @param path Path to the YAML file.</span>
+<span class="c1">#' @export</span>
+<span class="n">cfg_contracts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">path</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">project_path</span><span class="p">(</span><span class="s">"config"</span><span class="p">,</span><span class="w"> </span><span class="s">"contracts.yml"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">file.exists</span><span class="p">(</span><span class="n">path</span><span class="p">))</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Contracts not found: "</span><span class="p">,</span><span class="w"> </span><span class="n">path</span><span class="p">,</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="n">yaml</span><span class="o">::</span><span class="nf">read_yaml</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#' Root folder for run outputs (R_OUTPUT_DIR, default &lt;root&gt;/output)</span>
+<span class="c1">#' @export</span>
+<span class="n">output_dir</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_OUTPUT_DIR"</span><span class="p">,</span><span class="w"> </span><span class="nf">project_path</span><span class="p">(</span><span class="s">"output"</span><span class="p">))</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The shipped variables are <code>R_PG_HOST</code>, <code>R_PG_PORT</code>, <code>R_PG_DATABASE</code>, <code>R_PG_USER</code>, <code>R_PG_PASSWORD</code>, <code>R_PG_SSLMODE</code> (see <code>r/.env.r.example</code>) - deliberately separate from the pipeline's own variables so R always uses the <strong>read-only role</strong> (<code>r_reader</code>). Set <code>R_PG_SSLMODE=require</code> outside local development. Document every new variable in <code>.env.example</code> so
+<code>tests/smoke/test_env_contract.py</code> stays green.</p>
+<h3 id="42-rdbr-read-only-utc-time-boxed">4.2 <code>R/db.R</code> — read-only, UTC, time-boxed</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Warehouse access: read-only, UTC, time-boxed. Only db.R and extract.R touch the network.</span>
+
+<span class="c1">#' Open a read-only warehouse connection</span>
+<span class="c1">#'</span>
+<span class="c1">#' Uses the dedicated read-only role (R_PG_USER). The session is forced read-only,</span>
+<span class="c1">#' UTC, with a statement timeout, so a bug in R cannot write or hang the warehouse.</span>
+<span class="c1">#' @export</span>
+<span class="n">pg_connect</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="c1"># Read every setting first so a missing variable fails fast, before any driver is touched.</span>
+<span class="w">  </span><span class="n">host</span><span class="w">     </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_HOST"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">port</span><span class="w">     </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.integer</span><span class="p">(</span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_PORT"</span><span class="p">,</span><span class="w"> </span><span class="s">"5432"</span><span class="p">))</span>
+<span class="w">  </span><span class="n">dbname</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_DATABASE"</span><span class="p">,</span><span class="w"> </span><span class="s">"banking_delta"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">user</span><span class="w">     </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_USER"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">password</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_PASSWORD"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">sslmode</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">cfg_env</span><span class="p">(</span><span class="s">"R_PG_SSLMODE"</span><span class="p">,</span><span class="w"> </span><span class="s">"prefer"</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">con</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbConnect</span><span class="p">(</span>
+<span class="w">    </span><span class="n">RPostgres</span><span class="o">::</span><span class="nf">Postgres</span><span class="p">(),</span>
+<span class="w">    </span><span class="n">host</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="n">host</span><span class="p">,</span>
+<span class="w">    </span><span class="n">port</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="n">port</span><span class="p">,</span>
+<span class="w">    </span><span class="n">dbname</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="n">dbname</span><span class="p">,</span>
+<span class="w">    </span><span class="n">user</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="n">user</span><span class="p">,</span>
+<span class="w">    </span><span class="n">password</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="n">password</span><span class="p">,</span>
+<span class="w">    </span><span class="n">sslmode</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="n">sslmode</span><span class="p">,</span>
+<span class="w">    </span><span class="n">connect_timeout</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="m">10</span><span class="p">,</span>
+<span class="w">    </span><span class="n">application_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"bankinganalytics-r"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">timezone</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="s">"UTC"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">timezone_out</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="s">"UTC"</span><span class="p">,</span>
+<span class="w">    </span><span class="n">bigint</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s">"numeric"</span>
+<span class="w">  </span><span class="p">)</span>
+<span class="w">  </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbExecute</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="s">"SET default_transaction_read_only = on"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbExecute</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="s">"SET statement_timeout = '120s'"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">con</span>
+<span class="p">}</span>
+
+<span class="c1">#' Run `fn(con)` with a connection that is always closed</span>
+<span class="c1">#' @param fn A function taking a DBI connection.</span>
+<span class="c1">#' @export</span>
+<span class="n">with_pg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">con</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">pg_connect</span><span class="p">()</span>
+<span class="w">  </span><span class="nf">on.exit</span><span class="p">(</span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbDisconnect</span><span class="p">(</span><span class="n">con</span><span class="p">),</span><span class="w"> </span><span class="n">add</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">fn</span><span class="p">(</span><span class="n">con</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>Database-side hardening (a one-time SQL script next to <code>sql/scripts/</code>, owned by the DBA/owner,
+not by R):</p>
+<div class="highlight"><pre><span></span><code><span class="k">CREATE</span><span class="w"> </span><span class="k">ROLE</span><span class="w"> </span><span class="n">r_reader</span><span class="w"> </span><span class="n">LOGIN</span><span class="w"> </span><span class="n">PASSWORD</span><span class="w"> </span><span class="s1">'...'</span><span class="p">;</span><span class="w">        </span><span class="c1">-- password from your secret store</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">CONNECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">DATABASE</span><span class="w"> </span><span class="n">banking_delta</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">r_reader</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">USAGE</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="n">marts</span><span class="p">,</span><span class="w"> </span><span class="n">audit</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">r_reader</span><span class="p">;</span>
+<span class="k">GRANT</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="k">ALL</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="n">marts</span><span class="p">,</span><span class="w"> </span><span class="n">audit</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">r_reader</span><span class="p">;</span>
+<span class="k">ALTER</span><span class="w"> </span><span class="k">DEFAULT</span><span class="w"> </span><span class="k">PRIVILEGES</span><span class="w"> </span><span class="k">IN</span><span class="w"> </span><span class="k">SCHEMA</span><span class="w"> </span><span class="n">marts</span><span class="w"> </span><span class="k">GRANT</span><span class="w"> </span><span class="k">SELECT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">TABLES</span><span class="w"> </span><span class="k">TO</span><span class="w"> </span><span class="n">r_reader</span><span class="p">;</span>
+<span class="c1">-- deliberately NO access to raw, staging, analytics</span>
+</code></pre></div>
+<h3 id="43-rgater-refuse-to-analyse-un-gated-data">4.3 <code>R/gate.R</code> — refuse to analyse un-gated data</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># The gate: refuse to analyse marts that are empty, unreadable or stale.</span>
+
+<span class="c1">#' Stop unless every configured mart is readable, non-empty and fresh enough</span>
+<span class="c1">#'</span>
+<span class="c1">#' The freshness column per mart comes from config/analysis.yml (take it from</span>
+<span class="c1">#' MART_CONFIG in publish_marts.py). If none is configured, only the non-empty</span>
+<span class="c1">#' check applies and a warning is logged.</span>
+<span class="c1">#'</span>
+<span class="c1">#' When `gate.check_audit` is true (the default) the run also honours the audit</span>
+<span class="c1">#' gate: the latest marts DQ verdict in `audit.v_dq_latest` must contain checks</span>
+<span class="c1">#' and no failure, and the latest `audit.pipeline_runs` row must be `SUCCESS` -</span>
+<span class="c1">#' or `PARTIAL` with successful marts table runs. Those queries live in</span>
+<span class="c1">#' `inst/sql/mart_dq_status.sql` and `inst/sql/pipeline_run_status.sql`.</span>
+<span class="c1">#' @param con A DBI connection.</span>
+<span class="c1">#' @param cfg Parsed analysis.yml.</span>
+<span class="c1">#' @param now Reference instant (injectable for tests).</span>
+<span class="c1">#' @export</span>
+<span class="n">assert_marts_ready</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">cfg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">cfg_analysis</span><span class="p">(),</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">Sys.time</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">problems</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">character</span><span class="p">()</span>
+<span class="w">  </span><span class="n">default_age</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">cfg</span><span class="o">$</span><span class="n">gate</span><span class="o">$</span><span class="n">default_max_age_hours</span><span class="w"> </span><span class="o">%||%</span><span class="w"> </span><span class="m">30</span>
+
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">mart</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">cfg</span><span class="o">$</span><span class="n">marts</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">spec</span><span class="w">  </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">cfg</span><span class="o">$</span><span class="n">marts</span><span class="p">[[</span><span class="n">mart</span><span class="p">]]</span>
+<span class="w">    </span><span class="n">col</span><span class="w">   </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spec</span><span class="o">$</span><span class="n">freshness_col</span>
+<span class="w">    </span><span class="n">stats</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">tryCatch</span><span class="p">(</span><span class="nf">mart_stats</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">),</span><span class="w"> </span><span class="n">error</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="n">e</span><span class="p">)</span>
+
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">inherits</span><span class="p">(</span><span class="n">stats</span><span class="p">,</span><span class="w"> </span><span class="s">"error"</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">problems</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">problems</span><span class="p">,</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"%s unreadable: %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="nf">conditionMessage</span><span class="p">(</span><span class="n">stats</span><span class="p">)))</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">stats</span><span class="o">$</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">stats</span><span class="o">$</span><span class="n">n</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">problems</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">problems</span><span class="p">,</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"%s is empty"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">))</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.null</span><span class="p">(</span><span class="n">col</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">log_warn</span><span class="p">(</span><span class="s">"no freshness_col configured for {mart}; only checking it is non-empty"</span><span class="p">)</span>
+<span class="w">      </span><span class="kr">next</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="n">max_age</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spec</span><span class="o">$</span><span class="n">max_age_hours</span><span class="w"> </span><span class="o">%||%</span><span class="w"> </span><span class="n">default_age</span>
+<span class="w">    </span><span class="n">age_h</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="nf">difftime</span><span class="p">(</span><span class="n">now</span><span class="p">,</span><span class="w"> </span><span class="nf">as.POSIXct</span><span class="p">(</span><span class="n">stats</span><span class="o">$</span><span class="n">latest</span><span class="p">,</span><span class="w"> </span><span class="n">tz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"UTC"</span><span class="p">),</span><span class="w"> </span><span class="n">units</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"hours"</span><span class="p">))</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">is.na</span><span class="p">(</span><span class="n">age_h</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">age_h</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">max_age</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="n">problems</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="n">problems</span><span class="p">,</span><span class="w"> </span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"%s is stale (%s h old, limit %s h)"</span><span class="p">,</span>
+<span class="w">                                      </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="nf">round</span><span class="p">(</span><span class="n">age_h</span><span class="p">,</span><span class="w"> </span><span class="m">1</span><span class="p">)),</span><span class="w"> </span><span class="n">max_age</span><span class="p">))</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">problems</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Marts not ready:\n - "</span><span class="p">,</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="n">problems</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"\n - "</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The audit side of the gate is already implemented (<code>.audit_problems()</code>, enabled by
+<code>gate.check_audit</code> in <code>analysis.yml</code>):</p>
+<ul>
+<li>the latest marts DQ verdict in <code>audit.v_dq_latest</code> must contain checks and <strong>no failure</strong>
+  (R honours the same gate that blocks publish);</li>
+<li>the latest <code>audit.pipeline_runs</code> row must be <code>SUCCESS</code>, or <code>PARTIAL</code> with successful marts
+  table runs.</li>
+</ul>
+<p>The queries are <code>inst/sql/mart_dq_status.sql</code> and <code>inst/sql/pipeline_run_status.sql</code>.</p>
+<blockquote>
+<p><strong>Date marts and <code>max()</code>:</strong> a date-grain mart (<code>month_start</code>, <code>month_opened</code>) is "fresh"
+relative to the calendar month, not to hours. Give those marts <code>max_age_hours</code> ≈ 24 × 35.</p>
+</blockquote>
+<h3 id="44-rcontractsr-fail-loudly-when-a-mart-changes-shape">4.4 <code>R/contracts.R</code> — fail loudly when a mart changes shape</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># R-side protection against silent schema drift. Complements (never replaces) the SQL</span>
+<span class="c1"># DQ suites in tests/data-quality/marts/.</span>
+
+<span class="c1">#' Validate a mart extract against its contract</span>
+<span class="c1">#'</span>
+<span class="c1">#' @param df The mart as a data frame.</span>
+<span class="c1">#' @param mart Mart name (used in messages).</span>
+<span class="c1">#' @param spec Contract for this mart: `required_cols`, `key`, `not_null`, `ranges`.</span>
+<span class="c1">#' @return `df`, invisibly. Errors on the first violated rule.</span>
+<span class="c1">#' @export</span>
+<span class="n">assert_contract</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">spec</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">req</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">unlist</span><span class="p">(</span><span class="n">spec</span><span class="o">$</span><span class="n">required_cols</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">req</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="m">0L</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">log_warn</span><span class="p">(</span><span class="s">"contract for {mart} has no required_cols yet - nothing is being enforced"</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">missing</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">setdiff</span><span class="p">(</span><span class="n">req</span><span class="p">,</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">missing</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] missing columns: %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="n">missing</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">", "</span><span class="p">)),</span>
+<span class="w">         </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="n">key</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">unlist</span><span class="p">(</span><span class="n">spec</span><span class="o">$</span><span class="n">key</span><span class="p">)</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">length</span><span class="p">(</span><span class="n">key</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nf">anyDuplicated</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0L</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] duplicate rows on key (%s)"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="nf">paste</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">collapse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">", "</span><span class="p">)),</span>
+<span class="w">         </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">unlist</span><span class="p">(</span><span class="n">spec</span><span class="o">$</span><span class="n">not_null</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">col</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">df</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] not_null column missing: %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">anyNA</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="n">col</span><span class="p">]]))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] NULL values in %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+
+<span class="w">  </span><span class="kr">for</span><span class="w"> </span><span class="p">(</span><span class="n">col</span><span class="w"> </span><span class="kr">in</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">spec</span><span class="o">$</span><span class="n">ranges</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">col</span><span class="w"> </span><span class="o">%in%</span><span class="w"> </span><span class="nf">names</span><span class="p">(</span><span class="n">df</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] range column missing: %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">lo</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spec</span><span class="o">$</span><span class="n">ranges</span><span class="p">[[</span><span class="n">col</span><span class="p">]]</span><span class="o">$</span><span class="n">min</span><span class="w"> </span><span class="o">%||%</span><span class="w"> </span><span class="o">-</span><span class="kc">Inf</span>
+<span class="w">    </span><span class="n">hi</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">spec</span><span class="o">$</span><span class="n">ranges</span><span class="p">[[</span><span class="n">col</span><span class="p">]]</span><span class="o">$</span><span class="n">max</span><span class="w"> </span><span class="o">%||%</span><span class="w"> </span><span class="kc">Inf</span>
+<span class="w">    </span><span class="n">bad</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">sum</span><span class="p">(</span><span class="n">df</span><span class="p">[[</span><span class="n">col</span><span class="p">]]</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">lo</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">df</span><span class="p">[[</span><span class="n">col</span><span class="p">]]</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">hi</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)</span>
+<span class="w">    </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="n">bad</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="m">0L</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nf">stop</span><span class="p">(</span><span class="nf">sprintf</span><span class="p">(</span><span class="s">"[%s] %d rows out of range in %s"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">bad</span><span class="p">,</span><span class="w"> </span><span class="n">col</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>config/contracts.yml</code> (illustrative — fill from the data dictionary):</p>
+<div class="highlight"><pre><span></span><code><span class="nt">mart_kpi_monthly</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">required_cols</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">month_start</span><span class="p p-Indicator">]</span><span class="w">      </span><span class="c1"># + the KPI columns you rely on</span>
+<span class="w">  </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">month_start</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">not_null</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">month_start</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">ranges</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">{}</span>
+</code></pre></div>
+<p>This is <strong>R-side</strong> protection for the analyses; it complements (never replaces) the SQL
+DQ suites in <code>tests/data-quality/marts/</code>.</p>
+<h3 id="45-rextractr-fingerprints-make-caching-safe-and-a-name-allow-list">4.5 <code>R/extract.R</code> — fingerprints make caching safe (and a name allow-list)</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Reading marts. Marts are small by design, so a full read is fine.</span>
+
+<span class="n">.assert_mart_name</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.character</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nf">length</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="m">1L</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="o">!</span><span class="nf">grepl</span><span class="p">(</span><span class="s">"^mart_[a-z0-9_]+$"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Invalid mart name: "</span><span class="p">,</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="n">mart</span><span class="p">),</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">invisible</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#' Row count and latest freshness value of one mart (cheap change detector)</span>
+<span class="c1">#' @param con A DBI connection.</span>
+<span class="c1">#' @param mart Mart table name, e.g. "mart_kpi_monthly".</span>
+<span class="c1">#' @param freshness_col Optional column whose maximum is the freshness marker.</span>
+<span class="c1">#' @export</span>
+<span class="n">mart_stats</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">freshness_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">.assert_mart_name</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span>
+<span class="w">  </span><span class="n">tbl</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">tbl</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">dbplyr</span><span class="o">::</span><span class="nf">in_schema</span><span class="p">(</span><span class="s">"marts"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">))</span>
+<span class="w">  </span><span class="n">n</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">pull</span><span class="p">(</span><span class="n">dplyr</span><span class="o">::</span><span class="nf">count</span><span class="p">(</span><span class="n">tbl</span><span class="p">),</span><span class="w"> </span><span class="s">"n"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">latest</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kc">NULL</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="nf">is.null</span><span class="p">(</span><span class="n">freshness_col</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">col</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">rlang</span><span class="o">::</span><span class="nf">sym</span><span class="p">(</span><span class="n">freshness_col</span><span class="p">)</span>
+<span class="w">    </span><span class="n">latest</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">pull</span><span class="p">(</span>
+<span class="w">      </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">summarise</span><span class="p">(</span><span class="n">tbl</span><span class="p">,</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">max</span><span class="p">(</span><span class="o">!!</span><span class="n">col</span><span class="p">,</span><span class="w"> </span><span class="n">na.rm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">)),</span>
+<span class="w">      </span><span class="s">"latest"</span>
+<span class="w">    </span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="nf">list</span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">as.numeric</span><span class="p">(</span><span class="n">n</span><span class="p">),</span><span class="w"> </span><span class="n">latest</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">latest</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="c1">#' Fingerprint a mart on its own connection</span>
+<span class="c1">#' @inheritParams mart_stats</span>
+<span class="c1">#' @export</span>
+<span class="n">mart_fingerprint</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">freshness_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">with_pg</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">con</span><span class="p">)</span><span class="w"> </span><span class="nf">mart_stats</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">freshness_col</span><span class="p">))</span>
+<span class="p">}</span>
+
+<span class="c1">#' Read a whole mart</span>
+<span class="c1">#' @param mart Mart table name.</span>
+<span class="c1">#' @param token Unused value that lets a pipeline (e.g. targets) declare a dependency</span>
+<span class="c1">#'   on a fingerprint so the read is repeated only when the mart changed.</span>
+<span class="c1">#' @export</span>
+<span class="n">read_mart</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">mart</span><span class="p">,</span><span class="w"> </span><span class="n">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="nf">.assert_mart_name</span><span class="p">(</span><span class="n">mart</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">force</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+<span class="w">  </span><span class="nf">with_pg</span><span class="p">(</span><span class="kr">function</span><span class="p">(</span><span class="n">con</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">collect</span><span class="p">(</span><span class="n">dplyr</span><span class="o">::</span><span class="nf">tbl</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">dbplyr</span><span class="o">::</span><span class="nf">in_schema</span><span class="p">(</span><span class="s">"marts"</span><span class="p">,</span><span class="w"> </span><span class="n">mart</span><span class="p">)))</span>
+<span class="w">  </span><span class="p">})</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="46-scriptsdump_mart_schemar-generate-the-data-dictionary-first">4.6 <code>scripts/dump_mart_schema.R</code> — generate the data dictionary first</h3>
+<p>Before any analysis, generate <code>docs/DATA-DICTIONARY.md</code> from
+<code>information_schema.columns</code> for the seven marts (column, type, nullable) and add a
+hand-written <strong>grain</strong> line and <strong>business definition</strong> per measure. Every analysis cites
+this file. Analyses written against an undocumented grain are the #1 source of wrong numbers.</p>
+<h3 id="47-mainr-the-entry-point">4.7 <code>main.R</code> — the entry point</h3>
+<p><code>main.R</code> is to the R subsystem what <code>main.py</code> is to the pipeline: <strong>one entry point, steps in
+gate order, stop at the first failure.</strong> Manual runs, the Docker image and (later) Airflow all
+call it - there is no second way to run the analysis.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Step</th>
+<th>What it does</th>
+<th>Fails when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>preflight</code></td>
+<td>env vars, packages, config, writable output folder</td>
+<td>any <code>R_PG_HOST/USER/PASSWORD</code> missing; package missing</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>gate</code></td>
+<td><code>assert_marts_ready()</code> on every configured mart</td>
+<td>a mart is unreadable, empty or stale</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>extract</code></td>
+<td><code>mart_fingerprint()</code> + <code>read_mart()</code> + <code>assert_contract()</code> per mart</td>
+<td>a contract rule is violated</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>profile</code></td>
+<td><code>profile_mart()</code> -&gt; <code>tables/profile_&lt;mart&gt;.csv</code></td>
+<td>no mart data in memory</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>report</code></td>
+<td>renders <code>analyses/*/index.qmd</code> if any exist</td>
+<td>Quarto missing or render error</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>Rscript<span class="w"> </span>main.R<span class="w">                    </span><span class="c1"># run everything</span>
+Rscript<span class="w"> </span>main.R<span class="w"> </span>--list<span class="w">             </span><span class="c1"># print the steps and exit</span>
+Rscript<span class="w"> </span>main.R<span class="w"> </span>--only<span class="o">=</span>preflight,gate<span class="w">   </span><span class="c1"># run selected steps (canonical order)</span>
+Rscript<span class="w"> </span>main.R<span class="w"> </span>--keep-going<span class="w">       </span><span class="c1"># continue after a failed step</span>
+Rscript<span class="w"> </span>main.R<span class="w"> </span>--skip-report<span class="w">      </span><span class="c1"># skip step 5</span>
+Rscript<span class="w"> </span>main.R<span class="w"> </span>--run-key<span class="o">=</span>KEY<span class="w">      </span><span class="c1"># e.g. an Airflow dag_run_id (sanitised like reports/)</span>
+</code></pre></div>
+<p><strong>Exit codes:</strong> <code>0</code> success - <code>1</code> failed - <code>2</code> partial (only with <code>--keep-going</code>) - <code>64</code> bad usage.</p>
+<p><strong>What a run leaves behind</strong> (<code>output/runs/&lt;run_key&gt;/</code>):</p>
+<div class="highlight"><pre><span></span><code>manifest.json     # written BEFORE step 1 (RUNNING), rewritten after every step, finalised on exit
+session_info.txt
+tables/           # profile_&lt;mart&gt;.csv ... (aggregates only)
+figures/
+reports/          # &lt;name&gt;.html from Quarto
+</code></pre></div>
+<p>The manifest records <code>run_key</code>, <code>status</code> (<code>RUNNING | SUCCESS | PARTIAL | FAILED</code>), start/finish
+time (UTC), <code>git_sha</code>, R version, per-step status/seconds/error (secret-redacted), per-mart row
+count + latest freshness value, and the list of outputs. A failed run is therefore always on
+record, the same "audit survives failure" idea as <code>ARCHITECTURE.md</code> section 7.</p>
+<p><strong>Design rules baked into <code>main.R</code>:</strong></p>
+<ul>
+<li>Mart data lives <strong>in memory only</strong> (<code>ctx$data</code>); nothing row-level is written to disk.</li>
+<li><code>--only=profile</code> alone fails with a clear message, because <code>profile</code> needs <code>extract</code> in the
+  same invocation.</li>
+<li>Old run folders are pruned after the run (<code>output.retention_days</code>), never the current one.</li>
+<li>The package is loaded with <code>pkgload::load_all()</code> when the source tree is present, otherwise
+  from the installed package (that is the Docker case).</li>
+</ul>
+<p><strong>Adding an analysis</strong> (the pattern for every mart in section 5):</p>
+<ol>
+<li>Write a pure function in <code>R/mart_&lt;name&gt;.R</code> (data frame in, data frame/model out) with a
+   test in <code>tests/testthat/test-mart_&lt;name&gt;.R</code>.</li>
+<li>Add a <code>step_&lt;name&gt;(ctx)</code> function to <code>main.R</code> that reads <code>ctx$data[[mart]]</code>, calls your
+   function and writes under <code>ctx$run_dir</code> (<code>write_table()</code>); append the relative path to
+   <code>ctx$manifest$outputs</code>.</li>
+<li>Register it in <code>STEP_INFO</code> (the order of <code>STEP_INFO</code> is the run order). Dispatch is by
+   name — <code>do.call(paste0("step_", name), list(ctx))</code> — so the function must be called
+   <code>step_&lt;name&gt;</code>; there is no separate function registry.</li>
+</ol>
+<h3 id="48-docker-image">4.8 Docker image</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># build (GIT_SHA lands in manifest.json; WITH_QUARTO=true only if you render reports)</span>
+docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>banking-delta-r<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--build-arg<span class="w"> </span><span class="nv">GIT_SHA</span><span class="o">=</span><span class="k">$(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="k">)</span><span class="w"> </span>r/
+
+<span class="c1"># run: secrets at run time, outputs on a volume</span>
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--env-file<span class="w"> </span>r/.env.r<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="nv">$PWD</span><span class="s2">/r/output:/app/output"</span><span class="w"> </span>banking-delta-r
+docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>banking-delta-r<span class="w"> </span>--list<span class="w">        </span><span class="c1"># arguments go straight to main.R</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Choice</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Base image</td>
+<td><code>rocker/r-ver:${R_VERSION}</code> (default <code>4.5.1</code>, a build arg)</td>
+<td>Pinned R; CRAN points at a dated package snapshot, so builds are repeatable</td>
+</tr>
+<tr>
+<td>Packages</td>
+<td><code>renv.lock</code> if present, else <code>DESCRIPTION</code></td>
+<td>Commit <code>renv.lock</code> (section 8.3) for exact versions; the build <strong>fails</strong> if a core package did not install</td>
+</tr>
+<tr>
+<td>Layering</td>
+<td>dependencies copied and installed <em>before</em> the source</td>
+<td>Code changes do not re-install packages</td>
+</tr>
+<tr>
+<td>User</td>
+<td>non-root (<code>uid 10001</code>)</td>
+<td>The container never runs as root</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>none in the image; <code>--env-file</code> / orchestrator secrets</td>
+<td><code>.env.r</code> is git-ignored and excluded by <code>.dockerignore</code>; gitleaks still scans the repo</td>
+</tr>
+<tr>
+<td>Quarto</td>
+<td><code>--build-arg WITH_QUARTO=true</code></td>
+<td>Off by default to keep the image small</td>
+</tr>
+<tr>
+<td>Entry point</td>
+<td><code>ENTRYPOINT ["Rscript", "/app/main.R"]</code></td>
+<td>One way to run it</td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>VOLUME /app/output</code> (<code>R_OUTPUT_DIR</code>)</td>
+<td>Results survive the container</td>
+</tr>
+<tr>
+<td>Library</td>
+<td>system R library (<code>renv/</code> and <code>.Rprofile</code> are not copied)</td>
+<td>No renv auto-activation surprises inside the image</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reaching the warehouse from the container.</strong> <code>R_PG_HOST=host.docker.internal</code> works on Docker
+Desktop; on Linux add <code>--add-host=host.docker.internal:host-gateway</code>. To reach a Postgres that
+runs in another Compose stack (e.g. the Airflow one), attach the container to that network with
+<code>--network &lt;name&gt;</code> and use the service name as host. Use the read-only <code>r_reader</code> credentials.</p>
+<p><strong>Known limits.</strong> The image is single-stage (the <code>-dev</code> headers stay in); a multi-stage build
+that copies only the R library and runtime <code>.so</code> files is a size optimisation for later. The
+image runs one batch job and exits - there is deliberately no <code>HEALTHCHECK</code> or long-running server.</p>
+<h3 id="49-scaffold-status">4.9 Scaffold status</h3>
+<p>What exists in <code>r/</code> today versus what this guide still describes as the target state:</p>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>main.R</code>, <code>Dockerfile</code>, <code>.dockerignore</code>, <code>.env.r.example</code>, <code>.gitignore</code>, <code>.lintr</code></td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>DESCRIPTION</code>, <code>NAMESPACE</code> (export-all pattern until roxygen2 is introduced)</td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>R/</code>: <code>config</code>, <code>db</code>, <code>logging</code>, <code>run_context</code>, <code>gate</code>, <code>contracts</code>, <code>extract</code>, <code>cross_mart</code>, <code>utils</code>, <code>privacy</code>, <code>stats_helpers</code>, <code>plot_theme</code>, <code>figures</code>, <code>reconciliation</code>, <code>monitoring</code>, all 7 <code>mart_*</code> (Tier 1 descriptive functions wired into <code>main.R</code> <code>step_analyses</code>)</td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>config/analysis.yml</code> (<code>freshness_col</code>, thresholds, seed), <code>config/contracts.yml</code> (all 7 marts)</td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>tests/testthat/</code> — one test file per <code>R/</code> file, plus <code>setup.R</code> (hermetic guard)</td>
+<td>Done — <strong>24 of 24</strong> <code>R/</code> files have a <code>test-&lt;name&gt;.R</code>; <code>test-db.R</code>, <code>test-figures.R</code>, <code>test-logging.R</code> and <code>test-utils.R</code> are thin (1 test each)</td>
+</tr>
+<tr>
+<td><code>_targets.R</code> (fingerprint → read → contract → analysis targets), Quarto <code>analyses/*/</code> (00–07 thin narratives + <code>_shared/_setup.R</code>), <code>docs/DATA-DICTIONARY.md</code>, <code>docs/METHODS.md</code></td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>docs/MODEL-CARDS/</code> (template + fraud / PD / attrition cards)</td>
+<td>Done — cards are populated with scaffold specifications; full model training requires live data (Phases 4–5 of section 12)</td>
+</tr>
+<tr>
+<td>Makefile / <code>tasks.bat</code> <code>r-*</code> targets (incl. <code>r-cov</code>), <code>.github/workflows/r-ci.yml</code> (lint + test + covr floor 60 + R CMD check)</td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>scripts/dump_mart_schema.R</code>, <code>scripts/check_gate.R</code>, <code>scripts/prune_runs.R</code>, <code>scripts/snapshot_renv.R</code></td>
+<td>Done</td>
+</tr>
+<tr>
+<td><code>renv.lock</code></td>
+<td><strong>Done</strong> — committed (R 4.5.1, 140+ packages pinned)</td>
+</tr>
+<tr>
+<td>Tier 2–4 models (segmentation clustering, forecasts reported against backtest, PD/attrition/fraud trained models, DEA, survival beyond the helper)</td>
+<td><strong>Partially done</strong> — forecasts (<code>backtest_forecast</code> vs <code>SNAIVE</code>, <code>forecast_future</code>) are complete; PD/fraud/attrition are WoE + <code>stats::glm</code> with a <strong>time-ordered split</strong> and out-of-time <code>binary_metrics()</code>; <code>cox_fit()</code> covers time-to-default. Still missing: clustering (<code>tidyclust</code>/<code>mclust</code>), DEA, association rules, calibration plots. See Phase 5 of section 12.</td>
+</tr>
+</tbody>
+</table>
+<p>What was verified when the scaffold was written, after code review, and again on 2026-10-31
+against a live warehouse (<code>r/docs/REVIEW-LOG.md</code>): all <code>R/</code>, test and <code>main.R</code> files parse;
+the gate (empty / stale / missing / fresh), the profile and the contract checks run against an
+in-memory database and against live data; <code>main.R --list</code>, bad-usage exit code and a
+failed-preflight run (manifest written, later steps <code>SKIPPED</code>) behave as documented; a full
+live run finished <code>SUCCESS</code> with identical table checksums on re-run; <code>r_reader</code> was confirmed
+read-only; coverage 72.3% (floor 60); <code>R CMD check</code> passes with 1 WARNING + 2 NOTEs.</p>
+<p><strong>Not verified</strong> (require Docker or the CI environment):
+- Docker build and <code>renv::restore()</code> in container
+- Quarto render inside the container (<code>WITH_QUARTO=true</code>)
+- Model training (PD, fraud, attrition) on live labelled data — needs label columns
+- <code>renv::status()</code> lockfile sync in CI environment</p>
+<hr />
+<hr />
+<h2 id="5-what-analyses-to-run">5. What analyses to run</h2>
+<p>Think in five tiers. Each tier assumes the one before it passed.</p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Goal</th>
+<th>Typical output</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0 · Data trust</strong></td>
+<td>Can I believe these numbers?</td>
+<td>Profile, contract result, reconciliation, freshness</td>
+<td>Every run</td>
+</tr>
+<tr>
+<td><strong>1 · Descriptive</strong></td>
+<td>What happened?</td>
+<td>KPI tables, trends, distributions, concentration</td>
+<td>Every run</td>
+</tr>
+<tr>
+<td><strong>2 · Diagnostic</strong></td>
+<td>Why did it happen? Who differs?</td>
+<td>Segmentation, benchmarking, variance bridges, driver models</td>
+<td>Weekly / monthly</td>
+</tr>
+<tr>
+<td><strong>3 · Predictive</strong></td>
+<td>What will happen? Who is at risk?</td>
+<td>Forecasts, risk/fraud/churn models, survival curves</td>
+<td>Monthly / on retrain</td>
+</tr>
+<tr>
+<td><strong>4 · Monitoring</strong></td>
+<td>Is something drifting or broken?</td>
+<td>Control charts, anomaly flags, PSI, model decay</td>
+<td>Scheduled</td>
+</tr>
+</tbody>
+</table>
+<h3 id="51-tier-0-cross-mart-data-trust-build-this-first">5.1 Tier 0 — cross-mart data trust (build this first)</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Profile</strong></td>
+<td>Row counts, NULL %, distinct counts, min/max, per column per mart (<code>skimr</code>, <code>janitor</code>)</td>
+<td>Baseline + data dictionary input</td>
+</tr>
+<tr>
+<td><strong>Contract check</strong></td>
+<td><code>assert_contract()</code> per mart</td>
+<td>Detect silent schema drift (the extractors auto-<code>ADD COLUMN</code>)</td>
+</tr>
+<tr>
+<td><strong>Cross-mart reconciliation</strong></td>
+<td>e.g. sum of a transaction measure in <code>mart_monthly_transactions</code> vs the same measure rolled up in <code>mart_kpi_monthly</code>, per month, <strong>in SQL</strong>, tolerance 0.00 for money</td>
+<td>Marts are built from the same facts; they must agree</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL ↔ Delta parity</strong></td>
+<td>Per-month row count + sums, both systems</td>
+<td>Catches publish <code>MERGE</code>/lookback bugs</td>
+</tr>
+<tr>
+<td><strong>Freshness / completeness</strong></td>
+<td>Latest period present, no missing months in date marts</td>
+<td>Gaps break forecasts and YoY</td>
+</tr>
+<tr>
+<td><strong>Distribution shift vs last run</strong></td>
+<td>PSI / KS on key measures (stored in previous <code>manifest.json</code>)</td>
+<td>Early warning for upstream change</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-mart_kpi_monthly-executive-kpis">5.2 <code>mart_kpi_monthly</code> — executive KPIs</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trend and seasonality</td>
+<td>STL decomposition (<code>feasts::STL</code>), MoM/QoQ/YoY with <code>slider</code></td>
+</tr>
+<tr>
+<td><strong>Variance bridge</strong> (why did KPI X move?)</td>
+<td>Additive decomposition into volume / mix / rate effects → waterfall (<code>ggplot2</code>)</td>
+</tr>
+<tr>
+<td>Process control</td>
+<td>Individuals charts with 3σ limits (<code>qcc</code>) to separate noise from real shifts</td>
+</tr>
+<tr>
+<td>Structural breaks</td>
+<td><code>strucchange::breakpoints</code>, <code>changepoint</code> — flag regime changes</td>
+</tr>
+<tr>
+<td>KPI relationships</td>
+<td>Rolling correlations, lead–lag cross-correlation (<code>ccf</code>), <strong>not</strong> causal claims</td>
+</tr>
+<tr>
+<td>Forecast</td>
+<td>ETS/ARIMA ensemble with rolling-origin backtest (§5.4 pattern)</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfall: KPIs are ratios — average ratios by <strong>re-computing from numerators and denominators</strong>,
+never by averaging the ratio column.</p>
+<h3 id="53-mart_customer_360-customer-view">5.3 <code>mart_customer_360</code> — customer view</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Concentration</strong></td>
+<td>Lorenz curve, Gini, top-decile share (<code>ineq</code>)</td>
+<td>"10% of customers hold X% of balances"</td>
+</tr>
+<tr>
+<td><strong>RFM-style segmentation</strong></td>
+<td>Recency/frequency/monetary features → quantile scoring or k-means / GMM (<code>tidyclust</code>, <code>mclust</code>); pick <em>k</em> via silhouette + stability across seeds</td>
+<td>Segment profile table</td>
+</tr>
+<tr>
+<td><strong>Product holding / cross-sell</strong></td>
+<td>Association rules (<code>arules</code>) on product ownership; lift and confidence with min support</td>
+<td>Next-best-product shortlist</td>
+</tr>
+<tr>
+<td><strong>Lifetime value</strong></td>
+<td>Contribution-margin-based CLV; if you only have balances/fees, label it a <em>proxy</em></td>
+<td>CLV deciles</td>
+</tr>
+<tr>
+<td><strong>Attrition / dormancy risk</strong></td>
+<td>WoE + logistic (<code>fit_attrition_model()</code>) with an <strong>explicit, written outcome definition</strong> (e.g. no activity N days) and a time-based split (<code>time_split()</code>); gradient boosting would need <code>xgboost</code> pinned</td>
+<td>Scored list + <code>predict_attrition_metrics</code> + model card</td>
+</tr>
+<tr>
+<td><strong>Segment drift</strong></td>
+<td>Segment mix over time, PSI of features</td>
+<td>Monitoring panel</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfalls: define the label window <em>before</em> modelling; no features from after the label date;
+this mart is the most PII-heavy — see §10.</p>
+<h3 id="54-mart_monthly_transactions-volumes-and-values">5.4 <code>mart_monthly_transactions</code> — volumes and values</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Seasonality &amp; calendar effects</td>
+<td>STL, month/weekday effects, working-day adjustment</td>
+</tr>
+<tr>
+<td><strong>Forecast with honest validation</strong></td>
+<td><code>fable</code> (<code>ETS</code>, <code>ARIMA</code>, <code>SNAIVE</code> benchmark) with <strong>rolling-origin</strong> CV (<code>tsibble::stretch_tsibble</code>)</td>
+</tr>
+<tr>
+<td>Anomaly detection</td>
+<td>STL residual z-scores / IQR on residuals; flag, don't auto-delete</td>
+</tr>
+<tr>
+<td>Mix analysis</td>
+<td>Share of channel / type over time (compositional plots; log-ratio if you model shares)</td>
+</tr>
+<tr>
+<td>Elasticity &amp; growth</td>
+<td>Log-difference growth, CAGR with bootstrap interval</td>
+</tr>
+</tbody>
+</table>
+<p>Reusable backtest scaffold (pure function, unit-testable):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">#' Rolling-origin backtest of ETS / ARIMA against a seasonal-naive benchmark</span>
+<span class="c1">#' @param df data frame with one row per month</span>
+<span class="c1">#' @param date_col,value_col column names (strings)</span>
+<span class="c1">#' @export</span>
+<span class="n">backtest_forecast</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="kr">function</span><span class="p">(</span><span class="n">df</span><span class="p">,</span><span class="w"> </span><span class="n">date_col</span><span class="p">,</span><span class="w"> </span><span class="n">value_col</span><span class="p">,</span><span class="w"> </span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">3</span><span class="p">,</span><span class="w"> </span><span class="n">initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">24</span><span class="p">,</span><span class="w"> </span><span class="n">step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">ts</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">df</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">dplyr</span><span class="o">::</span><span class="nf">transmute</span><span class="p">(</span><span class="n">month</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tsibble</span><span class="o">::</span><span class="nf">yearmonth</span><span class="p">(</span><span class="n">.data</span><span class="p">[[</span><span class="n">date_col</span><span class="p">]]),</span>
+<span class="w">                     </span><span class="n">y</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">.data</span><span class="p">[[</span><span class="n">value_col</span><span class="p">]])</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">tsibble</span><span class="o">::</span><span class="nf">as_tsibble</span><span class="p">(</span><span class="n">index</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">month</span><span class="p">)</span>
+
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">any</span><span class="p">(</span><span class="n">tsibble</span><span class="o">::</span><span class="nf">has_gaps</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="o">$</span><span class="n">.gaps</span><span class="p">))</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Monthly series has gaps; fix upstream or handle explicitly."</span><span class="p">,</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="w">  </span><span class="kr">if</span><span class="w"> </span><span class="p">(</span><span class="nf">nrow</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">initial</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">h</span><span class="p">)</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="s">"Series too short for requested backtest."</span><span class="p">,</span><span class="w"> </span><span class="n">call.</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">FALSE</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">ts</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">tsibble</span><span class="o">::</span><span class="nf">stretch_tsibble</span><span class="p">(</span><span class="n">.init</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">initial</span><span class="p">,</span><span class="w"> </span><span class="n">.step</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">step</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">fabletools</span><span class="o">::</span><span class="nf">model</span><span class="p">(</span>
+<span class="w">      </span><span class="n">snaive</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fable</span><span class="o">::</span><span class="nf">SNAIVE</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+<span class="w">      </span><span class="n">ets</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">fable</span><span class="o">::</span><span class="nf">ETS</span><span class="p">(</span><span class="n">y</span><span class="p">),</span>
+<span class="w">      </span><span class="n">arima</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">fable</span><span class="o">::</span><span class="nf">ARIMA</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="w">    </span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">fabletools</span><span class="o">::</span><span class="nf">forecast</span><span class="p">(</span><span class="n">h</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">h</span><span class="p">)</span><span class="w"> </span><span class="o">|&gt;</span>
+<span class="w">    </span><span class="n">fabletools</span><span class="o">::</span><span class="nf">accuracy</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><strong>Rule:</strong> a forecast model is only reported if it beats <code>SNAIVE</code> on the backtest. Report
+prediction intervals, not just point forecasts.</p>
+<h3 id="55-mart_loan_portfolio-credit-portfolio">5.5 <code>mart_loan_portfolio</code> — credit portfolio</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Portfolio quality</td>
+<td>Delinquency buckets, NPL ratio, coverage — <strong>recomputed from counts/balances</strong></td>
+</tr>
+<tr>
+<td><strong>Vintage analysis</strong></td>
+<td>Cohort by <code>month_opened</code>, performance by months-on-book (cohort triangle heatmap)</td>
+</tr>
+<tr>
+<td><strong>Roll rates / transition matrices</strong></td>
+<td>Bucket-to-bucket Markov transition probabilities (needs a bucket history; may require a mart extension)</td>
+</tr>
+<tr>
+<td><strong>Time-to-default / prepayment</strong></td>
+<td>Kaplan–Meier (<code>survival_fit()</code>) + Cox PH (<code>cox_fit()</code>, <code>survival</code>); handle censoring explicitly. <code>ggsurvfit</code>/<code>flexsurv</code> for curves and parametric hazards are later additions</td>
+</tr>
+<tr>
+<td><strong>Probability-of-default scorecard</strong></td>
+<td>WoE/IV binning + logistic in-package (<code>fit_pd_scorecard()</code>, <code>stats::glm</code> — the <code>scorecard</code> package is not used), then discrimination (AUC, KS, Gini) <strong>and calibration</strong> (<code>probably</code>)</td>
+</tr>
+<tr>
+<td>Concentration</td>
+<td>HHI by product / branch / segment; top-N exposure share</td>
+</tr>
+<tr>
+<td>Expected loss</td>
+<td>PD × LGD × EAD <strong>only</strong> if LGD/EAD inputs exist; otherwise label as indicative</td>
+</tr>
+<tr>
+<td>Stress / sensitivity</td>
+<td>Parametric shocks on PD or rates → delta in EL</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfalls: right-censoring (open loans are not "good"); out-of-time validation is mandatory
+for any PD model; never present an uncalibrated score as a probability.</p>
+<h3 id="56-mart_card_fraud-fraud">5.6 <code>mart_card_fraud</code> — fraud</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fraud rate profile</td>
+<td>By hour, merchant category, channel, amount band, with Wilson/Bayesian intervals</td>
+</tr>
+<tr>
+<td><strong>Supervised model</strong></td>
+<td>WoE + logistic (<code>fit_fraud_model()</code>) today; gradient boosting / regularised logistic needs <code>xgboost</code>/<code>glmnet</code> pinned. <strong>Time-ordered split</strong> via <code>time_split()</code> (earliest <code>predictive.test_prop</code> of rows train)</td>
+</tr>
+<tr>
+<td><strong>Right metrics</strong></td>
+<td>PR-AUC, recall at fixed alert budget, precision@k, expected cost — <strong>not</strong> accuracy or ROC-AUC alone</td>
+</tr>
+<tr>
+<td><strong>Threshold by cost</strong></td>
+<td>Choose the cut-off from cost of a missed fraud vs cost of a false alert</td>
+</tr>
+<tr>
+<td>Unsupervised</td>
+<td>Isolation forest (<code>isotree</code>) for novelty where labels lag</td>
+</tr>
+<tr>
+<td><strong>Rule evaluation</strong></td>
+<td>Per-rule precision / recall / overlap; find redundant rules</td>
+</tr>
+<tr>
+<td>Explainability</td>
+<td>Permutation importance, partial dependence (<code>vip</code>, <code>DALEX</code>)</td>
+</tr>
+<tr>
+<td>Drift &amp; decay</td>
+<td>PSI on scores and features; monthly PR-AUC trend</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfalls: class imbalance → use case weights or threshold tuning, and <strong>never oversample
+before splitting</strong>; fraud labels often arrive late (chargebacks) so recent months look
+artificially clean — exclude an immaturity window; a feature that encodes the label's
+outcome (e.g. "blocked") is leakage.</p>
+<h3 id="57-mart_branch_performance-branches">5.7 <code>mart_branch_performance</code> — branches</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Fair ranking</strong></td>
+<td>Empirical-Bayes (beta-binomial) shrinkage so small branches aren't over-ranked; funnel plots with control limits</td>
+</tr>
+<tr>
+<td>Benchmarking</td>
+<td>Peer groups by size/region; percentile rank within peers</td>
+</tr>
+<tr>
+<td><strong>Efficiency</strong></td>
+<td>Data Envelopment Analysis (<code>Benchmarking</code>) on inputs (staff, cost) vs outputs (volume, balances)</td>
+</tr>
+<tr>
+<td>Variance decomposition</td>
+<td>Mixed model <code>lme4::lmer(metric ~ ... + (1 | branch))</code> — how much is branch vs time vs region</td>
+</tr>
+<tr>
+<td>Outlier detection</td>
+<td>Robust z-scores (median/MAD) on key ratios</td>
+</tr>
+<tr>
+<td>Trend per branch</td>
+<td>Slope with CI; flag sustained decline (control chart rules)</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfall: never rank on raw ratios without showing uncertainty — it punishes small branches.</p>
+<h3 id="58-mart_support_performance-support-mongodb-sourced">5.8 <code>mart_support_performance</code> — support (MongoDB-sourced)</h3>
+<table>
+<thead>
+<tr>
+<th>Analysis</th>
+<th>Method / packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SLA compliance</td>
+<td>Share within SLA by priority/queue, with intervals; trend control chart</td>
+</tr>
+<tr>
+<td><strong>Resolution-time modelling</strong></td>
+<td>Right-skewed → log-scale distributions, Kaplan–Meier for open tickets (<code>survival</code>)</td>
+</tr>
+<tr>
+<td>Volume forecasting</td>
+<td>Count models (<code>MASS::glm.nb</code>) or <code>fable</code> on weekly/monthly counts</td>
+</tr>
+<tr>
+<td>Drivers of long resolution</td>
+<td>Quantile regression (<code>quantreg</code>) or GAM (<code>mgcv</code>)</td>
+</tr>
+<tr>
+<td>Workload balance</td>
+<td>Agent/queue load vs resolution (mixed model)</td>
+</tr>
+<tr>
+<td>Satisfaction drivers</td>
+<td>Ordinal regression (<code>MASS::polr</code>) <strong>if</strong> a rating column exists</td>
+</tr>
+</tbody>
+</table>
+<p>Pitfall: tickets still open are censored, not "slow" — dropping them biases every average.</p>
+<h3 id="59-cross-cutting-analyses-that-connect-marts">5.9 Cross-cutting analyses that connect marts</h3>
+<ul>
+<li><strong>Customer ↔ support ↔ fraud:</strong> do customers with repeated support tickets show higher
+  attrition or fraud exposure? (join on customer key through <code>mart_customer_360</code>).</li>
+<li><strong>Branch ↔ loan quality:</strong> does delinquency cluster by branch after adjusting for product mix?</li>
+<li><strong>KPI explainability:</strong> drill each KPI move in <code>mart_kpi_monthly</code> back to the
+  component marts (the variance bridge in §5.2).</li>
+</ul>
+<hr />
+<h2 id="6-the-targets-pipeline">6. The <code>targets</code> pipeline</h2>
+<blockquote>
+<p><strong>Status:</strong> <code>main.R</code> (section 4.7) is the entry point and runs plain function calls; it has a
+dedicated <code>targets</code> step that calls <code>targets::tar_make()</code> (and is skipped with a warning when
+<code>_targets.R</code> or the package is missing). <code>_targets.R</code> currently wires the <code>kpi</code> and <code>txn</code>
+blocks (fingerprint → read → contract → analyses → backtest); the other five marts still run
+through <code>main.R</code> only. The run key, gate, manifest and exit codes stay in <code>main.R</code>;
+<code>targets</code> only adds the dependency graph and caching.</p>
+</blockquote>
+<p><code>targets</code> gives you a dependency graph, caching, and "only re-run what changed". The
+fingerprint targets make caching safe: a mart is re-read only if its row count or freshness
+value changed.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># r/_targets.R</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
+<span class="nf">library</span><span class="p">(</span><span class="n">tarchetypes</span><span class="p">)</span>
+
+<span class="nf">tar_option_set</span><span class="p">(</span>
+<span class="w">  </span><span class="n">packages</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">c</span><span class="p">(</span><span class="s">"bankinganalytics"</span><span class="p">,</span><span class="w"> </span><span class="s">"dplyr"</span><span class="p">),</span>
+<span class="w">  </span><span class="n">format</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="s">"parquet"</span><span class="p">,</span><span class="w">        </span><span class="c1"># needs the arrow package</span>
+<span class="w">  </span><span class="n">seed</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="m">20261028</span><span class="p">,</span><span class="w">         </span><span class="c1"># one global seed; targets derives a stable per-target seed</span>
+<span class="w">  </span><span class="n">error</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="s">"stop"</span>
+<span class="p">)</span>
+
+<span class="n">cfg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">cfg_analysis</span><span class="p">()</span>
+
+<span class="nf">list</span><span class="p">(</span>
+<span class="w">  </span><span class="c1"># always re-evaluated: cheap checks that gate everything else</span>
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span><span class="w">  </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">run_context</span><span class="p">(),</span><span class="w"> </span><span class="n">cue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">tar_cue</span><span class="p">(</span><span class="s">"always"</span><span class="p">),</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"rds"</span><span class="p">),</span>
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">gate</span><span class="p">,</span><span class="w"> </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">with_pg</span><span class="p">(</span><span class="n">bankinganalytics</span><span class="o">::</span><span class="n">assert_marts_ready</span><span class="p">),</span>
+<span class="w">             </span><span class="n">cue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">tar_cue</span><span class="p">(</span><span class="s">"always"</span><span class="p">),</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"rds"</span><span class="p">),</span>
+
+<span class="w">  </span><span class="c1"># change detector → re-read only when the mart actually changed</span>
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">kpi_token</span><span class="p">,</span><span class="w"> </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">mart_fingerprint</span><span class="p">(</span>
+<span class="w">               </span><span class="s">"mart_kpi_monthly"</span><span class="p">,</span><span class="w"> </span><span class="n">cfg</span><span class="o">$</span><span class="n">marts</span><span class="o">$</span><span class="n">mart_kpi_monthly</span><span class="o">$</span><span class="n">freshness_col</span><span class="p">),</span>
+<span class="w">             </span><span class="n">cue</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">tar_cue</span><span class="p">(</span><span class="s">"always"</span><span class="p">),</span><span class="w"> </span><span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"rds"</span><span class="p">),</span>
+
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">kpi_raw</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">gate</span><span class="p">;</span><span class="w"> </span><span class="n">kpi_token</span>
+<span class="w">    </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">read_mart</span><span class="p">(</span><span class="s">"mart_kpi_monthly"</span><span class="p">)</span>
+<span class="w">  </span><span class="p">}),</span>
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">kpi_checked</span><span class="p">,</span><span class="w"> </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">assert_contract</span><span class="p">(</span>
+<span class="w">               </span><span class="n">kpi_raw</span><span class="p">,</span><span class="w"> </span><span class="s">"mart_kpi_monthly"</span><span class="p">,</span><span class="w"> </span><span class="n">yaml</span><span class="o">::</span><span class="nf">read_yaml</span><span class="p">(</span><span class="s">"config/contracts.yml"</span><span class="p">)</span><span class="o">$</span><span class="n">mart_kpi_monthly</span><span class="p">)),</span>
+
+<span class="w">  </span><span class="nf">tar_target</span><span class="p">(</span><span class="n">kpi_backtest</span><span class="p">,</span><span class="w"> </span><span class="n">bankinganalytics</span><span class="o">::</span><span class="nf">backtest_forecast</span><span class="p">(</span>
+<span class="w">               </span><span class="n">kpi_checked</span><span class="p">,</span><span class="w"> </span><span class="n">date_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"month_start"</span><span class="p">,</span><span class="w"> </span><span class="n">value_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cfg</span><span class="o">$</span><span class="n">kpi</span><span class="o">$</span><span class="n">forecast_measure</span><span class="p">),</span>
+<span class="w">             </span><span class="n">format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"rds"</span><span class="p">),</span>
+
+<span class="w">  </span><span class="c1"># ... one block per mart: token → raw → checked → analysis targets ...</span>
+
+<span class="w">  </span><span class="nf">tar_quarto</span><span class="p">(</span><span class="n">report</span><span class="p">,</span><span class="w"> </span><span class="s">"analyses"</span><span class="p">)</span><span class="w">      </span><span class="c1"># renders after upstream targets are current</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Run it through <code>main.R</code> (a <code>targets</code> step that calls <code>targets::tar_make()</code>), so the gate and
+the manifest always apply.</p>
+<p><strong>Quarto convention.</strong> Each <code>analyses/NN_*/index.qmd</code> loads results with
+<code>targets::tar_read()</code> and contains only narrative, plots and tables. Parameters
+(<code>run_key</code>, <code>as_of</code>) come from the YAML header, never from hidden globals.</p>
+<hr />
+<h2 id="7-statistical-rigor-standards">7. Statistical rigor standards</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Standard</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Reproducibility</strong></td>
+<td><code>renv.lock</code> committed; global seed; <code>sessionInfo()</code> saved per run</td>
+</tr>
+<tr>
+<td><strong>Splits</strong></td>
+<td>Time-ordered splits for anything with a time dimension. Random splits only for genuinely i.i.d. data, and you must justify it.</td>
+</tr>
+<tr>
+<td><strong>Leakage review</strong></td>
+<td>Every model card lists the feature cut-off date vs label date and states "no post-outcome features".</td>
+</tr>
+<tr>
+<td><strong>Uncertainty</strong></td>
+<td>Every headline number carries an interval (bootstrap, Wilson, model-based). No bare point estimates.</td>
+</tr>
+<tr>
+<td><strong>Baselines</strong></td>
+<td>A model must beat a documented naive baseline (seasonal naive, base rate, logistic) on the <strong>out-of-time</strong> set.</td>
+</tr>
+<tr>
+<td><strong>Calibration</strong></td>
+<td>Probabilistic models report calibration, not just ranking quality (<code>probably::cal_plot_breaks</code>).</td>
+</tr>
+<tr>
+<td><strong>Multiple comparisons</strong></td>
+<td>When screening many segments/branches, control FDR (Benjamini–Hochberg) and say so.</td>
+</tr>
+<tr>
+<td><strong>Effect size over p-value</strong></td>
+<td>Report magnitude and interval; p-values alone are not a finding.</td>
+</tr>
+<tr>
+<td><strong>Causal language</strong></td>
+<td>Marts are observational. Say "associated with", never "caused by", unless a design supports it.</td>
+</tr>
+<tr>
+<td><strong>Money</strong></td>
+<td>Doubles are fine for modelling; reconciliations are done in SQL or integer cents.</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Each method in <code>docs/METHODS.md</code>: purpose, assumptions, validation, known limits. Each model has a card in <code>docs/MODEL-CARDS/</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>model card</strong> (one markdown file) contains: purpose and owner · outcome definition ·
+training window · features and their cut-off · metrics (out-of-time) · calibration ·
+fairness / segment checks · known limitations · retraining trigger · package versions.</p>
+<hr />
+<h2 id="8-testing-linting-and-ci">8. Testing, linting and CI</h2>
+<p>Same philosophy as <code>docs/TESTING.md</code>: <strong>hermetic by default, real services opt-in.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>What</th>
+<th>Needs DB?</th>
+<th>Where it runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit</strong> (<code>testthat</code>)</td>
+<td>Every function in <code>R/</code> on synthetic frames</td>
+<td>No</td>
+<td>Local gate, PR CI</td>
+</tr>
+<tr>
+<td><strong>Contract tests</strong></td>
+<td><code>assert_contract</code> / <code>assert_marts_ready</code> against an in-memory DuckDB</td>
+<td>No</td>
+<td>Local gate, PR CI</td>
+</tr>
+<tr>
+<td><strong>Golden tests</strong></td>
+<td>Fixed fixture + fixed seed ⇒ expected output (e.g. forecast shape, Gini of a known vector)</td>
+<td>No</td>
+<td>Local gate, PR CI</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td><code>read_mart()</code> against a disposable Postgres with the marts DDL</td>
+<td>Yes</td>
+<td>Nightly workflow (like <code>sql-smoke</code>)</td>
+</tr>
+<tr>
+<td><strong>Live run</strong></td>
+<td>Full <code>main.R</code> run against the real warehouse</td>
+<td>Yes</td>
+<td>Scheduled / manual, <strong>not</strong> in PR gate</td>
+</tr>
+</tbody>
+</table>
+<h3 id="81-hermetic-guard-the-r-twin-of-no_network">8.1 Hermetic guard — the R twin of <code>no_network</code></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/testthat/setup.R</span>
+<span class="c1"># Any accidental pg_connect() fails fast instead of reaching a real database.</span>
+<span class="n">withr</span><span class="o">::</span><span class="nf">local_envvar</span><span class="p">(</span>
+<span class="w">  </span><span class="nf">c</span><span class="p">(</span><span class="n">R_PG_HOST</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">R_PG_USER</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">R_PG_PASSWORD</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">,</span><span class="w"> </span><span class="n">R_PG_DATABASE</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">NA</span><span class="p">),</span>
+<span class="w">  </span><span class="n">.local_envir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">teardown_env</span><span class="p">()</span>
+<span class="p">)</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Never let the in-memory-database tests skip in CI.</strong> <code>tests/testthat/test-gate.R</code> uses
+<code>skip_if_not_installed("duckdb")</code> so a laptop without DuckDB still runs the rest, but <code>duckdb</code>
+must be in <code>renv.lock</code> and installed in the CI image - otherwise the gate tests silently stop
+running, which is exactly what contract 7 (never weaken a check to get green) forbids.</p>
+</blockquote>
+<h3 id="82-example-unit-test-with-an-in-memory-database">8.2 Example unit test with an in-memory database</h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># tests/testthat/test-gate.R</span>
+<span class="nf">test_that</span><span class="p">(</span><span class="s">"assert_marts_ready flags an empty mart"</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="n">con</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbConnect</span><span class="p">(</span><span class="n">duckdb</span><span class="o">::</span><span class="nf">duckdb</span><span class="p">())</span>
+<span class="w">  </span><span class="n">withr</span><span class="o">::</span><span class="nf">defer</span><span class="p">(</span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbDisconnect</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">shutdown</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">TRUE</span><span class="p">))</span>
+
+<span class="w">  </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbExecute</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="s">"CREATE SCHEMA marts"</span><span class="p">)</span>
+<span class="w">  </span><span class="n">DBI</span><span class="o">::</span><span class="nf">dbExecute</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="s">"CREATE TABLE marts.mart_demo (month_start DATE)"</span><span class="p">)</span>
+
+<span class="w">  </span><span class="n">cfg</span><span class="w"> </span><span class="o">&lt;-</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">marts</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">mart_demo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">list</span><span class="p">(</span><span class="n">freshness_col</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">"month_start"</span><span class="p">,</span><span class="w"> </span><span class="n">max_age_hours</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="m">24</span><span class="p">)))</span>
+<span class="w">  </span><span class="nf">expect_error</span><span class="p">(</span><span class="nf">assert_marts_ready</span><span class="p">(</span><span class="n">con</span><span class="p">,</span><span class="w"> </span><span class="n">cfg</span><span class="p">),</span><span class="w"> </span><span class="s">"empty"</span><span class="p">)</span>
+<span class="p">})</span>
+</code></pre></div>
+<h3 id="83-quality-tooling">8.3 Quality tooling</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+<th>Gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>lintr</code></td>
+<td>Style + common bugs (<code>.lintr</code> committed)</td>
+<td>Required</td>
+</tr>
+<tr>
+<td><code>styler</code></td>
+<td>Auto-format</td>
+<td>Pre-commit</td>
+</tr>
+<tr>
+<td><code>covr</code></td>
+<td>Coverage floor for <code>R/</code></td>
+<td>Required — never lower it to pass</td>
+</tr>
+<tr>
+<td><code>R CMD check</code></td>
+<td>Package integrity (docs, imports, examples)</td>
+<td>Required</td>
+</tr>
+<tr>
+<td><code>renv::status()</code></td>
+<td>Lockfile in sync with code</td>
+<td>Required</td>
+</tr>
+<tr>
+<td><code>gitleaks</code></td>
+<td>Already in CI — covers <code>r/</code> too</td>
+<td>Existing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="84-makefile-tasksbat-integration-mind-the-parity-test">8.4 Makefile / <code>tasks.bat</code> integration — mind the parity test</h3>
+<p><code>tests/smoke/test_make_parity.py</code> fails if a target exists in one runner and not the other,
+or if <code>ci</code> picks up a non-hermetic target. So:</p>
+<div class="highlight"><pre><span></span><code><span class="c"># Makefile (add the SAME targets to tasks.bat)</span>
+<span class="nf">r-restore</span><span class="o">:</span><span class="w">   </span><span class="c">## install pinned packages</span>
+<span class="w">    </span>Rscript<span class="w"> </span>-e<span class="w"> </span><span class="s1">'renv::restore(project = "r")'</span>
+
+<span class="nf">r-lint</span><span class="o">:</span><span class="w">      </span><span class="c">## style + static checks</span>
+<span class="w">    </span>Rscript<span class="w"> </span>-e<span class="w"> </span><span class="s1">'lintr::lint_package("r")'</span>
+
+<span class="nf">r-test</span><span class="o">:</span><span class="w">      </span><span class="c">## hermetic unit + contract tests — safe for ci</span>
+<span class="w">    </span>Rscript<span class="w"> </span>-e<span class="w"> </span><span class="s1">'testthat::test_local("r")'</span>
+
+<span class="nf">r-run</span><span class="o">:</span><span class="w">       </span><span class="c">## full analysis against the real warehouse — NOT part of ci</span>
+<span class="w">    </span>Rscript<span class="w"> </span>r/main.R
+
+<span class="nf">r-docker-build</span><span class="o">:</span><span class="w">  </span><span class="c">## build the image (needs Docker) — NOT part of ci</span>
+<span class="w">    </span>docker<span class="w"> </span>build<span class="w"> </span>-t<span class="w"> </span>banking-delta-r<span class="w"> </span>--build-arg<span class="w"> </span><span class="nv">GIT_SHA</span><span class="o">=</span><span class="nv">$$</span><span class="o">(</span>git<span class="w"> </span>rev-parse<span class="w"> </span>--short<span class="w"> </span>HEAD<span class="o">)</span><span class="w"> </span>r/
+
+<span class="nf">r-docker-run</span><span class="o">:</span><span class="w">    </span><span class="c">## run in the container against the real warehouse — NOT part of ci</span>
+<span class="w">    </span>docker<span class="w"> </span>run<span class="w"> </span>--rm<span class="w"> </span>--env-file<span class="w"> </span>r/.env.r<span class="w"> </span>-v<span class="w"> </span><span class="s2">"</span><span class="k">$(</span>CURDIR<span class="k">)</span><span class="s2">/r/output:/app/output"</span><span class="w"> </span>banking-delta-r
+</code></pre></div>
+<ul>
+<li><code>r-lint</code> and <code>r-test</code> are hermetic and may join <code>ci</code>, <strong>but only once every developer and the
+  Windows gate have R installed</strong>. Until then, give them a dedicated GitHub Actions workflow
+  (<code>r-ci.yml</code>: <code>r-lib/actions/setup-r</code> + <code>setup-renv</code>, run lint, test, <code>R CMD check</code>).</li>
+<li><code>r-run</code>, <code>r-docker-build</code> and <code>r-docker-run</code> need real services / Docker: keep them out of <code>ci</code>
+  and out of the PR gate, and mirror all <code>r-*</code> targets in <code>tasks.bat</code>.</li>
+</ul>
+<hr />
+<h2 id="9-outputs-manifest-and-retention">9. Outputs, manifest and retention</h2>
+<p>Each run writes to <code>output/runs/&lt;run_key&gt;/</code>:</p>
+<div class="highlight"><pre><span></span><code>manifest.json        # run_key, git SHA, R + renv hash, params, mart fingerprints, row counts, status
+session_info.txt
+tables/              # aggregated CSV/Parquet (small-cell suppressed)
+figures/             # PNG/SVG at fixed size and theme
+report.html          # Quarto output (add PDF if needed)
+</code></pre></div>
+<p><code>manifest.json</code> is written <strong>before</strong> analysis (<code>status: "RUNNING"</code>) and finalised in an
+<code>on.exit()</code> / <code>tryCatch(finally = )</code> (<code>SUCCESS</code> / <code>FAILED</code> + error class, secret-redacted),
+so a crashed run is still on record — the same "audit survives failure" idea as §7.</p>
+<p>Retention: prune runs older than N days (mirror <code>REPORT_RETENTION_DAYS</code>) with a small
+<code>scripts/prune_runs.R</code>. Model artefacts you intend to keep go to a versioned store
+(<code>vetiver</code> + <code>pins</code>) with the model card, not into <code>output/</code>.</p>
+<hr />
+<h2 id="10-security-and-data-governance">10. Security and data governance</h2>
+<table>
+<thead>
+<tr>
+<th>Concern</th>
+<th>Control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Credentials</td>
+<td>Environment variables only; <code>.Renviron</code> git-ignored; nothing in <code>.Rprofile</code>, <code>.qmd</code> or <code>renv.lock</code>. <code>gitleaks</code> already scans history.</td>
+</tr>
+<tr>
+<td>Least privilege</td>
+<td><code>r_reader</code> role: <code>SELECT</code> on <code>marts</code> + <code>audit</code>, nothing else; read-only session (<code>default_transaction_read_only</code>).</td>
+</tr>
+<tr>
+<td>PII</td>
+<td><code>mart_customer_360</code> and similar may contain identifiers. Hash IDs (<code>privacy.R</code>) before any export; never write row-level customer data to <code>output/</code> unless explicitly approved.</td>
+</tr>
+<tr>
+<td>Small cells</td>
+<td>Suppress groups below a threshold (set in <code>analysis.yml</code>, e.g. 10) in every table and chart.</td>
+</tr>
+<tr>
+<td>Logging</td>
+<td>Use the <code>logger</code> wrapper; log counts and names, <strong>never row values</strong> (same rule as <code>src/utils/logger.py</code>).</td>
+</tr>
+<tr>
+<td>Sharing</td>
+<td>Share <code>report.html</code>/PDF and aggregated tables, not extracts.</td>
+</tr>
+<tr>
+<td>Retention</td>
+<td>Output pruning plus <code>git</code>-ignored <code>output/</code> and <code>_targets/</code>.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="11-optional-scheduling-with-airflow">11. Optional: scheduling with Airflow</h2>
+<p>Start <strong>manual / weekly</strong>, not on the daily critical path. When you're ready:</p>
+<ul>
+<li>The current Airflow image has no R. Add a <strong>separate image/container</strong> for R rather than
+  bloating the pipeline image.</li>
+<li>Keep the DAG free of logic (principle 1 of <code>ARCHITECTURE.md</code>): a task that calls
+  <code>Rscript r/main.R</code> through the same <code>banking_cmd()</code> pattern.</li>
+<li>Place it <strong>after <code>marts_tests</code></strong> (and preferably after <code>publish</code>), in its own pool, with
+  <code>retries=0</code> for data/gate failures and <strong>no ability to fail the core pipeline</strong>.</li>
+<li>Feed its status into <code>finalize_audit</code> only as informational, or give it its own watchdog rule.</li>
+<li>Any new Airflow behaviour needs an entry in <code>docs/AIRFLOW.md</code> and §10 of <code>ARCHITECTURE.md</code>.</li>
+</ul>
+<hr />
+<h2 id="12-rollout-roadmap">12. Rollout roadmap</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Deliverable</th>
+<th>Exit criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1 · Foundation</strong></td>
+<td><code>r/</code> package skeleton + <code>main.R</code> + Dockerfile (<strong>done</strong>, section 4.9), <code>renv.lock</code>, <code>config.R</code>/<code>db.R</code>, <code>r_reader</code> role, <code>dump_mart_schema.R</code> → <code>DATA-DICTIONARY.md</code>, <code>make r-*</code> targets</td>
+<td><code>make r-test</code> green; dictionary reviewed</td>
+</tr>
+<tr>
+<td><strong>2 · Data trust</strong></td>
+<td>Gate, contracts, profile, reconciliation, PG↔Delta parity (Tier 0)</td>
+<td>One run produces a manifest + trust report</td>
+</tr>
+<tr>
+<td><strong>3 · Descriptive</strong></td>
+<td>KPI, transactions, branch, support, loan descriptive reports (Tier 1)</td>
+<td>Numbers tie to the dashboard</td>
+</tr>
+<tr>
+<td><strong>4 · Diagnostic</strong></td>
+<td>Segmentation, benchmarking, variance bridge, vintage (Tier 2)</td>
+<td>Each method documented in <code>METHODS.md</code></td>
+</tr>
+<tr>
+<td><strong>5 · Predictive</strong></td>
+<td>Forecasts, fraud, PD, attrition, survival (Tier 3)</td>
+<td>Backtests beat baseline; model cards written</td>
+</tr>
+<tr>
+<td><strong>6 · Monitoring</strong></td>
+<td>Control charts, PSI, anomaly flags, model decay; optional Airflow task (Tier 4)</td>
+<td>Alerts silent when healthy</td>
+</tr>
+</tbody>
+</table>
+<p>Suggested priority by business value / effort: <code>mart_kpi_monthly</code> and
+<code>mart_monthly_transactions</code> first (clean grain, easy to validate), then
+<code>mart_loan_portfolio</code> and <code>mart_card_fraud</code> (highest risk value), then
+<code>mart_customer_360</code>, <code>mart_branch_performance</code> and <code>mart_support_performance</code>.</p>
+<hr />
+<h2 id="13-definition-of-done-and-anti-patterns">13. Definition of done and anti-patterns</h2>
+<h3 id="131-an-analysis-is-production-ready-when">13.1 An analysis is production-ready when</h3>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Grain, keys and measure definitions are in <code>DATA-DICTIONARY.md</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> It reads through <code>read_mart()</code> after <code>assert_marts_ready()</code> passed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Inputs are validated by <code>assert_contract()</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Logic is in <code>R/</code> as pure functions with unit tests and roxygen docs</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Randomness is seeded; the run is reproducible from <code>renv.lock</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Every headline number has an interval and a baseline</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Time-dependent models use time-ordered validation and a leakage review</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Methods are documented; predictive models have a model card</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Outputs are aggregated, small-cell suppressed and written only to <code>output/runs/&lt;run_key&gt;/</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>manifest.json</code> records inputs (fingerprints), code version and outcome</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>make r-lint r-test</code> pass; no test, lint rule or coverage floor was weakened</li>
+</ul>
+<h3 id="132-anti-patterns">13.2 Anti-patterns</h3>
+<table>
+<thead>
+<tr>
+<th>Don't</th>
+<th>Do instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read <code>raw</code>/<code>staging</code> "just to check"</td>
+<td>Extend a mart through <code>marts.sp_load_*</code> (owner path)</td>
+</tr>
+<tr>
+<td>Write results back into <code>marts.*</code> or any pipeline schema</td>
+<td>Write files; if you truly need a table, propose a new schema and update <code>ARCHITECTURE.md</code> first</td>
+</tr>
+<tr>
+<td>Average a ratio column</td>
+<td>Recompute from numerator and denominator</td>
+</tr>
+<tr>
+<td>Compare money with <code>==</code> on doubles</td>
+<td>Reconcile in SQL / integer cents</td>
+</tr>
+<tr>
+<td>Random train/test split on time-ordered data</td>
+<td>Time-ordered split + rolling-origin backtest</td>
+</tr>
+<tr>
+<td>Report accuracy for fraud/default</td>
+<td>PR-AUC, recall at alert budget, calibration, expected cost</td>
+</tr>
+<tr>
+<td>Drop open loans/tickets from duration analysis</td>
+<td>Treat them as censored (survival methods)</td>
+</tr>
+<tr>
+<td>Put logic in <code>.qmd</code></td>
+<td>Put it in <code>R/</code>, test it, call it from Quarto</td>
+</tr>
+<tr>
+<td><code>setwd()</code>, <code>&lt;&lt;-</code>, hidden globals, <code>library()</code> inside <code>R/</code></td>
+<td>Explicit arguments and <code>pkg::fn</code></td>
+</tr>
+<tr>
+<td>Hard-code thresholds and column names</td>
+<td><code>config/analysis.yml</code> and function arguments</td>
+</tr>
+<tr>
+<td>Rank small branches on raw rates</td>
+<td>Shrinkage + funnel plots</td>
+</tr>
+<tr>
+<td>Skip a failing test to ship</td>
+<td>Fix the code, or ask</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="appendix-a-package-set-pin-in-renvlock">Appendix A — Package set (pin in <code>renv.lock</code>)</h2>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database &amp; data</td>
+<td><code>DBI</code>, <code>RPostgres</code>, <code>dbplyr</code>, <code>dplyr</code>, <code>tidyr</code>, <code>arrow</code>, <code>duckdb</code> (tests), <code>odbc</code> (optional Databricks)</td>
+</tr>
+<tr>
+<td>Pipeline &amp; reporting</td>
+<td><code>targets</code>, <code>tarchetypes</code>, <code>quarto</code>, <code>gt</code>, <code>ggplot2</code>, <code>scales</code>, <code>patchwork</code></td>
+</tr>
+<tr>
+<td>Time series</td>
+<td><code>tsibble</code>, <code>fable</code>, <code>fabletools</code>, <code>feasts</code>, <code>slider</code>, <code>strucchange</code>, <code>changepoint</code></td>
+</tr>
+<tr>
+<td>Modelling</td>
+<td><code>tidymodels</code> (<code>rsample</code>, <code>recipes</code>, <code>parsnip</code>, <code>yardstick</code>, <code>tune</code>), <code>probably</code>, <code>scorecard</code>, <code>glmnet</code>, <code>xgboost</code>, <code>lme4</code>, <code>mgcv</code>, <code>quantreg</code>, <code>MASS</code></td>
+</tr>
+<tr>
+<td>Survival</td>
+<td><code>survival</code>, <code>ggsurvfit</code>, <code>flexsurv</code></td>
+</tr>
+<tr>
+<td>Segmentation &amp; anomaly</td>
+<td><code>tidyclust</code>, <code>mclust</code>, <code>cluster</code>, <code>arules</code>, <code>isotree</code></td>
+</tr>
+<tr>
+<td>Inequality &amp; efficiency</td>
+<td><code>ineq</code>, <code>Benchmarking</code></td>
+</tr>
+<tr>
+<td>Quality control</td>
+<td><code>qcc</code></td>
+</tr>
+<tr>
+<td>Explainability</td>
+<td><code>vip</code>, <code>DALEX</code></td>
+</tr>
+<tr>
+<td>Validation &amp; profiling</td>
+<td><code>pointblank</code> (optional), <code>skimr</code>, <code>janitor</code></td>
+</tr>
+<tr>
+<td>Engineering</td>
+<td><code>renv</code>, <code>testthat</code>, <code>withr</code>, <code>lintr</code>, <code>styler</code>, <code>covr</code>, <code>logger</code>, <code>yaml</code>, <code>jsonlite</code>, <code>fs</code>, <code>cli</code>, <code>vetiver</code>, <code>pins</code></td>
+</tr>
+</tbody>
+</table>
+<p>Install the minimum for the phase you are in; add the rest when an analysis needs it —
+a smaller <code>renv.lock</code> is a more maintainable one.</p>
+<h2 id="appendix-b-first-week-checklist">Appendix B — First-week checklist</h2>
+<ol>
+<li>~~Copy the scaffold into the repo as <code>r/</code>~~ <strong>Done.</strong> Remaining: from <code>r/</code> run
+   <code>Rscript scripts/snapshot_renv.R</code> (or <code>renv::init()</code> + <code>renv::snapshot()</code>) and commit
+   <code>renv.lock</code> (includes <code>duckdb</code>, <code>testthat</code>, <code>withr</code> so tests never skip).</li>
+<li>~~Create the <code>r_reader</code> role; copy <code>r/.env.r.example</code> to <code>r/.env.r</code>~~ <strong>Done</strong> (role
+   creation is a DBA step — confirm it exists in the target environment).</li>
+<li>~~<code>Rscript r/main.R --list</code>, then <code>Rscript r/main.R --only=preflight,gate</code> against the real
+   warehouse.~~ <strong>Done</strong> (gate + contracts verified on live data, 2026-10-31 —
+   <code>r/docs/REVIEW-LOG.md</code>).</li>
+<li>~~Write <code>scripts/dump_mart_schema.R</code>, generate <code>docs/DATA-DICTIONARY.md</code>~~ <strong>Done.</strong></li>
+<li>~~Fill <code>config/analysis.yml</code> and <code>config/contracts.yml</code>~~ <strong>Done</strong> (all seven marts).</li>
+<li>~~Run the full <code>Rscript r/main.R</code>; inspect <code>output/runs/&lt;run_key&gt;/manifest.json</code> and the
+   profiles.~~ <strong>Done</strong> (full live run <code>SUCCESS</code>, reproducible checksums, forced-failure
+   <code>FAILED</code> manifest — <code>r/docs/REVIEW-LOG.md</code>).</li>
+<li>~~Add the <code>r-*</code> targets to both <code>Makefile</code> and <code>tasks.bat</code>; add <code>r-ci.yml</code>~~ <strong>Done.</strong></li>
+<li>Build and run the image (section 4.8). <em>(Needs Docker daemon.)</em></li>
+<li>Ship the first real analysis: <code>R/mart_kpi_monthly.R</code> + a <code>step_kpi</code> in <code>main.R</code>.
+   <strong>Mostly done</strong> — Tier 1 descriptive analyses run from <code>step_analyses</code>, forecasts from
+   <code>step_forecast</code>, risk scores + out-of-time metrics from <code>step_predict</code>; the Quarto
+   narratives read those tables. What remains is training on live labelled data (the marts
+   currently carry no <code>is_default</code> / <code>is_fraud</code> / <code>is_attrited</code> columns).</li>
+<li>~~Add a pointer to <code>ARCHITECTURE.md</code> and record the <code>r/</code> subsystem~~ <strong>Done.</strong></li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
