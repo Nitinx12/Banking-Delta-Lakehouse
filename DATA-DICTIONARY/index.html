@@ -1,0 +1,2662 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../DATA-QUALITY/">
+      
+      
+        <link rel="next" href="../AUDIT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Data dictionary - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-dictionary-mart-tables" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data dictionary
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_kpi_monthly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_kpi_monthly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_monthly_transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_monthly_transactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_card_fraud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_card_fraud
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_support_performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_support_performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_customer_360" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_customer_360
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_branch_performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_branch_performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_loan_portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_loan_portfolio
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#grain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_kpi_monthly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_kpi_monthly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_monthly_transactions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_monthly_transactions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_card_fraud" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_card_fraud
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_support_performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_support_performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_customer_360" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_customer_360
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_branch_performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_branch_performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mart_loan_portfolio" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        mart_loan_portfolio
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="data-dictionary-mart-tables">Data Dictionary — Mart Tables</h1>
+<p><em>Generated from <code>information_schema.columns</code> for the seven <code>marts.*</code> tables and hand-written grain/business definitions.
+Every R analysis function in <code>R/</code> cites this file. Analyses written against an undocumented grain
+are the #1 source of wrong numbers.</em></p>
+<h2 id="grain">grain</h2>
+<table>
+<thead>
+<tr>
+<th>Mart</th>
+<th>Grain (unique key)</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mart_kpi_monthly</code></td>
+<td><code>month_start</code></td>
+<td>One row per calendar month with aggregated KPIs for the whole bank.</td>
+</tr>
+<tr>
+<td><code>mart_monthly_transactions</code></td>
+<td>(<code>month_start</code>, <code>txn_type</code>, <code>channel</code>, <code>merchant_category</code>, <code>txn_direction</code>, <code>region</code>, <code>state</code>)</td>
+<td>One row per transaction type/channel/geography combination per month.</td>
+</tr>
+<tr>
+<td><code>mart_card_fraud</code></td>
+<td>(<code>month_start</code>, <code>card_type</code>, <code>card_category</code>, <code>card_tier</code>, <code>merchant_category</code>)</td>
+<td>One row per card-type × merchant-category combination per month.</td>
+</tr>
+<tr>
+<td><code>mart_support_performance</code></td>
+<td>(<code>month_opened</code>, <code>issue_type</code>, <code>status</code>, <code>customer_state</code>, <code>income_band</code>)</td>
+<td>One row per issue type / status / geography per month.</td>
+</tr>
+<tr>
+<td><code>mart_customer_360</code></td>
+<td><code>customer_key</code></td>
+<td>One row per customer with aggregated transaction and product holdings.</td>
+</tr>
+<tr>
+<td><code>mart_branch_performance</code></td>
+<td><code>branch_key</code></td>
+<td>One row per branch with aggregated customer, account, loan, and salary data.</td>
+</tr>
+<tr>
+<td><code>mart_loan_portfolio</code></td>
+<td>(<code>loan_type</code>, <code>status</code>, <code>loan_amount_band</code>, <code>term_band</code>, <code>start_year</code>)</td>
+<td>One row per loan-type/status/amount-band/term/start-year combination.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="mart_kpi_monthly">mart_kpi_monthly</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>month_start</td>
+<td>DATE</td>
+<td>NO</td>
+<td>First day of the calendar month</td>
+</tr>
+<tr>
+<td>year</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Calendar year (e.g. 2026)</td>
+</tr>
+<tr>
+<td>quarter</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Quarter of year (1-4)</td>
+</tr>
+<tr>
+<td>new_customers</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of new customers acquired this month</td>
+</tr>
+<tr>
+<td>new_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of new accounts opened this month</td>
+</tr>
+<tr>
+<td>loans_disbursed</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of loans disbursed this month</td>
+</tr>
+<tr>
+<td>loan_amount_disbursed</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total principal disbursed this month</td>
+</tr>
+<tr>
+<td>avg_interest_rate</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average interest rate across all loans this month</td>
+</tr>
+<tr>
+<td>loan_payment_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total loan payments due this month</td>
+</tr>
+<tr>
+<td>loan_collections</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total loan collections received this month</td>
+</tr>
+<tr>
+<td>interest_income</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Interest income recognized this month</td>
+</tr>
+<tr>
+<td>late_payment_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Late payments / total payments this month</td>
+</tr>
+<tr>
+<td>txn_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Transaction count this month</td>
+</tr>
+<tr>
+<td>txn_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total transaction amount this month</td>
+</tr>
+<tr>
+<td>transacting_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of accounts that had at least one transaction this month</td>
+</tr>
+<tr>
+<td>avg_txn_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Average transaction amount this month</td>
+</tr>
+<tr>
+<td>card_txn_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Card transaction count this month</td>
+</tr>
+<tr>
+<td>card_spend</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total card spend amount this month</td>
+</tr>
+<tr>
+<td>fraud_txn_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of fraudulent transactions flagged this month</td>
+</tr>
+<tr>
+<td>fraud_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total fraud amount flagged this month</td>
+</tr>
+<tr>
+<td>fraud_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Fraud amount / txn_amount this month</td>
+</tr>
+<tr>
+<td>tickets_opened</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of support tickets opened this month</td>
+</tr>
+<tr>
+<td>tickets_resolved</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of support tickets resolved this month</td>
+</tr>
+<tr>
+<td>ticket_resolution_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Resolved / opened this month</td>
+</tr>
+<tr>
+<td>avg_resolution_days</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average resolution time in days this month</td>
+</tr>
+<tr>
+<td>avg_satisfaction_score</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average customer satisfaction score this month</td>
+</tr>
+<tr>
+<td>cumulative_customers</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Customers acquired to date (running total)</td>
+</tr>
+<tr>
+<td>cumulative_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Accounts opened to date (running total)</td>
+</tr>
+<tr>
+<td>cumulative_loan_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total loan principal disbursed to date (running total)</td>
+</tr>
+<tr>
+<td>txn_amount_mom_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>Month-on-month percent change in txn_amount</td>
+<td></td>
+</tr>
+<tr>
+<td>card_spend_mom_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>Month-on-month percent change in card_spend</td>
+<td></td>
+</tr>
+<tr>
+<td>loan_collections_mom_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>Month-on-month percent change in loan_collections</td>
+<td></td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> <code>month_start</code> (unique per month)</p>
+<hr />
+<h2 id="mart_monthly_transactions">mart_monthly_transactions</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>month_start</td>
+<td>DATE</td>
+<td>NO</td>
+<td>First day of the calendar month</td>
+</tr>
+<tr>
+<td>txn_type</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Type of transaction (e.g. purchase, cash_withdrawal, transfer)</td>
+</tr>
+<tr>
+<td>channel</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Channel used (e.g. online, pos, atm, mobile, phone)</td>
+</tr>
+<tr>
+<td>merchant_category</td>
+<td>VARCHAR(80)</td>
+<td>NO</td>
+<td>Merchant category code (MCC)</td>
+</tr>
+<tr>
+<td>txn_direction</td>
+<td>VARCHAR(20)</td>
+<td>NO</td>
+<td>Direction (debit, credit)</td>
+</tr>
+<tr>
+<td>region</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Geographical region</td>
+</tr>
+<tr>
+<td>state</td>
+<td>VARCHAR(50)</td>
+<td>NO</td>
+<td>State or province</td>
+</tr>
+<tr>
+<td>txn_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Number of transactions in this bucket</td>
+</tr>
+<tr>
+<td>active_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of active accounts involved</td>
+</tr>
+<tr>
+<td>total_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total transaction amount</td>
+</tr>
+<tr>
+<td>avg_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Average amount per transaction</td>
+</tr>
+<tr>
+<td>min_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Minimum transaction amount in bucket</td>
+</tr>
+<tr>
+<td>max_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Maximum transaction amount in bucket</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> (<code>month_start</code>, <code>txn_type</code>, <code>channel</code>, <code>merchant_category</code>, <code>txn_direction</code>, <code>region</code>, <code>state</code>)</p>
+<hr />
+<h2 id="mart_card_fraud">mart_card_fraud</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>month_start</td>
+<td>DATE</td>
+<td>NO</td>
+<td>First day of the calendar month</td>
+</tr>
+<tr>
+<td>card_type</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Type of card (e.g. credit, debit, prepaid)</td>
+</tr>
+<tr>
+<td>card_category</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Card category (e.g. rewards, platinum, infinite)</td>
+</tr>
+<tr>
+<td>card_tier</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Card tier (e.g. standard, gold, platinum)</td>
+</tr>
+<tr>
+<td>merchant_category</td>
+<td>VARCHAR(80)</td>
+<td>NO</td>
+<td>Merchant category (MCC)</td>
+</tr>
+<tr>
+<td>txn_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Number of transactions this month</td>
+</tr>
+<tr>
+<td>active_cards</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of active cards in this bucket</td>
+</tr>
+<tr>
+<td>total_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total transaction amount</td>
+</tr>
+<tr>
+<td>avg_txn_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Average transaction amount</td>
+</tr>
+<tr>
+<td>fraud_txn_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of fraudulent transactions</td>
+</tr>
+<tr>
+<td>fraud_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total fraud amount</td>
+</tr>
+<tr>
+<td>fraud_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Fraud rate = fraud_amount / total_amount</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> (<code>month_start</code>, <code>card_type</code>, <code>card_category</code>, <code>card_tier</code>, <code>merchant_category</code>)</p>
+<hr />
+<h2 id="mart_support_performance">mart_support_performance</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>month_opened</td>
+<td>DATE</td>
+<td>NO</td>
+<td>Month when the support issue was opened</td>
+</tr>
+<tr>
+<td>issue_type</td>
+<td>VARCHAR(80)</td>
+<td>NO</td>
+<td>Type of issue (e.g. billing, technical, account)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Resolution status (e.g. resolved, open, pending)</td>
+</tr>
+<tr>
+<td>customer_state</td>
+<td>VARCHAR(50)</td>
+<td>NO</td>
+<td>Customer's state or province</td>
+</tr>
+<tr>
+<td>income_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Customer income band (e.g. &lt;$50k, $50k-$100k, &gt;$100k)</td>
+</tr>
+<tr>
+<td>ticket_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Number of tickets in this bucket</td>
+</tr>
+<tr>
+<td>customers_affected</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of unique customers affected</td>
+</tr>
+<tr>
+<td>resolved_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Number of tickets resolved</td>
+</tr>
+<tr>
+<td>resolution_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>resolved_count / ticket_count</td>
+</tr>
+<tr>
+<td>avg_resolution_days</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average resolution time in days (resolved only)</td>
+</tr>
+<tr>
+<td>max_resolution_days</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Maximum resolution time in days (resolved only)</td>
+</tr>
+<tr>
+<td>avg_satisfaction_score</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average satisfaction score (resolved tickets only)</td>
+</tr>
+<tr>
+<td>low_satisfaction_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Count of tickets with satisfaction &lt; 3</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> (<code>month_opened</code>, <code>issue_type</code>, <code>status</code>, <code>customer_state</code>, <code>income_band</code>)</p>
+<hr />
+<h2 id="mart_customer_360">mart_customer_360</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>customer_key</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Unique customer identifier (hashed)</td>
+</tr>
+<tr>
+<td>customer_id</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Original customer ID from source systems</td>
+</tr>
+<tr>
+<td>customer_name</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Customer name</td>
+</tr>
+<tr>
+<td>gender</td>
+<td>VARCHAR(20)</td>
+<td>NO</td>
+<td>Gender</td>
+</tr>
+<tr>
+<td>age_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Age group (e.g. 18-25, 26-35, 36-50, 51-65, 65+)</td>
+</tr>
+<tr>
+<td>city</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Customer city</td>
+</tr>
+<tr>
+<td>state</td>
+<td>VARCHAR(50)</td>
+<td>NO</td>
+<td>Customer state/province</td>
+</tr>
+<tr>
+<td>occupation</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Occupation</td>
+</tr>
+<tr>
+<td>income_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Personal income band</td>
+</tr>
+<tr>
+<td>annual_income</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Annual income</td>
+</tr>
+<tr>
+<td>join_date</td>
+<td>DATE</td>
+<td>NO</td>
+<td>Date customer joined the bank</td>
+</tr>
+<tr>
+<td>credit_score</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Current credit score</td>
+</tr>
+<tr>
+<td>credit_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Credit band (e.g. fair, good, excellent)</td>
+</tr>
+<tr>
+<td>total_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total number of accounts held</td>
+</tr>
+<tr>
+<td>active_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of currently active accounts</td>
+</tr>
+<tr>
+<td>total_cards</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total number of cards held</td>
+</tr>
+<tr>
+<td>active_cards</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of currently active cards</td>
+</tr>
+<tr>
+<td>total_credit_limit</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total credit limit across all cards</td>
+</tr>
+<tr>
+<td>total_loans</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total number of loans</td>
+</tr>
+<tr>
+<td>active_loans</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of currently active loans</td>
+</tr>
+<tr>
+<td>total_loan_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total loan amount across all loans</td>
+</tr>
+<tr>
+<td>loan_to_income_ratio</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total_loan_amount / annual_income</td>
+</tr>
+<tr>
+<td>txn_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Total transaction count</td>
+</tr>
+<tr>
+<td>txn_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total transaction amount</td>
+</tr>
+<tr>
+<td>last_txn_date</td>
+<td>DATE</td>
+<td>NO</td>
+<td>Date of most recent transaction</td>
+</tr>
+<tr>
+<td>card_txn_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Card transaction count</td>
+</tr>
+<tr>
+<td>card_spend</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total card spend amount</td>
+</tr>
+<tr>
+<td>card_fraud_txn_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of card fraud transactions</td>
+</tr>
+<tr>
+<td>total_tickets</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total support tickets filed</td>
+</tr>
+<tr>
+<td>resolved_tickets</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total support tickets resolved</td>
+</tr>
+<tr>
+<td>avg_resolution_days</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average resolution time in days</td>
+</tr>
+<tr>
+<td>avg_satisfaction_score</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average satisfaction score</td>
+</tr>
+<tr>
+<td>products_held</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of distinct products held</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> <code>customer_key</code></p>
+<hr />
+<h2 id="mart_branch_performance">mart_branch_performance</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>branch_key</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Unique branch identifier</td>
+</tr>
+<tr>
+<td>branch_id</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Branch ID from source system</td>
+</tr>
+<tr>
+<td>branch_name</td>
+<td>VARCHAR(200)</td>
+<td>NO</td>
+<td>Branch name</td>
+</tr>
+<tr>
+<td>city</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Branch city</td>
+</tr>
+<tr>
+<td>state</td>
+<td>VARCHAR(50)</td>
+<td>NO</td>
+<td>Branch state/province</td>
+</tr>
+<tr>
+<td>region</td>
+<td>VARCHAR(100)</td>
+<td>NO</td>
+<td>Region (e.g. North, South, East, West)</td>
+</tr>
+<tr>
+<td>ifsc_code</td>
+<td>VARCHAR(20)</td>
+<td>NO</td>
+<td>IFSC code (branch identifier)</td>
+</tr>
+<tr>
+<td>opened_year</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Year branch opened</td>
+</tr>
+<tr>
+<td>branch_age_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Band based on years since opening (e.g. new, established, mature)</td>
+</tr>
+<tr>
+<td>total_customers</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total customers associated with branch</td>
+</tr>
+<tr>
+<td>total_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total number of accounts</td>
+</tr>
+<tr>
+<td>active_accounts</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of currently active accounts</td>
+</tr>
+<tr>
+<td>employee_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of employees at branch</td>
+</tr>
+<tr>
+<td>total_salary_cost</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total annual salary cost for branch employees</td>
+</tr>
+<tr>
+<td>avg_salary</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Average employee salary</td>
+</tr>
+<tr>
+<td>total_loans</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total number of loans at branch</td>
+</tr>
+<tr>
+<td>active_loans</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of currently active loans at branch</td>
+</tr>
+<tr>
+<td>total_loan_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total loan amount at branch</td>
+</tr>
+<tr>
+<td>avg_interest_rate</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average interest rate across branch loans</td>
+</tr>
+<tr>
+<td>total_loan_collected</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total amount of loan collections</td>
+</tr>
+<tr>
+<td>late_payment_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Late payments / total payments</td>
+</tr>
+<tr>
+<td>txn_count</td>
+<td>BIGINT</td>
+<td>NO</td>
+<td>Transaction count at branch</td>
+</tr>
+<tr>
+<td>txn_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total transaction amount at branch</td>
+</tr>
+<tr>
+<td>accounts_per_employee</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>active_accounts / employee_count</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> <code>branch_key</code></p>
+<hr />
+<h2 id="mart_loan_portfolio">mart_loan_portfolio</h2>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Nullable</th>
+<th>Business definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>loan_type</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Type of loan (e.g. personal, home, business, auto, credit_card)</td>
+</tr>
+<tr>
+<td>status</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Current status (e.g. current, late, default, foreclosure)</td>
+</tr>
+<tr>
+<td>loan_amount_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Band of total loan amount (e.g. &lt;$10k, $10k-$50k, $50k-$100k, &gt;$100k)</td>
+</tr>
+<tr>
+<td>term_band</td>
+<td>VARCHAR(40)</td>
+<td>NO</td>
+<td>Band of term in months (e.g. &lt;24, 24-60, 60-120, &gt;120)</td>
+</tr>
+<tr>
+<td>start_year</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Year when the loan started</td>
+</tr>
+<tr>
+<td>loan_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of loans in this bucket</td>
+</tr>
+<tr>
+<td>total_loan_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total principal amount in this bucket</td>
+</tr>
+<tr>
+<td>avg_loan_amount</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Average loan amount in this bucket</td>
+</tr>
+<tr>
+<td>avg_interest_rate</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average interest rate in this bucket</td>
+</tr>
+<tr>
+<td>avg_term_months</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>Average term in months</td>
+</tr>
+<tr>
+<td>payment_count</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Total payments made across all loans in bucket</td>
+</tr>
+<tr>
+<td>total_paid</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total amount paid (principal + interest)</td>
+</tr>
+<tr>
+<td>principal_paid</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total principal paid off</td>
+</tr>
+<tr>
+<td>interest_paid</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Total interest paid</td>
+</tr>
+<tr>
+<td>late_payments</td>
+<td>INTEGER</td>
+<td>NO</td>
+<td>Number of late payments</td>
+</tr>
+<tr>
+<td>late_payment_rate_pct</td>
+<td>NUMERIC(5,2)</td>
+<td>NO</td>
+<td>late_payments / payment_count</td>
+</tr>
+<tr>
+<td>estimated_outstanding_principal</td>
+<td>NUMERIC(18,2)</td>
+<td>NO</td>
+<td>Estimated remaining principal</td>
+</tr>
+<tr>
+<td>mart_refreshed_at</td>
+<td>TIMESTAMPTZ</td>
+<td>YES</td>
+<td>When this row was last refreshed from the warehouse</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key:</strong> (<code>loan_type</code>, <code>status</code>, <code>loan_amount_band</code>, <code>term_band</code>, <code>start_year</code>)</p>
+<hr />
+<p><em>This data dictionary is referenced by all analysis functions in <code>R/</code>. If a column name changes in the warehouse, update both <code>config/contracts.yml</code> and this file.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

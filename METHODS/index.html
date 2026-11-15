@@ -1,0 +1,2302 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../insights/06-support/">
+      
+      
+        <link rel="next" href="../MODEL-CARDS/attrition_risk/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Methods - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#methods-banking-delta-lakehouse-r-analysis" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Methods
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-gini-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Gini coefficient
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-population-stability-index-psi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Population Stability Index (PSI)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-variance-bridge-kpi-move-decomposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Variance bridge (KPI move decomposition)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-kpi-growth-mom-yoy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. KPI growth (MoM / YoY)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-seasonal-profile-mean-and-share-per-calendar-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Seasonal profile (mean and share per calendar month)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-structural-break-flags-cusum-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Structural break flags (CUSUM-style)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-ratio-re-computation-never-average-a-ratio-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Ratio re-computation (never average a ratio column)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-wilson-confidence-interval-for-a-proportion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Wilson confidence interval for a proportion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cost-threshold-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cost-threshold selection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-fraud-rate-profile-by-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Fraud rate profile by group
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-precision-at-k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Precision at k
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-average-precision-area-under-pr-curve-step-wise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Average precision (area under PR curve, step-wise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-empirical-bayes-shrinkage-beta-binomial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Empirical-Bayes shrinkage (beta-binomial)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-individuals-control-chart-3-sigma-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Individuals control chart (3-sigma limits)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-robust-z-score-medianmad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Robust z-score (median/MAD)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-shrink-rank-empirical-bayes-ranking-of-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Shrink rank (empirical-Bayes ranking of rates)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-sla-compliance-with-wilson-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. SLA compliance with Wilson interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-log-time-summary-geometric-mean-and-median" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Log-time summary (geometric mean and median)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-kaplan-meier-survival-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Kaplan-Meier survival fit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-vintage-cohort-triangle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Vintage cohort triangle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-time-ordered-traintest-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. Time-ordered train/test split
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-binary-ranking-metrics-with-base-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. Binary ranking metrics (with base rate)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23-cox-proportional-hazards-model-time-to-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        23. Cox proportional-hazards model (time-to-default)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#24-cagr-with-bootstrap-confidence-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        24. CAGR with bootstrap confidence interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-gini-coefficient" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Gini coefficient
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-population-stability-index-psi" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Population Stability Index (PSI)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-variance-bridge-kpi-move-decomposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Variance bridge (KPI move decomposition)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-kpi-growth-mom-yoy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. KPI growth (MoM / YoY)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-seasonal-profile-mean-and-share-per-calendar-month" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Seasonal profile (mean and share per calendar month)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-structural-break-flags-cusum-style" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Structural break flags (CUSUM-style)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-ratio-re-computation-never-average-a-ratio-column" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Ratio re-computation (never average a ratio column)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-wilson-confidence-interval-for-a-proportion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Wilson confidence interval for a proportion
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-cost-threshold-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Cost-threshold selection
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-fraud-rate-profile-by-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Fraud rate profile by group
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-precision-at-k" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Precision at k
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-average-precision-area-under-pr-curve-step-wise" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Average precision (area under PR curve, step-wise)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-empirical-bayes-shrinkage-beta-binomial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Empirical-Bayes shrinkage (beta-binomial)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-individuals-control-chart-3-sigma-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Individuals control chart (3-sigma limits)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-robust-z-score-medianmad" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Robust z-score (median/MAD)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-shrink-rank-empirical-bayes-ranking-of-rates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Shrink rank (empirical-Bayes ranking of rates)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#17-sla-compliance-with-wilson-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        17. SLA compliance with Wilson interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#18-log-time-summary-geometric-mean-and-median" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        18. Log-time summary (geometric mean and median)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#19-kaplan-meier-survival-fit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        19. Kaplan-Meier survival fit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#20-vintage-cohort-triangle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        20. Vintage cohort triangle
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#21-time-ordered-traintest-split" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        21. Time-ordered train/test split
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#22-binary-ranking-metrics-with-base-rate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        22. Binary ranking metrics (with base rate)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#23-cox-proportional-hazards-model-time-to-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        23. Cox proportional-hazards model (time-to-default)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#24-cagr-with-bootstrap-confidence-interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        24. CAGR with bootstrap confidence interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="methods-banking-delta-lakehouse-r-analysis">Methods — Banking-Delta-Lakehouse R Analysis</h1>
+<p><em>Every method documented here assumes the Tier 0 gate (<code>assert_marts_ready()</code>) has passed and themart data has been extracted and validated by <code>assert_contract()</code>. This file is the authoritative reference for assumptions, validation, and known limits. Each predictive model must also have a card in <code>docs/MODEL-CARDS/</code>.</em></p>
+<hr />
+<h2 id="1-gini-coefficient">1. Gini coefficient</h2>
+<p><strong>File:</strong> <code>R/stats_helpers.R::gini()</code><br>
+<strong>Package:</strong> base R only</p>
+<p><strong>Purpose:</strong> Measure of inequality (e.g. balance inequality across customers, loan amount concentration).</p>
+<p><strong>Input:</strong> Numeric vector <code>x</code> of non-negative values (sorted or unsorted; function sorts internally).</p>
+<p><strong>Computation:</strong>
+1. Sort <code>x</code> ascending
+2. <code>n &lt;- length(x)</code>
+3. <code>num &lt;- sum((2 * seq_len(n) - n - 1) * x)</code>
+4. <code>den &lt;- n * sum(x)</code>
+5. Return <code>num / den</code> (or <code>NA_real_</code> if <code>n == 0</code> or <code>den == 0</code>)</p>
+<p><strong>Range:</strong> <code>[0, 1]</code>, where 0 = perfect equality, 1 = perfect inequality.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- All values should be non-negative. Negative values produce meaningless results.
+- Designed for continuous or discrete positive distributions.
+- Not appropriate for binary classification tasks (use AUROC instead).</p>
+<p><strong>Validation:</strong> Unit test verifies <code>gini(rep(1, 10)) == 0</code>. Out-of-range inputs should be caught upstream.</p>
+<hr />
+<h2 id="2-population-stability-index-psi">2. Population Stability Index (PSI)</h2>
+<p><strong>File:</strong> <code>R/stats_helpers.R::psi()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Detect distribution shift between a reference (expected) and current sample. Used for monitoring feature drift.</p>
+<p><strong>Input:</strong> Two numeric vectors <code>expected</code> and <code>actual</code>, and <code>bins</code> (default 10).</p>
+<p><strong>Computation:</strong>
+1. Compute quantile breakpoints from <code>expected</code> at <code>seq(0, 1, length.out = bins + 1)</code>
+2. Bucket both <code>expected</code> and <code>actual</code> using these breaks
+3. Compute proportions <code>pe</code> and <code>pa</code> in each bucket (replace empty buckets with 1e-6)
+4. <code>PSI = sum((pa - pe) * log(pa / pe))</code></p>
+<p><strong>Interpretation (standard thresholds):</strong>
+- <code>PSI &lt; 0.1</code>: No significant shift
+- <code>0.1 &lt;= PSI &lt; 0.25</code>: Moderate shift — investigate
+- <code>PSI &gt;= 0.25</code>: Significant shift — take action (rebuild features, re‑train model)</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Both vectors should be continuous and positive for best results with 10 bins.
+- Very small samples may produce unstable PSI.
+- PSI isagnostic to direction of shift — always pair with a domain review.</p>
+<p><strong>Validation:</strong> Unit test verifies <code>psi(x, x) &lt; 0.01</code> for identical samples and <code>psi(numeric(), x) == NA_real_</code> for an empty side. The former duplicate <code>calculate_psi()</code> was removed; <code>psi()</code> is the single implementation.</p>
+<hr />
+<h2 id="3-variance-bridge-kpi-move-decomposition">3. Variance bridge (KPI move decomposition)</h2>
+<p><strong>File:</strong> <code>R/mart_kpi_monthly.R::kpi_variance_bridge()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Decompose a period-over-period change in a KPI into volume, rate, and interaction effects. Used in waterfall charts to explain KPI movements.</p>
+<p><strong>Input:</strong> Data frame <code>df</code> with columns:
+- <code>value_col</code>: total value (e.g. <code>txn_amount</code>)
+- <code>count_col</code> (optional): volume driver (e.g. <code>txn_count</code>)
+- <code>date_col</code> (optional): period identifier</p>
+<p><strong>When <code>count_col</code> is provided:</strong>
+- Compute rate = value / count (with <code>NA</code> when count == 0)
+- Split delta between consecutive periods into:
+  - <code>volume_effect = (n - prev_n) * prev_rate</code>
+  - <code>rate_effect = prev_n * (rate - prev_rate)</code>
+  - <code>interaction = (n - prev_n) * (rate - prev_rate)</code>
+- The three effects sum exactly to <code>delta = value - prev_value</code></p>
+<p><strong>When <code>count_col</code> is NULL:</strong> Return only <code>period</code>, <code>value</code>, <code>delta</code> (NA for first period).</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- The base period is the <em>previous</em> period (row-wise lag). Not a symmetric difference.
+- Designed for additive decomposition: <code>delta = volume + rate + interaction</code>.
+- If <code>count_col</code> has vastly different scales across periods, rate effects may be unstable.</p>
+<p><strong>Validation:</strong> Unit tests verify:
+- <code>delta[2] == 2</code> for <code>value = c(10, 12)</code>, <code>count = c(1, 1)</code>
+- Volume + rate + interaction == delta (reconstruction check)
+- Error on missing count column</p>
+<hr />
+<h2 id="4-kpi-growth-mom-yoy">4. KPI growth (MoM / YoY)</h2>
+<p><strong>File:</strong> <code>R/mart_kpi_monthly.R::kpi_growth()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Compute month-on-month (MoM) and year-on-year (YoY) differences for a KPI time series.</p>
+<p><strong>Input:</strong> Data frame with <code>date_col</code> (Date) and <code>value_col</code> (numeric), plus column names as strings.</p>
+<p><strong>Computation:</strong>
+- <code>mom = c(NA, diff(value))</code> — MoM change
+- <code>yoy = c(rep(NA, 12), diff(value, lag = 12))</code> — YoY change (lags first 12 months)</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Requires at least 13 rows for YoY computation; first 12 YoY values are NA.
+- YoY uses a lag of 12, assuming exactly monthly data with no gaps.
+- Missing months break the lag pattern; fix upstream.</p>
+<hr />
+<h2 id="5-seasonal-profile-mean-and-share-per-calendar-month">5. Seasonal profile (mean and share per calendar month)</h2>
+<p><strong>File:</strong> <code>R/mart_kpi_monthly.R::kpi_seasonal_profile()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Aggregate values by calendar month (1-12) to show typical monthly pattern and each month's share of the annual total.</p>
+<p><strong>Input:</strong> Data frame with <code>date_col</code> (Date or POSIXt) and <code>value_col</code> (numeric).</p>
+<p><strong>Computation:</strong>
+1. Extract month number from <code>date_col</code>: <code>mo &lt;- format(date, "%m")</code>
+2. Aggregate: mean, sum, count per month
+3. <code>share_of_year = total_per_month / sum(all_totals)</code></p>
+<p><strong>Output columns:</strong> <code>month</code> (1-12), <code>mean_value</code>, <code>total_value</code>, <code>n</code>, <code>share_of_year</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Assumes data spans multiple calendar years; if only one year, <code>share_of_year</code> will be exactly 1/12 for each month.
+- Gaps in the time series are not checked here — ensure completeness upstream.</p>
+<hr />
+<h2 id="6-structural-break-flags-cusum-style">6. Structural break flags (CUSUM-style)</h2>
+<p><strong>File:</strong> <code>R/mart_kpi_monthly.R::kpi_break_flags()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Flag points in a time-ordered numeric vector where the cumulative deviation from the global mean is unusually large.</p>
+<p><strong>Input:</strong> Numeric vector <code>x</code> (time-ordered), <code>k</code> sensitivity multiplier (default 1.5).</p>
+<p><strong>Computation:</strong>
+1. <code>g &lt;- mean(x, na.rm = TRUE)</code>, <code>s &lt;- sd(x, na.rm = TRUE)</code>
+2. If <code>n &lt; 6</code> or <code>s == 0</code>: return <code>rep(FALSE, n)</code>
+3. <code>cum &lt;- cumsum(x - g) / seq_len(n)</code>
+4. Flag if <code>|cum| &gt; k * s / sqrt(seq_len(n))</code></p>
+<p><strong>Output:</strong> Logical vector of same length as <code>x</code>.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Designed for moderately sized series (<code>n &gt;= 6</code>).
+- Not a replacement for formal change-point detection (<code>strucchange::breakpoints</code>) but useful as a quick screen.
+- Sensitive to outliers — one extreme point can flag many subsequent rows.</p>
+<hr />
+<h2 id="7-ratio-re-computation-never-average-a-ratio-column">7. Ratio re-computation (never average a ratio column)</h2>
+<p><strong>File:</strong> <code>R/mart_kpi_monthly.R::kpi_recompute_ratio()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Element-wise <code>num / den</code> with safe division by zero. Enforces the rule that ratios must be recomputed from numerator and denominator, never averaged.</p>
+<p><strong>Input:</strong> Two numeric vectors <code>num</code> and <code>den</code> of equal length.</p>
+<p><strong>Computation:</strong>
+- <code>ifelse(den == 0, NA_real_, num / den)</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- <code>num</code> and <code>den</code> must have the same length — otherwise error.
+- Zero denominators produce <code>NA</code>, not <code>Inf</code> or <code>NaN</code>.</p>
+<hr />
+<h2 id="8-wilson-confidence-interval-for-a-proportion">8. Wilson confidence interval for a proportion</h2>
+<p><strong>File:</strong> <code>R/mart_card_fraud.R::wilson_interval()</code><br>
+<strong>Packages:</strong> base R (<code>qnorm</code>)</p>
+<p><strong>Purpose:</strong> Clopper-Pearson-style exact interval for a binomial proportion, with better coverage than normal approximation for small <code>n</code> or extreme <code>p</code>.</p>
+<p><strong>Input:</strong> <code>k</code> (number of successes), <code>n</code> (trials), <code>conf</code> (confidence level, default 0.95).</p>
+<p><strong>Output:</strong> <code>c(lower, upper)</code> or <code>c(NA, NA)</code> if <code>n == 0</code>.</p>
+<p><strong>Formula:</strong>
+- <code>z &lt;- qnorm(1 - (1 - conf) / 2)</code>
+- <code>p &lt;- k / n</code>
+- <code>denom &lt;- 1 + z^2 / n</code>
+- <code>centre &lt;- (p + z^2 / (2 * n)) / denom</code>
+- <code>half &lt;- z * sqrt(p * (1 - p) / n + z^2 / (4 * n^2)) / denom</code>
+- <code>c(centre - half, centre + half)</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Intended for proportion estimation (e.g. fraud rate, SLA compliance rate).
+- <code>n == 0</code> returns <code>c(NA, NA)</code>.
+- Coverage is approximately nominal; for very small <code>n</code> or <code>p</code> near 0 or 1, the interval may be wide.</p>
+<hr />
+<h2 id="9-cost-threshold-selection">9. Cost-threshold selection</h2>
+<p><strong>File:</strong> <code>R/mart_card_fraud.R::cost_threshold()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Choose a probability threshold that minimises expected cost, given asymmetric costs of false negatives and false positives.</p>
+<p><strong>Input:</strong> <code>scores</code> (numeric model scores), <code>labels</code> (binary 0/1), <code>cost_fn</code> (cost of a false negative), <code>cost_fp</code> (cost of a false positive).</p>
+<p><strong>Computation:</strong>
+1. Sort unique scores as potential thresholds
+2. For each threshold <code>t</code>, predict <code>pred &gt;= t</code> as fraud
+3. Compute <code>FN = sum(pred == FALSE &amp; labels == 1)</code>, <code>FP = sum(pred == TRUE &amp; labels == 0)</code>
+4. Total cost = <code>FN * cost_fn + FP * cost_fp</code>
+5. Return threshold with minimum total cost</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Threshold is chosen from the <em>observed</em> score distribution — no external calibration needed.
+- Costs should be assessed by business stakeholder; default <code>cost_fn = 10, cost_fp = 1</code> reflects typical fraud-detection asymmetry.
+- Does not account for class imbalance beyond the cost ratio.</p>
+<hr />
+<h2 id="10-fraud-rate-profile-by-group">10. Fraud rate profile by group</h2>
+<p><strong>File:</strong> <code>R/mart_card_fraud.R::fraud_rate_profile()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Compute fraud rate (<code>k/n</code>) per group with Wilson confidence intervals, sorted by rate descending.</p>
+<p><strong>Input:</strong> Data frame with <code>group_col</code>, <code>fraud_col</code> (counts), <code>total_col</code> (denominator).</p>
+<p><strong>Computation:</strong>
+1. Aggregate <code>cbind(k, n)</code> by group (sum)
+2. Compute rate = <code>k / n</code> (NA when n == 0)
+3. Compute Wilson CI per group
+4. Sort by rate descending</p>
+<p><strong>Output:</strong> Data frame with <code>group</code>, <code>rate</code>, <code>ci_low</code>, <code>ci_high</code>, sorted by <code>rate</code> descending.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Descriptive only — no model discrimination.
+- CI coverage depends on Wilson interval properties.</p>
+<hr />
+<h2 id="11-precision-at-k">11. Precision at k</h2>
+<p><strong>File:</strong> <code>R/mart_card_fraud.R::precision_at_k()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Precision at top-k when ranking by predicted score.</p>
+<p><strong>Input:</strong> <code>scores</code> (numeric), <code>labels</code> (binary 0/1), <code>k</code> (integer, clamped to <code>length(scores)</code>).</p>
+<p><strong>Computation:</strong>
+1. Order by <code>scores</code> descending
+2. Take top-k indices
+3. <code>precision = sum(labels[top-k] == 1) / k</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Standard metric for rank‑ordered models.
+- <code>k</code> is clamped if &gt; length.</p>
+<hr />
+<h2 id="12-average-precision-area-under-pr-curve-step-wise">12. Average precision (area under PR curve, step-wise)</h2>
+<p><strong>File:</strong> <code>R/mart_card_fraud.R::avg_precision()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Compute the area under the precision-recall curve using the step-wise (Riemann) approximation.</p>
+<p><strong>Input:</strong> <code>scores</code> (numeric), <code>labels</code> (binary 0/1).</p>
+<p><strong>Computation:</strong>
+1. Order by scores descending
+2. Compute cumulative TP and FP
+3. Precision = <code>tp / (tp + fp)</code> at each distinct score
+4. Recall = <code>tp / total_positives</code> at each distinct score
+5. <code>AP = sum(precision * diff(c(0, recall)))</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Equivalent to PR-AUC with step-wise interpolation.
+- If all labels are 0, returns <code>NA_real_</code>.</p>
+<hr />
+<h2 id="13-empirical-bayes-shrinkage-beta-binomial">13. Empirical-Bayes shrinkage (beta-binomial)</h2>
+<p><strong>File:</strong> <code>R/stats_helpers.R::eb_shrink()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Shrink a raw rate <code>k/n</code> toward a prior mean using a beta-binomial model with uniform prior (alpha=1, beta=1).</p>
+<p><strong>Input:</strong> <code>k</code> (successes), <code>n</code> (trials), <code>alpha0</code>, <code>beta0</code> (prior parameters, default 1 each).</p>
+<p><strong>Output:</strong> <code>(k + alpha0) / (n + alpha0 + beta0)</code></p>
+<p><strong>Interpretation:</strong> The shrunk rate is a weighted average of the raw rate and the prior mean (0.5 for uniform prior). When <code>n</code> is small, the result is pulled strongly toward 0.5; when <code>n</code> is large, the result approaches the raw rate.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Uniform prior (alpha=beta=1) is the default; replace with informed prior if available.
+- Not appropriate for rates that are not binomial proportions.</p>
+<hr />
+<h2 id="14-individuals-control-chart-3-sigma-limits">14. Individuals control chart (3-sigma limits)</h2>
+<p><strong>File:</strong> <code>R/monitoring.R::individuals_limits()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Compute 3-sigma control limits for an individuals chart (X chart), using the moving range (MR) method.</p>
+<p><strong>Input:</strong> Numeric vector <code>x</code> (time-ordered).</p>
+<p><strong>Computation:</strong>
+1. <code>m &lt;- mean(x, na.rm = TRUE)</code>
+2. <code>mr &lt;- abs(diff(x))</code> — moving ranges
+3. <code>mr_bar &lt;- mean(mr, na.rm = TRUE)</code>
+4. <code>sigma &lt;- mr_bar / 1.128</code> (factor to estimate sigma from MR)
+5. <code>list(center = m, lcl = m - 3 * sigma, ucl = m + 3 * sigma, sigma = sigma)</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Requires <code>n &gt;= 2</code> (at least one moving range).
+- Assumes data are independent and identically distributed around the process mean.
+- Not appropriate for autocorrelated series without pre-processing.</p>
+<hr />
+<h2 id="15-robust-z-score-medianmad">15. Robust z-score (median/MAD)</h2>
+<p><strong>File:</strong> <code>R/mart_branch_performance.R::robust_z()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Compute robust z-scores using median and median absolute deviation (MAD), resistant to outliers.</p>
+<p><strong>Input:</strong> Numeric vector <code>x</code>.</p>
+<p><strong>Computation:</strong>
+1. <code>med &lt;- median(x, na.rm = TRUE)</code>
+2. <code>mad &lt;- mad(x, na.rm = TRUE)</code> — median absolute deviation
+3. Return <code>(x - med) / (1.4826 * mad)</code>
+4. If <code>mad == 0</code>: return <code>rep(NA_real_, length(x))</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- MAD is scaled to match standard deviation under normality (factor 1.4826).
+- More resistant than classic z-score (<code>mean/sd</code>) when outliers are present.</p>
+<hr />
+<h2 id="16-shrink-rank-empirical-bayes-ranking-of-rates">16. Shrink rank (empirical-Bayes ranking of rates)</h2>
+<p><strong>File:</strong> <code>R/mart_branch_performance.R::shrink_rank()</code><br>
+<strong>Packages:</strong> base R + <code>stats_helpers.R::eb_shrink()</code></p>
+<p><strong>Purpose:</strong> Rank branches by their shrunken rate (active_accounts / total_accounts) so small branches are not over-ranked on noise.</p>
+<p><strong>Input:</strong> Data frame <code>df</code>, <code>id_col</code>, <code>k_col</code> (successes), <code>n_col</code> (trials), <code>alpha0</code>, <code>beta0</code> (priors, default 1 each).</p>
+<p><strong>Output:</strong> Data frame with <code>id</code>, <code>k</code>, <code>n</code>, <code>raw_rate</code>, <code>shrunk_rate</code>, <code>rank</code> (ordered by shrunk_rate descending).</p>
+<p><strong>Shrinking formula:</strong> <code>shrunk = (k + alpha0) / (n + alpha0 + beta0)</code> (uniform prior → <code>eb_shrink(k, n)</code>).</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Uniform prior may not be appropriate for all domains; use informed priors if available.
+- Small branches (small <code>n</code>) are pulled strongly toward the prior; large branches are barely affected.</p>
+<hr />
+<h2 id="17-sla-compliance-with-wilson-interval">17. SLA compliance with Wilson interval</h2>
+<p><strong>File:</strong> <code>R/mart_support_performance.R::sla_compliance()</code><br>
+<strong>Packages:</strong> base R + <code>R/mart_card_fraud.R::wilson_interval()</code></p>
+<p><strong>Purpose:</strong> Compute compliance rate and Wilson confidence interval.</p>
+<p><strong>Input:</strong> <code>within</code> (count resolved within SLA), <code>total</code> (total count).</p>
+<p><strong>Output:</strong> List with <code>rate</code> (within/total) and <code>ci</code> (c(lower, upper)).</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Same as Wilson interval (section 8).
+- <code>within &gt; total</code> produces <code>rate &gt; 1</code> — caller should guard against this.</p>
+<hr />
+<h2 id="18-log-time-summary-geometric-mean-and-median">18. Log-time summary (geometric mean and median)</h2>
+<p><strong>File:</strong> <code>R/mart_support_performance.R::log_time_summary()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Summarise right-skewed resolution times using log-scale statistics.</p>
+<p><strong>Input:</strong> Numeric vector <code>x</code> (positive resolution times in days).</p>
+<p><strong>Output:</strong> <code>c(median = exp(median(log(x))), mean = exp(mean(log(x))))</code>.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- All values must be positive — <code>x[x &gt; 0]</code> filters non-positive before logging.
+- Geometric mean is the appropriate central tendency for log-normal data.</p>
+<hr />
+<h2 id="19-kaplan-meier-survival-fit">19. Kaplan-Meier survival fit</h2>
+<p><strong>File:</strong> <code>R/mart_loan_portfolio.R::survival_fit()</code><br>
+<strong>Packages:</strong> <code>survival</code></p>
+<p><strong>Purpose:</strong> Fit a Kaplan-Meier survival curve for time-to-default (or time-to-event) with right-censoring.</p>
+<p><strong>Input:</strong> <code>time</code> (follow-up time in months), <code>event</code> (1 = default/event, 0 = censored).</p>
+<p><strong>Output:</strong> <code>survfit</code> object from <code>survival::survfit(survival::Surv(time, event) ~ 1)</code>.</p>
+<p><strong>Censoring policy:</strong> Open loans (no default event) are right-censored at their last observation. This is the correct treatment — open loans are not "good", they are simply "still ongoing".</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Requires <code>survival</code> package.
+- Ties in event times are handled by Efron's approximation in <code>survfit</code>.
+- Survival curve is descriptive only — does not condition on covariates (use the Cox model in section 23 for that).</p>
+<hr />
+<h2 id="20-vintage-cohort-triangle">20. Vintage cohort triangle</h2>
+<p><strong>File:</strong> <code>R/mart_loan_portfolio.R::vintage_triangle()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Aggregate loan balances by cohort (month_opened) and months-on-book (mob).</p>
+<p><strong>Input:</strong> Data frame with <code>cohort_col</code> (e.g. "2023-01"), <code>mob_col</code> (1, 2, 3, ...), and <code>value_col</code> (e.g. loan amount).</p>
+<p><strong>Computation:</strong> <code>aggregate(value, by = list(cohort = cohort, mob = mob), FUN = sum)</code></p>
+<p><strong>Output:</strong> Data frame with <code>cohort</code>, <code>mob</code>, <code>x</code> (sum of values).</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Cohort labels should be in "YYYY-MM" format or comparable date strings.
+- The sum <code>sum(x)</code> across all cohort/mob cells gives total outstanding principal.</p>
+<hr />
+<h2 id="21-time-ordered-traintest-split">21. Time-ordered train/test split</h2>
+<p><strong>File:</strong> <code>R/predictive.R::time_split()</code><br>
+<strong>Packages:</strong> base R</p>
+<p><strong>Purpose:</strong> Split a mart into a training sample (earliest rows) and an evaluation sample (latest rows) so that no future information can reach the model.</p>
+<p><strong>Input:</strong> Data frame <code>df</code>, <code>date_col</code>, <code>prop</code> (share assigned to train, default 0.8).</p>
+<p><strong>Computation:</strong>
+1. <code>ord &lt;- order(df[[date_col]], na.last = TRUE)</code>
+2. <code>cut &lt;- floor(n * prop)</code>; rows <code>ord[1:cut]</code> train, <code>ord[(cut+1):n]</code> test
+3. Return <code>list(train, test, train_idx, test_idx, cutoff)</code> where <code>cutoff</code> is the largest training date</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Errors when <code>date_col</code> has a single distinct value or <code>prop</code> is outside <code>(0, 1)</code> — a split that cannot be made honestly must fail, not fall back to a random split.
+- <code>main.R::step_predict</code> catches that error and reports the resulting metrics as <code>validation = in_sample</code>.
+- Ties on the date are broken by row order (stable), so results are reproducible.</p>
+<p><strong>Validation:</strong> Unit tests cover the date separation, the returned indices/cutoff, and every rejection path.</p>
+<hr />
+<h2 id="22-binary-ranking-metrics-with-base-rate">22. Binary ranking metrics (with base rate)</h2>
+<p><strong>File:</strong> <code>R/predictive.R::binary_metrics()</code>, <code>R/mart_card_fraud.R::recall_at_k()</code><br>
+<strong>Packages:</strong> base R + <code>avg_precision()</code>, <code>precision_at_k()</code></p>
+<p><strong>Purpose:</strong> Report discrimination of a binary score on a fixed sample, always next to the base rate, so a metric can never be read without its naive baseline.</p>
+<p><strong>Input:</strong> <code>scores</code> (positive-class probabilities), <code>labels</code> (0/1), <code>k</code> (alert budget, default 10 from <code>analysis.yml</code> → <code>predictive.alert_budget</code>).</p>
+<p><strong>Output (one row):</strong> <code>n</code>, <code>positives</code>, <code>base_rate</code>, <code>avg_precision</code>, <code>precision_at_k</code>, <code>recall_at_k</code>.</p>
+<p><strong>Computation of recall@k:</strong> order by score descending, <code>sum(labels[top-k] == 1) / sum(labels == 1)</code>; <code>NA</code> when there are no positives.</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Accuracy is deliberately absent: with rare events it flatters every model.
+- <code>avg_precision</code> must beat <code>base_rate</code> to be a finding; a model at base rate adds nothing.
+- Metrics are only as honest as the split they run on — check the paired <code>validation</code> column (section 21).</p>
+<p><strong>Validation:</strong> Unit tests on a clean ranking, an empty-positive case, and length mismatch.</p>
+<hr />
+<h2 id="23-cox-proportional-hazards-model-time-to-default">23. Cox proportional-hazards model (time-to-default)</h2>
+<p><strong>File:</strong> <code>R/mart_loan_portfolio.R::cox_fit()</code><br>
+<strong>Packages:</strong> <code>survival</code></p>
+<p><strong>Purpose:</strong> Model the hazard of default as a function of covariates while handling right-censored loans explicitly.</p>
+<p><strong>Input:</strong> Data frame with <code>time_col</code> (positive exposure time, e.g. <code>months_on_book</code>), <code>event_col</code> (1 = default, 0 = censored), <code>features</code>.</p>
+<p><strong>Output:</strong> <code>list(model, features, hazard_ratios, concordance)</code> — <code>hazard_ratios = exp(coef)</code>; <code>concordance</code> is the Harrell C of the fit.</p>
+<p><strong>Computation:</strong>
+1. Validate columns, strictly positive times and at least one observed event
+2. Build <code>surv_obj &lt;- Surv(time, event)</code> and fit <code>coxph(surv_obj ~ features)</code> (Efron ties, default)
+3. Return exponentiated coefficients and concordance</p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Proportional hazards must hold; check with <code>survival::cox.zph()</code> before trusting a hazard ratio — not automated yet.
+- Requires <code>survival</code> installed; the function fails loudly otherwise rather than skipping silently.
+- Concordance measures ranking, not calibration; a hazard ratio is not a probability of default.</p>
+<p><strong>Validation:</strong> Unit test on a simulated hazard verifies the coefficient direction and <code>concordance &gt; 0.5</code>; input guards are tested.</p>
+<hr />
+<h2 id="24-cagr-with-bootstrap-confidence-interval">24. CAGR with bootstrap confidence interval</h2>
+<p><strong>File:</strong> <code>R/mart_monthly_transactions.R::txn_cagr()</code>, <code>txn_cagr_ci()</code><br>
+<strong>Packages:</strong> base R + <code>stats_helpers.R::bootstrap_ci()</code></p>
+<p><strong>Purpose:</strong> Compound annual growth rate of a measure, with an interval when the underlying series is available.</p>
+<p><strong>Input:</strong> <code>start_value</code>, <code>end_value</code>, <code>n_years</code>, <code>conf</code> (default 0.95), optional <code>values</code> (ordered positive observations covering the period), <code>seed</code>.</p>
+<p><strong>Computation:</strong>
+1. Point estimate: <code>cagr = (end/start)^(1/n_years) - 1</code>
+2. With <code>values</code>: per-period log growth <code>g &lt;- diff(log(values))</code>; bootstrap the mean of <code>g</code> (<code>R = 1000</code>, fixed seed); annualise as <code>exp(mean_g * (length(values)-1)/n_years) - 1</code>
+3. Without <code>values</code> (or fewer than three observations, or any <code>&lt;= 0</code>): <code>ci = NULL</code></p>
+<p><strong>Assumptions &amp; limits:</strong>
+- Endpoint CAGR equals <code>exp(mean(g) * periods_per_year) - 1</code> exactly, so the point estimate and the interval describe the same quantity.
+- The bootstrap assumes the per-period growth rates are exchangeable; strong regime changes widen or bias the interval.
+- The interval reflects historical variability, not a forecast.</p>
+<p><strong>Validation:</strong> Unit tests cover the point estimate, that the interval brackets it when a series is supplied, and the <code>NULL</code> paths.</p>
+<hr />
+<p><em>Methods documented here are the authoritative reference. If a method is used in <code>R/</code> but not documented here, add it to this file. If a method in this file is not implemented in <code>R/</code>, implement it or remove the reference.</em></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

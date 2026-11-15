@@ -1,0 +1,2066 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../TESTING/">
+      
+      
+        <link rel="next" href="../DEPLOYMENT/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>CI/CD and Git workflow - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cicd-and-git-workflow-banking-delta-lakehouse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CI/CD and Git workflow
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-git-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Git workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Git workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ground-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ground rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branches-and-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branches and setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-change-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The change loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-changes-and-invariants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL changes and invariants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. CI/CD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. CI/CD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it flows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflows-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflows at a glance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ci jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release-and-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release and deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-time-setup-repo-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time setup (repo admin)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-git-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Git workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Git workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ground-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ground rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branches-and-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branches and setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commits
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-change-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The change loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sql-changes-and-invariants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SQL changes and invariants
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. CI/CD
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. CI/CD">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-it-flows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How it flows
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#workflows-at-a-glance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflows at a glance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ci-jobs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ci jobs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#release-and-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Release and deploy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-time-setup-repo-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-time setup (repo admin)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="cicd-and-git-workflow-banking-delta-lakehouse">CI/CD and Git workflow — Banking-Delta-Lakehouse</h1>
+<p>How a change travels from a branch to production. CI runs the same <code>make</code> targets you run
+locally (<code>tasks.bat</code> on Windows), so <strong>green locally means green in CI</strong>. Workflows live in
+<code>.github/workflows/</code>. Rules for AI agents (<code>AGENTS.md</code>) always win on conflict.</p>
+<h2 id="1-git-workflow">1. Git workflow</h2>
+<h3 id="ground-rules">Ground rules</h3>
+<ol>
+<li>One concern per branch, one logical change per commit, small diffs. Branches live days, not weeks.</li>
+<li>Conventional Commits, hooks always on. <code>--no-verify</code> is forbidden.</li>
+<li>Never commit <code>.env</code>, tokens, <code>*.pem</code>, <code>*.key</code>, <code>id_rsa</code>, <code>file.txt</code>.</li>
+<li>Never force-push. Never edit an already-merged SQL migration; add a new numbered file.</li>
+<li>Never weaken, skip or delete a test to get CI green. Tests ship with the behaviour they cover; a bug fix includes a regression test that fails first.</li>
+</ol>
+<h3 id="branches-and-setup">Branches and setup</h3>
+<table>
+<thead>
+<tr>
+<th>Prefix</th>
+<th>Use</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>feature/</code></td>
+<td>new capability</td>
+<td><code>feature/publish-lookback-config</code></td>
+</tr>
+<tr>
+<td><code>fix/</code></td>
+<td>bug fix</td>
+<td><code>fix/summary-task-states</code></td>
+</tr>
+<tr>
+<td><code>chore/</code></td>
+<td>tooling, deps, config, test scaffolding</td>
+<td><code>chore/test-scaffold</code></td>
+</tr>
+<tr>
+<td><code>docs/</code></td>
+<td>documentation only</td>
+<td><code>docs/project-docs</code></td>
+</tr>
+<tr>
+<td><code>test/</code></td>
+<td>tests only (use <code>chore/</code> if disallowed)</td>
+<td><code>test/audit-redact-unit</code></td>
+</tr>
+</tbody>
+</table>
+<p>Lowercase kebab-case, always from an up-to-date <code>main</code> (<code>git pull --ff-only</code>). One-time setup per clone:</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>install<span class="w">   </span><span class="c1"># uv sync --group dev</span>
+make<span class="w"> </span>hooks<span class="w">     </span><span class="c1"># git config core.hooksPath .githooks (mandatory; verify it prints .githooks)</span>
+</code></pre></div>
+<p>Hooks (<code>.githooks/</code>): <code>commit-msg</code> enforces Conventional Commits; <code>pre-commit</code> blocks secrets and key
+files and runs <code>ruff check</code> + <code>ruff format --check</code> on staged Python; <code>pre-push</code> runs a fast gate.
+If a hook fails, fix the cause. <code>.pre-commit-config.yaml</code> (optional) adds sqlfluff and hygiene checks.</p>
+<h3 id="commits">Commits</h3>
+<p>Format <code>type(scope): imperative summary</code>, at most 72 chars, no trailing period; the body
+explains <em>why</em>.</p>
+<ul>
+<li><strong>Types:</strong> <code>feat fix refactor perf test docs chore build ci style revert</code></li>
+<li><strong>Scopes:</strong> <code>extract audit spark-io engine publish main airflow dags sql staging analytics
+  marts dq dashboard make batch hooks deps tests repo reports</code></li>
+</ul>
+<p>Stage explicitly (<code>git add &lt;paths&gt;</code>, never blind <code>-A</code>) and review with <code>git diff --staged</code>.
+Never commit scratch dirs (<code>.spark/ logs/ airflow/logs/ .venv/ .coverage htmlcov/ __pycache__/</code>).</p>
+<h3 id="the-change-loop">The change loop</h3>
+<div class="highlight"><pre><span></span><code> 1  Read AGENTS.md and the relevant docs/ page; sync main; create branch
+ 2  Write or adjust the test FIRST (red, see docs/TESTING.md)
+ 3  Implement the smallest change (green)
+ 4  Narrow test:  uv run pytest path/to/test_x.py -q
+ 5  Fast gate:    make unit smoke        Full gate: make ci (lint + sql-lint + unit + smoke)
+ 6  Extra tiers the change needs (DB/Spark/live: ask first)
+ 7  Update docs and Makefile together if targets changed
+ 8  git add &lt;paths&gt;; git commit          (hooks must pass)
+ 9  git fetch origin; git merge origin/main; re-run make ci
+10  git push -u origin &lt;branch&gt;; open PR; STOP. Do not merge.
+</code></pre></div>
+<p>Keep a branch current by <strong>merging</strong> <code>origin/main</code>; rebasing needs a force-push, which is
+forbidden. If history is messy, ask a human.</p>
+<p><strong>Pull requests:</strong> title is the Conventional Commit summary; aim for one concern under ~400 changed lines. Body:
+what and why, how tested (commands and real results), risk, rollback, and any approval used.
+Agents open the PR and stop; merging or pushing to <code>main</code> needs a human.</p>
+<h3 id="permissions">Permissions</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Allowed</th>
+<th>Ask first</th>
+<th>Never</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read; <code>make lint / sql-lint / unit / cov / smoke / test / ci</code>; code, tests, docs on a branch; commit; push your own branch; open PR</td>
+<td>yes</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>make spark-smoke / sql-smoke / integration / smoke-live</code>, <code>make daily</code>, <code>python main.py</code>, Airflow trigger</td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Merge or push to <code>main</code>, tag, release, manual <code>cd</code> dispatch</td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Commit secrets, write to Databricks <code>public</code>, edit a merged migration, force-push, test against production</td>
+<td></td>
+<td></td>
+<td>never</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sql-changes-and-invariants">SQL changes and invariants</h3>
+<ul>
+<li>Changes to an existing database go in a <strong>new numbered file</strong> (<code>sql/scripts/NN_&lt;what&gt;.sql</code>),
+  idempotent, applied in order; never edit <code>00</code>–<code>06</code> once merged. Procedure files
+  (<code>sql/{staging,analytics,marts}/NN_*.sql</code>) are <code>CREATE OR REPLACE</code>; keep <code>00_master_load.sql</code>
+  order parent → child.</li>
+<li>Run <code>make sql-lint</code>, and <code>make sql-smoke</code> (disposable PG, <code>ALLOW_SQL_SMOKE=1</code>, ask first) when
+  procedures change. New or changed DQ checks go in <code>docs/DATA-QUALITY.md</code>.</li>
+<li><strong>Must not break:</strong> watermarks advance only inside the load/extract transaction
+  (<code>audit.extract_watermarks</code> vs <code>audit.etl_watermarks</code>, never mixed, see <code>docs/AUDIT.md</code>); every
+  load is idempotent; a critical DQ failure blocks publish; each layer is written only by its owner.</li>
+</ul>
+<h2 id="2-cicd">2. CI/CD</h2>
+<h3 id="how-it-flows">How it flows</h3>
+<pre class="mermaid"><code>flowchart LR
+    subgraph PR["Pull request"]
+        A["ci&lt;br/&gt;workflow-lint · gate · dep-audit · windows-gate"]
+        B["leaks · codeql · labeler&lt;br/&gt;docker (build only)"]
+    end
+    subgraph MAIN["Push to main"]
+        E["ci (same jobs)"]
+        F["pipeline&lt;br/&gt;uv run main.py · real sources"]
+        G["docker&lt;br/&gt;build + push 4 images"]
+    end
+    subgraph TAG["Tag vX.Y.Z"]
+        H["release&lt;br/&gt;verify → GitHub release"]
+        I["cd&lt;br/&gt;resolve → gate → deploy"]
+    end
+    J["Weekly: nightly · leaks · codeql"]
+    A --&gt; E --&gt; F
+    E --&gt; G
+    H --&gt;|workflow_dispatch| I
+    G -.-&gt;|image sha-xxxxxxx| I</code></pre>
+<h3 id="workflows-at-a-glance">Workflows at a glance</h3>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Runs on</th>
+<th>What it does</th>
+<th>Blocks merge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ci</code></td>
+<td>PR, push to <code>main</code>, manual</td>
+<td>Lint, tests, audits, Windows parity; full pipeline on <code>main</code></td>
+<td><strong>yes</strong> (<code>ci-success</code>)</td>
+</tr>
+<tr>
+<td><code>leaks</code></td>
+<td>PR, push to <code>main</code>, Mon 03:00 UTC</td>
+<td>gitleaks over full git history</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>codeql</code></td>
+<td>PR, push to <code>main</code>, Mon 04:00 UTC</td>
+<td>CodeQL Python <code>security-and-quality</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>labeler</code></td>
+<td>PR opened / updated</td>
+<td>Labels by changed paths (<code>.github/labeler.yml</code>)</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>docker</code></td>
+<td>PR (Dockerfile or deps change), push to <code>main</code>, tag <code>v*</code>, manual</td>
+<td>Builds <code>airflow</code>, <code>dashboard</code>, <code>reports</code>, <code>pipeline</code>; pushes to GHCR except on PRs</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>nightly</code></td>
+<td>Mon 20:00 UTC, manual</td>
+<td><code>sql-smoke</code> on disposable Postgres + full <code>pip-audit</code>; opens an issue on failure</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>tag <code>v*.*.*</code></td>
+<td>Verifies the tag, creates the GitHub release, dispatches <code>cd</code></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>cd</code></td>
+<td><code>workflow_dispatch</code> only</td>
+<td>Gate (production), then deploy the <code>pipeline</code> image</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>dependabot</code></td>
+<td>Mon 02:00 UTC</td>
+<td>Grouped PRs for Actions, <code>uv</code>, four Dockerfiles; 7-day cooldown</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ci-jobs"><code>ci</code> jobs</h3>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>What it checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>workflow-lint</code></td>
+<td><code>actionlint</code> + <code>zizmor</code> on <code>.github</code> (checksum-verified installs)</td>
+</tr>
+<tr>
+<td><code>gate</code></td>
+<td><code>uv lock --check</code>, ruff, contracts, sqlfluff, smoke, unit + coverage gate, report fixture</td>
+</tr>
+<tr>
+<td><code>dep-audit</code></td>
+<td><code>pip-audit</code> on the locked dependencies</td>
+</tr>
+<tr>
+<td><code>windows-gate</code></td>
+<td>The same checks via <code>tasks.bat</code></td>
+</tr>
+<tr>
+<td><code>secrets-check</code></td>
+<td>Push to <code>main</code> only: are the source secrets configured?</td>
+</tr>
+<tr>
+<td><code>pipeline</code></td>
+<td>Full <code>uv run main.py --keep-going</code> on a GitHub-hosted runner with a disposable Postgres</td>
+</tr>
+<tr>
+<td><code>ci-success</code></td>
+<td>Aggregates every job above; <strong>the one required check for branch protection</strong></td>
+</tr>
+</tbody>
+</table>
+<p><code>pipeline</code> runs only on push to <code>main</code> (never on PRs, so PR code never sees secrets) and is
+skipped while secrets are unset. Set the repo <strong>variable</strong> <code>SKIP_MAIN_PY=true</code> to skip it in an
+emergency. It runs after the merge, so it flags a broken <code>main</code> but cannot stop the merge.
+Superseded PR runs are cancelled; runs on <code>main</code> never are. The PR gate stays fast and
+external-free; <code>tests/smoke/test_make_parity.py</code> fails if a Makefile target is missing from
+<code>tasks.bat</code> or <code>ci</code> picks up a non-hermetic target. <code>smoke-live</code> and Airflow triggers never run in CI.</p>
+<h3 id="release-and-deploy">Release and deploy</h3>
+<div class="highlight"><pre><span></span><code>git<span class="w"> </span>tag<span class="w"> </span>v0.1.0<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>v0.1.0<span class="w">   </span><span class="c1"># on main, green ci; needs approval</span>
+</code></pre></div>
+<ol>
+<li><strong><code>release</code></strong> checks the tag matches <code>pyproject.toml</code>, the commit is on <code>main</code>, and <code>make ci</code>
+   passes, then creates the GitHub release (a tag with <code>-</code>, like <code>v0.2.0-rc1</code>, is a prerelease;
+   re-runs are safe) and dispatches <code>cd</code>: prerelease → <code>staging</code>, stable → <code>production</code>.</li>
+<li><strong><code>docker</code></strong> also fires on the tag and pushes <code>sha-xxxxxxx</code>, version (<code>1.2.3</code>, <code>1.2</code>) and branch
+   tags, with provenance and SBOM.</li>
+<li><strong><code>cd</code></strong> runs one deploy at a time per environment:</li>
+<li><code>resolve</code>: the commit must be on <code>origin/main</code>; production also needs a stable <code>vX.Y.Z</code> tag.</li>
+<li><code>gate</code>: <strong>production only</strong>; re-runs lint, contracts, sql-lint, smoke and coverage.</li>
+<li><code>deploy</code>: waits for a green <code>docker</code> run on the same commit (fails after 5 minutes if none
+     exists), pulls the image, checks its revision label matches the commit, checks required
+     secrets, and runs the container by digest with <code>--keep-going</code>.</li>
+<li>Production needs manual approval via GitHub Environment protection rules. A failed production
+   deploy or gate opens an issue.</li>
+</ol>
+<p><strong>Manual deploy:</strong> run <code>cd</code> from the Actions tab with <code>environment</code> and <code>ref</code> (staging skips the gate).
+<strong>Rollback:</strong> run <code>cd</code> with <code>production</code> and the previous stable tag. This redeploys code only;
+it does not undo data side effects (watermarks, published marts), and a watermark reset needs
+owner approval (<code>docs/DESIGN.md</code>). There is no <code>release: published</code> trigger, because a hand-made
+release would deploy a tag that <code>release</code> never verified.</p>
+<h3 id="security-rules">Security rules</h3>
+<ul>
+<li>Least-privilege <code>permissions:</code> everywhere (<code>contents: read</code> by default, widened per job).</li>
+<li>No <code>pull_request_target</code>, so fork PRs never get secrets. Secrets reach only <code>pipeline</code> and <code>cd</code>.</li>
+<li>Third-party actions are pinned by <strong>full commit SHA</strong> with a version comment; Dependabot bumps
+  them. Copy SHAs from the releases page, since a wrong SHA fails with "unable to find version".</li>
+<li>No caches in the <code>release</code> and <code>cd</code> paths; downloaded tools are checksum-verified. <code>labeler</code> keeps
+  the <code>dependencies</code> label on Dependabot PRs by matching the <code>dependabot/</code> branch.</li>
+</ul>
+<h3 id="one-time-setup-repo-admin">One-time setup (repo admin)</h3>
+<ol>
+<li><strong>Branch protection on <code>main</code></strong>: require a PR (1 approval, dismiss stale approvals), up-to-date
+   branches, resolved conversations; block force pushes and deletions. Required checks:
+   <code>ci-success</code>, <code>gitleaks</code>, <code>analyze (python)</code>. Until then, nothing stops a direct push.</li>
+<li><strong>Secrets</strong>: repository secrets for <code>pipeline</code> (<code>MONGO_*</code>, <code>MYSQL_*</code> incl. <code>MYSQL_DB</code>,
+   <code>DATABRICKS_*</code> incl. <code>HTTP_PATH</code>, <code>SCHEMA_PUBLIC</code>). Environment secrets for <code>cd</code>: <code>PG_*</code>,
+   <code>DATABRICKS_*</code>, <code>PUBLISH_STAGE_VOLUME</code>, <code>MONGO_*</code>, <code>MYSQL_*</code>. Point the pipeline's
+   <code>DATABRICKS_MARTS_SCHEMA</code> at a CI-only schema if <code>publish_marts</code> writes there.</li>
+<li><strong>Environments</strong>: create <code>staging</code> and <code>production</code>, require reviewers on <code>production</code>, and
+   restrict both to <code>main</code> and <code>v*</code> tags.</li>
+<li><strong>Code security</strong>: enable Dependabot alerts and security updates, and private vulnerability
+   reporting (used by <code>SECURITY.md</code>). Replace placeholder handles in <code>CODEOWNERS</code>.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

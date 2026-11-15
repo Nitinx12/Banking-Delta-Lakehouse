@@ -1,0 +1,3979 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../MODEL-CARDS/pd_scorecard/">
+      
+      
+        <link rel="next" href="../R/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Reports - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#reporting-banking-delta-lakehouse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Reports
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-goals-and-non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Goals and non goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-how-it-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. How it fits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-rules-for-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Rules for agents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Rules for agents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-folder-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Folder layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-report-kinds-and-chapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Report kinds and chapters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-events-and-severity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Events and severity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Events and severity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rule-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule catalogue
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-data-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Data collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Data collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contextjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        context.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-rendering-with-jinja-and-latex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Rendering with Jinja and LaTeX
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Rendering with Jinja and LaTeX">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#maintex-stays-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        main.tex stays static
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-design-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Design system
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Design system">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#colour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Colour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typography
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components-macros-in-the-style-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Components (macros in the style file)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page one
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Charts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-flow-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline flow diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-airflow-and-mail-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Airflow and mail integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Airflow and mail integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dag-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG change
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mail
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weekly-dag-and-watchdog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weekly DAG and watchdog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-and-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image and compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-make-and-tasksbat-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Make and tasks.bat targets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-build-plan-for-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Build plan for agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-decisions-for-a-human" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Decisions for a human
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules-that-must-not-break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules that must not break
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of done
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-goals-and-non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Goals and non goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-how-it-fits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. How it fits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-rules-for-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Rules for agents
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Rules for agents">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-folder-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Folder layout
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-report-kinds-and-chapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Report kinds and chapters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-events-and-severity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Events and severity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Events and severity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rule-catalogue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rule catalogue
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-data-collection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Data collection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Data collection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contextjson" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        context.json
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-rendering-with-jinja-and-latex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Rendering with Jinja and LaTeX
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Rendering with Jinja and LaTeX">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#maintex-stays-static" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        main.tex stays static
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-design-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Design system
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Design system">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#colour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Colour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#typography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Typography
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#components-macros-in-the-style-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Components (macros in the style file)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#page-one" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Page one
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#charts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Charts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-flow-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline flow diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-the-builder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. The builder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-airflow-and-mail-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Airflow and mail integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. Airflow and mail integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dag-change" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG change
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mail
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weekly-dag-and-watchdog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weekly DAG and watchdog
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-and-compose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image and compose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-make-and-tasksbat-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Make and tasks.bat targets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-build-plan-for-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Build plan for agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-decisions-for-a-human" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Decisions for a human
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules-that-must-not-break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules that must not break
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#definition-of-done" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition of done
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="reporting-banking-delta-lakehouse">Reporting: Banking Delta Lakehouse</h1>
+<p>Dynamic PDF reporting for the pipeline. When a run finishes, an alert fires or a digest is
+due, a Python builder reads the <code>audit</code> schema, scores what happened, renders LaTeX from
+Jinja templates, compiles <code>reports/main.tex</code> with pdfLaTeX and produces <code>report.pdf</code>.
+Airflow attaches the PDF to the summary mail. The report adapts to the news: a healthy
+night is a short verdict with a few charts, a bad night adds incident chapters, evidence
+and runbook pointers, and a serious one also produces a separate incident PDF.</p>
+<p>Colour legend: <code>docs/PIPELINE.md</code>. Rules for agents in <code>AGENTS.md</code> always win on conflict;
+this page adds the reporting specific ones. Related: <code>docs/AUDIT.md</code> (data source),
+<code>docs/AIRFLOW.md</code> (DAG and mail), <code>docs/RUNBOOK.md</code> (actions linked from incidents),
+<code>docs/TESTING.md</code> (test tiers).</p>
+<h2 id="1-goals-and-non-goals">1. Goals and non goals</h2>
+<p>Goals:</p>
+<ul>
+<li>Page one answers in ten seconds: is the pipeline healthy, what broke, what do I do next.</li>
+<li>Fully dynamic: chapters, charts, flow colours and wording come from data, never from
+  hand edited text. Any minor or major event changes the report.</li>
+<li>One design system: Jinja for structure, LaTeX for typography, matplotlib for charts,
+  TikZ for the pipeline flow.</li>
+<li>Delivered by the existing Airflow summary mail as an attachment, with no new mail stack.</li>
+<li>Reproducible: the same <code>context.json</code> always produces the same PDF.</li>
+</ul>
+<p>Non goals:</p>
+<ul>
+<li>It does not replace the DQ gates, the watchdog or the Streamlit dashboard.</li>
+<li>It never changes pipeline state. It is a read only consumer of <code>audit.*</code> and the
+  warehouse metadata.</li>
+<li>It never shows row values, PII or credentials. Counts, names and statuses only, the same
+  contract as <code>audit_reader.py</code>.</li>
+<li>A failed report never turns a green pipeline run red.</li>
+</ul>
+<h2 id="2-how-it-fits">2. How it fits</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph TRIG["Triggers"]
+        T1["banking_delta_daily&lt;br/&gt;build_report, all_done"]
+        T2["banking_report_weekly&lt;br/&gt;Monday 08:00 IST"]
+        T3["banking_watchdog alert&lt;br/&gt;phase 2"]
+        T4["make report&lt;br/&gt;manual or fixture"]
+    end
+
+    subgraph BUILD["python -m reports.scripts.build"]
+        COL["collect&lt;br/&gt;read only audit queries"]
+        CTX[("data/context.json&lt;br/&gt;schema versioned")]
+        EVAL["evaluate&lt;br/&gt;severity rules"]
+        FIG["charts&lt;br/&gt;matplotlib to vector PDF"]
+        REN["render&lt;br/&gt;Jinja to build/*.tex"]
+        TEX["latexmk&lt;br/&gt;pdfLaTeX, no shell escape"]
+    end
+
+    PDF[("output/runs/RUN_KEY/&lt;br/&gt;report.pdf, incident.pdf")]
+    MAIL["send_pipeline_summary&lt;br/&gt;SMTP attachment"]
+
+    T1 --&gt; COL
+    T2 --&gt; COL
+    T3 --&gt; COL
+    T4 --&gt; COL
+    COL --&gt; CTX --&gt; EVAL
+    EVAL --&gt; FIG --&gt; REN --&gt; TEX --&gt; PDF --&gt; MAIL
+
+    classDef trig fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef out fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class T1,T2,T3,T4 trig
+    class COL,EVAL,FIG,REN,TEX step
+    class CTX audit
+    class PDF,MAIL out</code></pre>
+<p>"Event driven" here means severity is evaluated at defined trigger points, not that a file
+watcher runs LaTeX. The trigger points are: the end of every daily run (<code>all_done</code>, so
+failed runs are reported too), watchdog alerts for runs that never reach their end
+(<code>[MISSED]</code>, <code>[STUCK]</code>), the weekly digest schedule, and a human running <code>make report</code>.</p>
+<h2 id="3-rules-for-agents">3. Rules for agents</h2>
+<ol>
+<li>Read <code>AGENTS.md</code>, <code>docs/AUDIT.md</code> and <code>sql/scripts/02_audit_tables.sql</code> before writing a
+   query. Use column names from the DDL, never from this page.</li>
+<li>Read only. The collector may <code>SELECT</code> from <code>audit.*</code>, the registry and <code>MAX(_loaded_at)</code>
+   style freshness probes. No <code>INSERT</code>, <code>UPDATE</code>, <code>CALL</code> or DDL. Open the connection with
+   <code>default_transaction_read_only = on</code>.</li>
+<li>No row values, PII, secrets or connection strings in <code>context.json</code>, charts, LaTeX or
+   mail. Every free text field (error messages, violation messages) goes through the
+   existing redaction (<code>redact.py</code> and <code>src.utils.audit._redact</code>) and is cut to 300
+   characters. Do not copy the regexes. If importing across packages is awkward, ask before
+   promoting the helper to <code>src/utils/redact.py</code>.</li>
+<li>Every value that reaches LaTeX is escaped by the Jinja <code>finalize</code> hook (section 8).
+   Raw LaTeX is allowed only through the explicit <code>raw</code> filter on values built by Python
+   code, never on data from the warehouse.</li>
+<li>Compile with <code>-no-shell-escape -halt-on-error</code>. Never enable <code>\write18</code> or
+   <code>--shell-escape</code>, and never <code>\input</code> a path built from data.</li>
+<li>A missing or unknown state is never rendered as success. Same principle as
+   <code>summary.decide_status</code>. Use <code>UNKNOWN</code> (grey) when a step has no audit evidence.</li>
+<li>The report derives status from <code>audit.pipeline_runs</code>, <code>audit.table_runs</code>,
+   <code>audit.dq_run</code> and <code>audit.pipeline_errors</code>, never from Airflow task instances.
+   The summary mail layers live Airflow states on top of the same audit rows
+   (<code>summary.collect_task_states</code>, <code>docs/AIRFLOW.md</code>); the report stays audit only
+   so both sides agree on pipeline facts.</li>
+<li>Do not "correct" timestamps. Times are shown as stored with their zone label, and the
+   appendix links the open timezone offset issue (<code>docs/TROUBLESHOOTING.md</code>, open issue 3).</li>
+<li>Thresholds and severity mappings live in <code>reports/config/report.yaml</code>. Lowering a
+   severity or loosening a threshold needs a human decision, the same way DQ thresholds do.</li>
+<li>A report failure degrades, it does not block. Section failures render a visible
+    "section unavailable" box, a compile failure retries in safe mode (section 10), and the
+    Airflow task never sits in the failure gate.</li>
+<li>Output is deterministic. Sort every list, fix the random seed, set
+    <code>SOURCE_DATE_EPOCH</code> from the run end time, never print <code>now()</code> inside the document body.</li>
+<li>Dependencies are added with <code>uv</code> only (<code>uv add --group reports ...</code>). No pip, no
+    conda, no hand edited lock file.</li>
+<li>Style: one short header comment at the top of each file, no paragraph comments and no
+    comments between code lines. SQL is uppercase keywords, one column per line, four space
+    indent. Python passes <code>ruff</code>. Documentation prose uses no hyphens.</li>
+<li>Windows safe: <code>pathlib</code>, <code>sys.executable</code>, <code>encoding="utf-8"</code> on every open and
+    <code>read_text</code>, no POSIX only calls, forward slashes inside LaTeX paths.</li>
+<li>Do not edit or import anything under <code>reports/legacy/</code>. It is reference material only.</li>
+</ol>
+<h3 id="permissions">Permissions</h3>
+<table>
+<thead>
+<tr>
+<th>Action</th>
+<th>Allowed without asking</th>
+<th>Ask first</th>
+<th>Never</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Edit <code>reports/</code>, <code>docs/REPORTING.md</code>, tests, fixtures on a feature branch</td>
+<td>yes</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>make report-fixture</code>, <code>make report-pdf</code>, <code>make report-docker</code>, <code>make ci</code></td>
+<td>yes</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><code>make report</code>, <code>report-incident</code>, <code>report-weekly</code> (read the real warehouse)</td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Change <code>airflow/Dockerfile</code>, compose files, the DAG, <code>.env.airflow.example</code></td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Change <code>notify.py</code> or <code>summary.py</code> (shared mail code)</td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Add or change severity thresholds, add a new commit scope</td>
+<td></td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>Commit <code>.env</code>, secrets, real report PDFs, real <code>context.json</code></td>
+<td></td>
+<td></td>
+<td>never</td>
+</tr>
+<tr>
+<td>Enable shell escape, write to the warehouse from the report code</td>
+<td></td>
+<td></td>
+<td>never</td>
+</tr>
+</tbody>
+</table>
+<h2 id="4-folder-layout">4. Folder layout</h2>
+<p>Existing folders keep their names. New folders are marked.</p>
+<div class="highlight"><pre><span></span><code>reports/
+├── main.tex                 static entry point, never generated
+├── latexmkrc                pdfLaTeX settings, TEXINPUTS for template/
+├── Dockerfile               local and CI TeX builder image (no secrets)
+├── apt-packages.txt         NEW  TeX package list shared by both Dockerfiles
+├── README.md                short pointer to docs/REPORTING.md
+├── .gitignore
+├── template/                design system, static LaTeX plus document level Jinja
+│   ├── bankingreport.sty    colours, fonts, page geometry, boxes, tables, TikZ styles
+│   ├── meta.tex.j2          kind, verdict, run ids, dates as \newcommand values
+│   └── manifest.tex.j2      ordered \input list of the enabled chapters
+├── chapters/                one Jinja template per chapter, plus partials
+│   ├── 01_summary.tex.j2
+│   ├── 02_flow.tex.j2
+│   ├── 03_timeline.tex.j2
+│   ├── 04_volumes.tex.j2
+│   ├── 05_dq.tex.j2
+│   ├── 06_freshness.tex.j2
+│   ├── 07_incidents.tex.j2
+│   ├── 08_trends.tex.j2
+│   ├── 09_appendix.tex.j2
+│   └── partials/            kpi cards, event table, flow tikz, section unavailable box
+├── scripts/                 Python package: collect, severity, charts, render, build
+│   ├── __init__.py
+│   ├── build.py             CLI and orchestration
+│   ├── collect.py           read only audit queries to context dict
+│   ├── severity.py          rule engine, events, verdict
+│   ├── charts.py            matplotlib style and figure functions
+│   ├── flow.py              grid layout for the TikZ pipeline flow
+│   ├── render.py            Jinja environment, escape filter, number filters
+│   ├── compile.py           latexmk wrapper, safe mode retry, log redaction
+│   └── paths.py             run key, output paths, retention
+├── config/                  NEW
+│   ├── report.yaml          kinds, chapters, thresholds, trend window, timezone
+│   └── slo.yaml             freshness windows per table when the contract has none
+├── data/                    generated context (ignored) and tracked fixtures
+│   ├── context.schema.json  NEW  JSON Schema for context.json
+│   └── fixtures/            NEW  synthetic contexts: healthy, minor, major, critical, weekly
+├── figures/                 generated charts and the static logo (generated files ignored)
+├── fonts/                   bundled font files and their licence texts
+├── build/                   NEW  rendered .tex, aux files, logs (ignored)
+├── output/                  NEW  final PDFs, runs/RUN_KEY/ and a latest copy (ignored)
+├── mail/                    NEW  mail body templates, report.html.j2 and report.txt.j2
+└── legacy/                  untouched
+</code></pre></div>
+<p><code>reports/</code> also needs <code>__init__.py</code> so <code>python -m reports.scripts.build</code> works, the same
+way <code>contracts/</code> does.</p>
+<p><code>reports/.gitignore</code>:</p>
+<div class="highlight"><pre><span></span><code># Generated report artefacts, never commit real data.
+build/
+output/
+figures/*.pdf
+figures/*.png
+data/context.json
+data/context.*.json
+!data/fixtures/
+*.aux
+*.log
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+</code></pre></div>
+<h2 id="5-report-kinds-and-chapters">5. Report kinds and chapters</h2>
+<table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>File</th>
+<th>Produced when</th>
+<th>Audience question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>daily</code></td>
+<td><code>report.pdf</code></td>
+<td>every <code>banking_delta_daily</code> run, always</td>
+<td>what happened last night</td>
+</tr>
+<tr>
+<td><code>incident</code></td>
+<td><code>incident.pdf</code></td>
+<td>any event with severity MAJOR or CRITICAL, plus watchdog alerts</td>
+<td>what broke, why, what now</td>
+</tr>
+<tr>
+<td><code>weekly</code></td>
+<td><code>weekly.pdf</code></td>
+<td><code>banking_report_weekly</code>, Monday 08:00 <code>Asia/Kolkata</code></td>
+<td>is the platform trending well</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>incident</code> PDF is produced in addition to <code>report.pdf</code>, so the daily report stays
+consistent every day. Both are attached to the same mail.</p>
+<table>
+<thead>
+<tr>
+<th>Chapter template</th>
+<th>Content</th>
+<th>Charts and visuals</th>
+<th>Included in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01_summary</code></td>
+<td>verdict banner, KPI cards, top events, next actions</td>
+<td>none, cards only</td>
+<td>all kinds</td>
+</tr>
+<tr>
+<td><code>02_flow</code></td>
+<td>the 9 gated steps and 3 extracts as a coloured flow</td>
+<td>TikZ flow</td>
+<td>daily, incident</td>
+</tr>
+<tr>
+<td><code>03_timeline</code></td>
+<td>task durations, retries, critical path</td>
+<td>task timeline</td>
+<td>daily, incident</td>
+</tr>
+<tr>
+<td><code>04_volumes</code></td>
+<td>rows extracted and landed per table, deviation from trailing median</td>
+<td>volumes dumbbell, layer bars</td>
+<td>daily, weekly</td>
+</tr>
+<tr>
+<td><code>05_dq</code></td>
+<td>DQ gate results per layer and check, violation counts</td>
+<td>DQ heatmap</td>
+<td>daily when any DQ row exists, incident, weekly</td>
+</tr>
+<tr>
+<td><code>06_freshness</code></td>
+<td>table age against its window, watermark lag, last success age</td>
+<td>freshness bullet chart</td>
+<td>daily, weekly</td>
+</tr>
+<tr>
+<td><code>07_incidents</code></td>
+<td>one block per MINOR or higher event with evidence and runbook link</td>
+<td>event table, error category bars</td>
+<td>when events exist</td>
+</tr>
+<tr>
+<td><code>08_trends</code></td>
+<td>last N runs: duration, rows, failures, DQ failures</td>
+<td>small multiples</td>
+<td>weekly, daily appendix</td>
+</tr>
+<tr>
+<td><code>09_appendix</code></td>
+<td>run metadata, full table run list, versions, known open issues, regeneration command</td>
+<td>tables</td>
+<td>all kinds</td>
+</tr>
+</tbody>
+</table>
+<p>Chapter selection is configuration, not code:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Report kinds and sensitivity settings. Changes to severities need approval.</span>
+<span class="nt">schema_version</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="nt">timezone</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Asia/Kolkata</span>
+<span class="nt">trend_runs</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">14</span>
+<span class="nt">kinds</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">daily</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">summary</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">flow</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">timeline</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">dq</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">freshness</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">incidents</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">appendix</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">drop_when_empty</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">dq</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">incidents</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">incident</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">summary</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">flow</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">incidents</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">dq</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">timeline</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">appendix</span><span class="p p-Indicator">]</span>
+<span class="w">  </span><span class="nt">weekly</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">chapters</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">summary</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">trends</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">volumes</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">dq</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">freshness</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">incidents</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">appendix</span><span class="p p-Indicator">]</span>
+<span class="nt">thresholds</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">volume_deviation_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<span class="w">  </span><span class="nt">duration_regression_ratio</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.5</span>
+<span class="w">  </span><span class="nt">freshness_default_window</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">PT24H</span>
+<span class="w">  </span><span class="nt">max_message_chars</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">300</span>
+</code></pre></div>
+<p>Page budget: daily 4 to 8 pages, incident 2 to 5, weekly 4 to 6. A healthy daily report
+must fit page one plus the appendix.</p>
+<h2 id="6-events-and-severity">6. Events and severity</h2>
+<p>Every report starts from a list of events. An event is one fact about the run with a
+severity, a place and an impact.</p>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Meaning</th>
+<th>Verdict label</th>
+<th>Banner colour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>INFO</code></td>
+<td>normal, worth a line (for example a table skipped, no new data)</td>
+<td>HEALTHY</td>
+<td>green</td>
+</tr>
+<tr>
+<td><code>MINOR</code></td>
+<td>self healed or low impact (retry used, small deviation)</td>
+<td>ATTENTION</td>
+<td>amber</td>
+</tr>
+<tr>
+<td><code>MAJOR</code></td>
+<td>a gate or step failed, data late or partial</td>
+<td>ACTION REQUIRED</td>
+<td>red</td>
+</tr>
+<tr>
+<td><code>CRITICAL</code></td>
+<td>run failed, nothing published, or status unknown</td>
+<td>INCIDENT</td>
+<td>dark red</td>
+</tr>
+</tbody>
+</table>
+<p>The run verdict is the maximum event severity, and its one-line headline and consequence
+come from <code>wording:</code> in <code>report.yaml</code>, one entry per severity. Mail subjects keep the
+existing <code>[SUCCESS|WARNING|FAILED]</code> marker from <code>summary.py</code>; the report verdict appears in
+the body and in the attachment file name, for example
+<code>Banking-Delta_daily_20261021_ATTENTION.pdf</code>.</p>
+<h3 id="rule-catalogue">Rule catalogue</h3>
+<p>Rules live in <code>reports/scripts/severity.py</code>, one function per rule, each with a test.</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Signal (source)</th>
+<th>Condition</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R001</td>
+<td><code>audit.pipeline_runs.status</code></td>
+<td><code>FAILED</code></td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>R002</td>
+<td><code>audit.pipeline_runs.status</code></td>
+<td><code>PARTIAL</code></td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R003</td>
+<td><code>audit.dq_run</code></td>
+<td>a layer suite has status <code>FAIL</code></td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R004</td>
+<td>publish <code>table_runs</code> or DQ <code>row_count_source_vs_published</code></td>
+<td>publish not <code>SUCCESS</code>, or published rows differ from source</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R005</td>
+<td><code>audit.pipeline_errors.error_category</code></td>
+<td><code>CONNECTION</code> or <code>SPARK</code> on the final attempt</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R006</td>
+<td><code>audit.pipeline_errors.error_category</code></td>
+<td><code>CONCURRENCY</code> that a retry resolved</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R007</td>
+<td><code>audit.table_runs.attempt_number</code></td>
+<td>greater than 1 for any table</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R008</td>
+<td><code>audit.data_quality_results</code></td>
+<td><code>WARNING</code> severity check not passing</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R009</td>
+<td><code>table_runs.rows_landed</code> vs trailing median</td>
+<td>deviation above <code>volume_deviation_ratio</code></td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R010</td>
+<td>full load table with zero rows landed</td>
+<td>always</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R011</td>
+<td>run duration vs trailing median</td>
+<td>above <code>duration_regression_ratio</code></td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R012</td>
+<td>freshness from <code>MAX(_loaded_at)</code> and the contract window</td>
+<td>window exceeded</td>
+<td>contract severity (<code>WARNING</code> maps to MINOR, <code>ERROR</code> to MAJOR)</td>
+</tr>
+<tr>
+<td>R013</td>
+<td>DQ <code>schema_contract</code> or <code>contracts/</code> drift</td>
+<td>any violation</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R014</td>
+<td>watchdog <code>[MISSED]</code> or <code>[STUCK]</code></td>
+<td>alert raised</td>
+<td>MAJOR</td>
+</tr>
+<tr>
+<td>R015</td>
+<td>watchdog <code>[WATCHDOG-ERROR]</code> or a step with no audit evidence</td>
+<td>status unknown</td>
+<td>CRITICAL</td>
+</tr>
+<tr>
+<td>R016</td>
+<td>collector section raised an error</td>
+<td>the section degraded</td>
+<td>MINOR</td>
+</tr>
+<tr>
+<td>R017</td>
+<td><code>table_runs.status</code></td>
+<td><code>SKIPPED</code> because no new data</td>
+<td>INFO</td>
+</tr>
+<tr>
+<td>R018</td>
+<td><code>pipeline_runs</code> counts vs the collected <code>table_runs</code> list</td>
+<td>any count disagrees with the tables</td>
+<td>MINOR</td>
+</tr>
+</tbody>
+</table>
+<p>Event shape inside <code>context.json</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"event_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R003:analytics:09_duplicate_rows"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"rule"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R003"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MAJOR"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"layer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analytics"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"audit.dq_analytics_duplicate_rows"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DATA"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"first_seen"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-10-21T02:41:07+05:30"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"violation_count=12"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"impact"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analytics gate blocked marts_load and publish"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"runbook"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RUNBOOK.md#a-run-failed-triage"</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>event_id</code> is stable (<code>rule:layer:subject</code>) so weekly reports can count recurrences and
+detect flapping. <code>runbook</code> is a link target the report prints as a pointer, for example the
+triage branch for the failed task.</p>
+<h2 id="7-data-collection">7. Data collection</h2>
+<p><code>reports/scripts/collect.py</code> builds one dictionary and writes <code>data/context.json</code>. Each
+section is collected in its own <code>try</code> block so one failure degrades only that section and
+is recorded in <code>sections_failed</code> (rule R016).</p>
+<table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Source</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>meta</code></td>
+<td>arguments, <code>src/utils/config.py</code>, git</td>
+<td>kind, ids, env, git sha, versions</td>
+</tr>
+<tr>
+<td><code>run</code></td>
+<td><code>audit.pipeline_runs</code></td>
+<td>status, counts, start, end, duration</td>
+</tr>
+<tr>
+<td><code>steps</code></td>
+<td><code>audit.table_runs</code>, <code>audit.dq_run</code></td>
+<td>the 9 gated steps and 3 extracts with state and duration</td>
+</tr>
+<tr>
+<td><code>tables</code></td>
+<td>latest attempt per table in <code>audit.table_runs</code></td>
+<td>status, rows extracted, rows landed, watermark start and end, attempts</td>
+</tr>
+<tr>
+<td><code>dq</code></td>
+<td><code>audit.v_dq_latest</code>, <code>audit.dq_run</code>, <code>audit.data_quality_results</code></td>
+<td>per layer, per check status and violation count</td>
+</tr>
+<tr>
+<td><code>errors</code></td>
+<td><code>audit.pipeline_errors</code></td>
+<td>category, severity, redacted message</td>
+</tr>
+<tr>
+<td><code>freshness</code></td>
+<td>registry plus <code>MAX(_loaded_at)</code> per landing table</td>
+<td>age in seconds, window, breach flag</td>
+</tr>
+<tr>
+<td><code>trends</code></td>
+<td>last <code>trend_runs</code> rows of <code>audit.pipeline_runs</code></td>
+<td>duration, status, rows, failures per run</td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>output of <code>severity.py</code></td>
+<td>the event list and the verdict</td>
+</tr>
+</tbody>
+</table>
+<p>Query shapes (confirm the real names in the DDL first):</p>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Shape only, parameterised. Never format values into SQL text.</span>
+<span class="k">SELECT</span>
+<span class="w">    </span><span class="n">status</span><span class="p">,</span>
+<span class="w">    </span><span class="n">total_tables</span><span class="p">,</span>
+<span class="w">    </span><span class="n">successful_tables</span><span class="p">,</span>
+<span class="w">    </span><span class="n">failed_tables</span><span class="p">,</span>
+<span class="w">    </span><span class="n">started_at</span><span class="p">,</span>
+<span class="w">    </span><span class="n">ended_at</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">audit</span><span class="p">.</span><span class="n">pipeline_runs</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">dag_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">%</span><span class="p">(</span><span class="n">dag_id</span><span class="p">)</span><span class="n">s</span>
+<span class="w">  </span><span class="k">AND</span><span class="w"> </span><span class="n">dag_run_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">%</span><span class="p">(</span><span class="n">dag_run_id</span><span class="p">)</span><span class="n">s</span><span class="p">;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1">-- Latest attempt per table, the same rule finish_pipeline_run uses.</span>
+<span class="k">SELECT</span><span class="w"> </span><span class="k">DISTINCT</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="p">(</span><span class="n">processing_layer</span><span class="p">,</span><span class="w"> </span><span class="n">target_table</span><span class="p">)</span>
+<span class="w">    </span><span class="n">processing_layer</span><span class="p">,</span>
+<span class="w">    </span><span class="n">target_table</span><span class="p">,</span>
+<span class="w">    </span><span class="n">attempt_number</span><span class="p">,</span>
+<span class="w">    </span><span class="n">status</span><span class="p">,</span>
+<span class="w">    </span><span class="n">rows_landed</span><span class="p">,</span>
+<span class="w">    </span><span class="n">watermark_start</span><span class="p">,</span>
+<span class="w">    </span><span class="n">watermark_end</span>
+<span class="k">FROM</span><span class="w"> </span><span class="n">audit</span><span class="p">.</span><span class="n">table_runs</span>
+<span class="k">WHERE</span><span class="w"> </span><span class="n">pipeline_run_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">%</span><span class="p">(</span><span class="n">pipeline_run_id</span><span class="p">)</span><span class="n">s</span>
+<span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">processing_layer</span><span class="p">,</span><span class="w"> </span><span class="n">target_table</span><span class="p">,</span><span class="w"> </span><span class="n">attempt_number</span><span class="w"> </span><span class="k">DESC</span><span class="p">;</span>
+</code></pre></div>
+<p>Table names for freshness probes come from <code>audit.source_tables</code> and are composed with
+<code>psycopg2.sql.Identifier</code>, never with f strings.</p>
+<h3 id="contextjson">context.json</h3>
+<p>The context is a versioned contract, validated against <code>data/context.schema.json</code> before
+rendering. Breaking changes bump <code>schema_version</code> and update every fixture in the same PR.</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"schema_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"meta"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"kind"</span><span class="p">:</span><span class="w"> </span><span class="s2">"daily"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"generated_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-10-21T02:58:12+05:30"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"env"</span><span class="p">:</span><span class="w"> </span><span class="s2">"prod"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"git_sha"</span><span class="p">:</span><span class="w"> </span><span class="s2">"a1b2c3d"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"airflow_version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.3.2"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dag_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"banking_delta_daily"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"dag_run_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"scheduled__2026-10-20T20:30:00+00:00"</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"run"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PARTIAL"</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"duration_s"</span><span class="p">:</span><span class="w"> </span><span class="mi">3412</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"total_tables"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"successful_tables"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"failed_tables"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">"skipped_tables"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"steps"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"n04"</span><span class="p">,</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"staging_load"</span><span class="p">,</span><span class="w"> </span><span class="nt">"layer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"staging"</span><span class="p">,</span><span class="w"> </span><span class="nt">"state"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ok"</span><span class="p">,</span><span class="w"> </span><span class="nt">"duration_s"</span><span class="p">:</span><span class="w"> </span><span class="mi">212</span><span class="p">,</span><span class="w"> </span><span class="nt">"attempts"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"evidence"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="nt">"start_offset_s"</span><span class="p">:</span><span class="w"> </span><span class="mf">180.0</span><span class="p">,</span><span class="w"> </span><span class="nt">"end_offset_s"</span><span class="p">:</span><span class="w"> </span><span class="mf">392.0</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"tables"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"layer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"raw"</span><span class="p">,</span><span class="w"> </span><span class="nt">"table"</span><span class="p">:</span><span class="w"> </span><span class="s2">"card_transactions"</span><span class="p">,</span><span class="w"> </span><span class="nt">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SUCCESS"</span><span class="p">,</span><span class="w"> </span><span class="nt">"rows_landed"</span><span class="p">:</span><span class="w"> </span><span class="mi">1840</span><span class="p">,</span><span class="w"> </span><span class="nt">"attempts"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"raw.card_transactions"</span><span class="p">,</span><span class="w"> </span><span class="nt">"median_rows"</span><span class="p">:</span><span class="w"> </span><span class="mi">1900</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"events"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"event_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R002:pipeline:banking_delta_daily"</span><span class="p">,</span><span class="w"> </span><span class="nt">"rule"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R002"</span><span class="p">,</span><span class="w"> </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MAJOR"</span><span class="p">,</span><span class="w"> </span><span class="nt">"layer"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w"> </span><span class="nt">"subject"</span><span class="p">:</span><span class="w"> </span><span class="s2">"banking_delta_daily"</span><span class="p">,</span><span class="w"> </span><span class="nt">"category"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DATA"</span><span class="p">,</span><span class="w"> </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"run status PARTIAL, 1 of 10 tables failed"</span><span class="p">,</span><span class="w"> </span><span class="nt">"impact"</span><span class="p">:</span><span class="w"> </span><span class="s2">"marts_load published a partial day"</span><span class="p">,</span><span class="w"> </span><span class="nt">"runbook"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RUNBOOK.md#a-run-failed-triage"</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"verdict"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MAJOR"</span><span class="p">,</span><span class="w"> </span><span class="nt">"label"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ACTION REQUIRED"</span><span class="p">,</span><span class="w"> </span><span class="nt">"headline"</span><span class="p">:</span><span class="w"> </span><span class="s2">"One table failed."</span><span class="p">,</span><span class="w"> </span><span class="nt">"consequence"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Yesterday's marts stand until the run is retried."</span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"kpis"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"tables"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w"> </span><span class="nt">"ok"</span><span class="p">:</span><span class="w"> </span><span class="mi">9</span><span class="p">,</span><span class="w"> </span><span class="nt">"failed"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">"skipped"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">},</span><span class="w"> </span><span class="nt">"rows"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"raw"</span><span class="p">:</span><span class="w"> </span><span class="mi">1840</span><span class="p">,</span><span class="w"> </span><span class="nt">"published"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">},</span><span class="w"> </span><span class="nt">"dq"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">"passed"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"warnings"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"failed"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="nt">"total"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">}},</span>
+<span class="w">  </span><span class="nt">"next_actions"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="nt">"rule"</span><span class="p">:</span><span class="w"> </span><span class="s2">"R002"</span><span class="p">,</span><span class="w"> </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MAJOR"</span><span class="p">,</span><span class="w"> </span><span class="nt">"runbook"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RUNBOOK.md#a-run-failed-triage"</span><span class="p">,</span><span class="w"> </span><span class="nt">"subjects"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"banking_delta_daily"</span><span class="p">],</span><span class="w"> </span><span class="nt">"text"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MAJOR R002: banking_delta_daily; see RUNBOOK.md#a-run-failed-triage"</span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"sections_failed"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><code>kpis</code> groups the numbers the summary cards print; <code>next_actions</code> groups events by
+runbook and rule, capped at four lines, and <code>steps</code> carry <code>evidence</code> plus offsets from the
+run start so the timeline draws even when per-task timestamps are missing.</p>
+<h3 id="fixtures">Fixtures</h3>
+<p><code>data/fixtures/</code> holds synthetic contexts only, with invented table counts and no real
+values: <code>healthy</code>, <code>minor_retry</code>, <code>major_dq_fail</code>, <code>critical_failed_run</code>, <code>weekly</code>.
+They drive tests, the CI render check, template development and design reviews, so the
+whole report can be built with no database.</p>
+<h2 id="8-rendering-with-jinja-and-latex">8. Rendering with Jinja and LaTeX</h2>
+<p>LaTeX uses braces and percent signs everywhere, so the Jinja environment uses custom
+delimiters.</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Delimiter</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Statement</td>
+<td><code>\BLOCK{ ... }</code></td>
+<td><code>\BLOCK{for e in events}</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>\VAR{ ... }</code></td>
+<td><code>\VAR{run.status}</code></td>
+</tr>
+<tr>
+<td>Comment</td>
+<td><code>\#{ ... }</code></td>
+<td>removed from output</td>
+</tr>
+<tr>
+<td>Line statement</td>
+<td><code>%%</code></td>
+<td><code>%% if events</code></td>
+</tr>
+<tr>
+<td>Line comment</td>
+<td><code>%#</code></td>
+<td>removed from output</td>
+</tr>
+</tbody>
+</table>
+<p>Limits that follow from this: no dict or set literals with braces inside <code>\VAR{}</code> or
+<code>\BLOCK{}</code>, because the first <code>}</code> closes the tag. Compute such values in Python.
+<code>StrictUndefined</code> is on, so a typo in a template fails the build loudly in tests rather
+than printing a blank in a bank report.</p>
+<p><code>reports/scripts/render.py</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># LaTeX safe Jinja environment for the report templates.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jinja2</span>
+
+<span class="n">_TEX_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"</span><span class="se">\\</span><span class="s2">"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\textbackslash</span><span class="si">{}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"&amp;"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\&amp;"</span><span class="p">,</span>
+    <span class="s2">"%"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\%"</span><span class="p">,</span>
+    <span class="s2">"$"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\$"</span><span class="p">,</span>
+    <span class="s2">"#"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\#"</span><span class="p">,</span>
+    <span class="s2">"_"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\_"</span><span class="p">,</span>
+    <span class="s2">"{"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\{"</span><span class="p">,</span>
+    <span class="s2">"}"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\}"</span><span class="p">,</span>
+    <span class="s2">"~"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\textasciitilde</span><span class="si">{}</span><span class="s2">"</span><span class="p">,</span>
+    <span class="s2">"^"</span><span class="p">:</span> <span class="sa">r</span><span class="s2">"\textasciicircum</span><span class="si">{}</span><span class="s2">"</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">RawTeX</span><span class="p">(</span><span class="nb">str</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">tex_escape</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">RawTeX</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">_TEX_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ch</span><span class="p">,</span> <span class="n">ch</span><span class="p">)</span> <span class="k">for</span> <span class="n">ch</span> <span class="ow">in</span> <span class="n">text</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">ident</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RawTeX</span><span class="p">:</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">tex_escape</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">RawTeX</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="sa">r</span><span class="s2">"\_"</span><span class="p">,</span> <span class="sa">r</span><span class="s2">"\_\allowbreak</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">"."</span><span class="p">,</span> <span class="sa">r</span><span class="s2">".\allowbreak</span><span class="si">{}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">breakable</span><span class="p">(</span><span class="n">value</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RawTeX</span><span class="p">:</span>
+    <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="sa">r</span><span class="s2">"([^A-Za-z0-9\s])"</span><span class="p">,</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">part</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="n">tex_escape</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">part</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="n">part</span><span class="o">.</span><span class="n">isspace</span><span class="p">()</span>
+            <span class="k">else</span> <span class="sa">r</span><span class="s2">"\allowbreak</span><span class="si">{}</span><span class="s2">"</span> <span class="o">+</span> <span class="n">tex_escape</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">RawTeX</span><span class="p">(</span><span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">make_env</span><span class="p">(</span><span class="o">*</span><span class="n">template_dirs</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">:</span>
+    <span class="n">env</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">(</span>
+        <span class="n">loader</span><span class="o">=</span><span class="n">jinja2</span><span class="o">.</span><span class="n">FileSystemLoader</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">template_dirs</span><span class="p">]),</span>
+        <span class="n">block_start_string</span><span class="o">=</span><span class="sa">r</span><span class="s2">"\BLOCK{"</span><span class="p">,</span>
+        <span class="n">block_end_string</span><span class="o">=</span><span class="s2">"}"</span><span class="p">,</span>
+        <span class="n">variable_start_string</span><span class="o">=</span><span class="sa">r</span><span class="s2">"\VAR{"</span><span class="p">,</span>
+        <span class="n">variable_end_string</span><span class="o">=</span><span class="s2">"}"</span><span class="p">,</span>
+        <span class="n">comment_start_string</span><span class="o">=</span><span class="sa">r</span><span class="s2">"\#{"</span><span class="p">,</span>
+        <span class="n">comment_end_string</span><span class="o">=</span><span class="s2">"}"</span><span class="p">,</span>
+        <span class="n">line_statement_prefix</span><span class="o">=</span><span class="s2">"</span><span class="si">%%</span><span class="s2">"</span><span class="p">,</span>
+        <span class="n">line_comment_prefix</span><span class="o">=</span><span class="s2">"%#"</span><span class="p">,</span>
+        <span class="n">trim_blocks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">lstrip_blocks</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">autoescape</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">undefined</span><span class="o">=</span><span class="n">jinja2</span><span class="o">.</span><span class="n">StrictUndefined</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">finalize</span> <span class="o">=</span> <span class="n">tex_escape</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"raw"</span><span class="p">:</span> <span class="n">RawTeX</span><span class="p">,</span> <span class="s2">"ident"</span><span class="p">:</span> <span class="n">ident</span><span class="p">,</span> <span class="s2">"breakable"</span><span class="p">:</span> <span class="n">breakable</span><span class="p">})</span>
+    <span class="k">return</span> <span class="n">env</span>
+</code></pre></div>
+<p><code>finalize</code> escapes every <code>\VAR{}</code> output automatically, so escaping is the default and
+opting out is explicit. Additional filters to implement and test: <code>fmt_int</code> (thin space
+thousands), <code>fmt_pct</code>, <code>fmt_dur</code> (<code>1h 05m</code>), <code>fmt_ts</code> (with zone label), <code>state_colour</code>,
+<code>severity_colour</code>, <code>plural</code>.</p>
+<p>Template conventions:</p>
+<ul>
+<li>One chapter per file, each starting with <code>\section{...}</code> and ending with a blank line.</li>
+<li>Use partials for anything repeated twice: KPI card, event row, status pill, the
+  "section unavailable" box.</li>
+<li>Identifiers in tables use <code>\texttt{\VAR{x | ident}}</code> so long names such as
+  <code>raw.card_transactions</code> break cleanly.</li>
+<li>Free text in a table cell uses <code>\VAR{x | breakable}</code>, which allows a break at every
+  punctuation mark. Without it a long message such as <code>rows_landed=22500,</code> cannot wrap
+  and pushes the cell past the margin.</li>
+<li>No logic that belongs in Python. Templates loop, branch on presence and format. Sorting,
+  thresholds, joins and colour decisions are computed before rendering.</li>
+<li>Free text from the warehouse is always plain <code>\VAR{}</code>. Only Python built values use <code>raw</code>.</li>
+</ul>
+<p>Chapter excerpt (<code>chapters/partials/event_table.tex.j2</code>):</p>
+<div class="highlight"><pre><span></span><code><span class="k">\BLOCK</span><span class="nb">{</span>if events<span class="nb">}</span>
+<span class="k">\begin</span><span class="nb">{</span>longtable<span class="nb">}{</span>@<span class="nb">{}</span>p<span class="nb">{</span>2.4cm<span class="nb">}</span>p<span class="nb">{</span>3.6cm<span class="nb">}</span>p<span class="nb">{</span>9.6cm<span class="nb">}</span>@<span class="nb">{}}</span>
+<span class="k">\toprule</span>
+<span class="k">\textbf</span><span class="nb">{</span>Severity<span class="nb">}</span> <span class="nb">&amp;</span> <span class="k">\textbf</span><span class="nb">{</span>Where<span class="nb">}</span> <span class="nb">&amp;</span> <span class="k">\textbf</span><span class="nb">{</span>What happened<span class="nb">}</span> <span class="k">\\</span>
+<span class="k">\midrule</span>
+<span class="k">\BLOCK</span><span class="nb">{</span>for e in events<span class="nb">}</span>
+<span class="k">\severitytag</span><span class="nb">{</span><span class="k">\VAR</span><span class="nb">{</span>e.severity | lower<span class="nb">}}</span> <span class="nb">&amp;</span> <span class="k">\texttt</span><span class="nb">{</span><span class="k">\VAR</span><span class="nb">{</span>e.subject | ident<span class="nb">}}</span> <span class="nb">&amp;</span> <span class="k">\VAR</span><span class="nb">{</span>e.message<span class="nb">}</span> <span class="k">\\</span>
+<span class="k">\BLOCK</span><span class="nb">{</span>endfor<span class="nb">}</span>
+<span class="k">\bottomrule</span>
+<span class="k">\end</span><span class="nb">{</span>longtable<span class="nb">}</span>
+<span class="k">\BLOCK</span><span class="nb">{</span>else<span class="nb">}</span>
+No events above INFO. All gates passed.
+<span class="k">\BLOCK</span><span class="nb">{</span>endif<span class="nb">}</span>
+</code></pre></div>
+<h3 id="maintex-stays-static">main.tex stays static</h3>
+<p><code>main.tex</code> is hand written and never generated. Python writes <code>build/meta.tex</code> and
+<code>build/manifest.tex</code>, so changing which chapters appear never touches the entry point.</p>
+<div class="highlight"><pre><span></span><code><span class="c">% Static entry point. Generated inputs live in build/.</span>
+<span class="k">\documentclass</span><span class="na">[a4paper,11pt]</span><span class="nb">{</span>article<span class="nb">}</span>
+<span class="k">\usepackage</span><span class="nb">{</span>bankingreport<span class="nb">}</span>
+<span class="k">\input</span><span class="nb">{</span>build/meta<span class="nb">}</span>
+<span class="k">\begin</span><span class="nb">{</span>document<span class="nb">}</span>
+<span class="k">\input</span><span class="nb">{</span>build/manifest<span class="nb">}</span>
+<span class="k">\end</span><span class="nb">{</span>document<span class="nb">}</span>
+</code></pre></div>
+<p><code>latexmkrc</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Build settings for the pipeline report: no shell escape, output in build/.</span>
+<span class="nv">$pdf_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">;</span>
+<span class="nv">$pdflatex</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">'pdflatex -interaction=nonstopmode -halt-on-error -no-shell-escape %O %S'</span><span class="p">;</span>
+<span class="nv">$out_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">'build'</span><span class="p">;</span>
+<span class="nv">$aux_dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">'build/aux'</span><span class="p">;</span>
+<span class="nv">$max_repeat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="p">;</span>
+<span class="nv">$ENV</span><span class="p">{</span><span class="s">'max_print_line'</span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">'1000'</span><span class="p">;</span>
+<span class="n">ensure_path</span><span class="p">(</span><span class="s">'TEXINPUTS'</span><span class="p">,</span><span class="w"> </span><span class="s">'./template//'</span><span class="p">);</span>
+<span class="nv">@default_files</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="s">'main.tex'</span><span class="p">);</span>
+</code></pre></div>
+<p><code>$aux_dir</code> is a folder of its own so latexmk never rewrites the redacted compile log in
+<code>build/report.log</code>.</p>
+<p>Compile command used everywhere (<code>-jobname</code> fixes the output name):</p>
+<div class="highlight"><pre><span></span><code>latexmk<span class="w"> </span>-jobname<span class="o">=</span>report<span class="w"> </span>main.tex<span class="w">      </span><span class="c1"># writes build/report.pdf</span>
+</code></pre></div>
+<h2 id="9-design-system">9. Design system</h2>
+<p>All design tokens live in <code>template/bankingreport.sty</code>. Charts and TikZ read the same
+palette from <code>reports/scripts/charts.py</code>; keep both in step and test that they match.</p>
+<h3 id="colour">Colour</h3>
+<p>Layer colours are reused from <code>docs/PIPELINE.md</code> so a reader recognises them across docs,
+diagrams and the PDF. Layer colours mean a layer. Status colours mean a status. Never mix
+the two roles.</p>
+<table>
+<thead>
+<tr>
+<th>Role</th>
+<th>Name</th>
+<th>Stroke</th>
+<th>Fill</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Layer</td>
+<td>source</td>
+<td><code>#1D4ED8</code></td>
+<td><code>#DBEAFE</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>orchestration</td>
+<td><code>#6D28D9</code></td>
+<td><code>#EDE9FE</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>raw</td>
+<td><code>#C2410C</code></td>
+<td><code>#FFEDD5</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>staging</td>
+<td><code>#0E7490</code></td>
+<td><code>#CFFAFE</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>analytics</td>
+<td><code>#15803D</code></td>
+<td><code>#DCFCE7</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>marts</td>
+<td><code>#BE185D</code></td>
+<td><code>#FCE7F3</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>publish</td>
+<td><code>#A16207</code></td>
+<td><code>#FEF9C3</code></td>
+</tr>
+<tr>
+<td>Layer</td>
+<td>audit</td>
+<td><code>#475569</code></td>
+<td><code>#F1F5F9</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td>ok, SUCCESS</td>
+<td><code>#15803D</code></td>
+<td><code>#DCFCE7</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td>warn, PARTIAL, MINOR</td>
+<td><code>#A16207</code></td>
+<td><code>#FEF9C3</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td>bad, FAILED, MAJOR</td>
+<td><code>#B91C1C</code></td>
+<td><code>#FEE2E2</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td>critical</td>
+<td><code>#7F1D1D</code></td>
+<td><code>#FECACA</code></td>
+</tr>
+<tr>
+<td>Status</td>
+<td>idle, UNKNOWN, SKIPPED</td>
+<td><code>#475569</code></td>
+<td><code>#F1F5F9</code></td>
+</tr>
+</tbody>
+</table>
+<p>Rules: status is always printed as a word or glyph next to the colour, so the page works in
+greyscale and for colour blind readers. Text on a fill uses the dark stroke colour. No
+gradients, shadows or decorative images.</p>
+<h3 id="typography">Typography</h3>
+<table>
+<thead>
+<tr>
+<th>Use</th>
+<th>Font</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Body, tables, headings</td>
+<td>Inter (Regular, Italic, SemiBold, SemiBold Italic)</td>
+<td>tabular numerals on, so digit columns align</td>
+</tr>
+<tr>
+<td>Identifiers, SQL, ids</td>
+<td>JetBrains Mono (Regular, Bold)</td>
+<td>table names, run ids, error categories</td>
+</tr>
+<tr>
+<td>Cover title only</td>
+<td>Inter SemiBold, large</td>
+<td>no second display font</td>
+</tr>
+</tbody>
+</table>
+<p>Both families are open licence. The <code>.ttf</code> files and their licence texts are in
+<code>reports/fonts/</code> and committed, because CI and the Airflow image have no network to fetch
+fonts. If a file is missing the build must still succeed:</p>
+<div class="highlight"><pre><span></span><code><span class="c">% Font setup with a fallback so a missing file never breaks the build.</span>
+<span class="k">\usepackage</span><span class="nb">{</span>fontspec<span class="nb">}</span>
+<span class="k">\IfFileExists</span><span class="nb">{</span>fonts/Inter-Regular.ttf<span class="nb">}{</span>
+  <span class="k">\setmainfont</span><span class="nb">{</span>Inter-Regular.ttf<span class="nb">}</span>[Path=fonts/, BoldFont=Inter-SemiBold.ttf,
+    ItalicFont=Inter-Italic.ttf, BoldItalicFont=Inter-SemiBoldItalic.ttf,
+    Numbers=Monospaced]
+<span class="nb">}{</span>
+  <span class="k">\setmainfont</span><span class="nb">{</span>TeX Gyre Heros<span class="nb">}</span>
+<span class="nb">}</span>
+</code></pre></div>
+<p>Do the same for the mono font with <code>TeX Gyre Cursor</code> as the fallback. Never ship a font
+without its licence. If the font files are absent, ask a human to add them; do not invent
+or download them from an unknown source.</p>
+<p><strong>Current state.</strong> The font files are in the repository: Inter 4.1 and JetBrains Mono 2.304
+(SIL OFL 1.1), each next to its licence text in <code>reports/fonts/</code>. The style file loads them
+with <code>fontspec</code> and <code>reports/latexmkrc</code> sets <code>$pdf_mode = 5</code> (XeLaTeX) for that. A pdfLaTeX
+build (an old checkout, or a manual <code>pdflatex main.tex</code>) keeps the scalable Latin Modern
+family (<code>\usepackage{lmodern}</code>), which <code>microtype</code> needs to expand. Latin Modern is metric
+compatible with the layout, so the fallback changes the glyphs, not the page structure. The
+charts register the same files with matplotlib, so the document and the figures share one
+typeface. Provenance and the update procedure: <code>reports/fonts/README.md</code>.</p>
+<p>Scale: base 10.5 pt, line spacing 1.2, section titles 16 pt, subsection 12 pt, table text
+9 pt, captions 8.5 pt. A4, margins 20 mm left and right, 22 mm top and bottom, text width
+about 170 mm.</p>
+<h3 id="components-macros-in-the-style-file">Components (macros in the style file)</h3>
+<table>
+<thead>
+<tr>
+<th>Macro</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\statusbanner{state}{label}</code></td>
+<td>full width verdict band on page one</td>
+</tr>
+<tr>
+<td><code>\kpicard{title}{value}{subtitle}{state}</code></td>
+<td>four across metric cards</td>
+</tr>
+<tr>
+<td><code>\severitytag{sev}</code></td>
+<td>coloured pill with the severity word</td>
+</tr>
+<tr>
+<td><code>\statuspill{state}</code></td>
+<td>table cell status with word and colour</td>
+</tr>
+<tr>
+<td><code>\callout[ok\|warn\|bad]{title}{text}</code></td>
+<td>boxed note, built on <code>tcolorbox</code></td>
+</tr>
+<tr>
+<td><code>\sectionunavailable{name}</code></td>
+<td>visible box when a section failed to collect</td>
+</tr>
+</tbody>
+</table>
+<p>Tables use <code>booktabs</code> and <code>longtable</code>: thin rules, no vertical lines, light slate zebra
+rows, numbers right aligned, header repeated across pages. Header carries the report kind
+and run id, footer carries <code>Internal</code>, the generation time with zone and <code>Page x of y</code>.
+Set PDF title, author, subject and keywords through <code>hyperref</code>, enable bookmarks and
+clickable cross references.</p>
+<h3 id="page-one">Page one</h3>
+<p>Order is fixed: verdict banner, four KPI cards (tables ok, rows landed, DQ checks passed,
+duration against trailing median), "What needs attention" (top five events by severity,
+each with one runbook pointer), then the compact flow strip. If the run is healthy the
+attention block says so in one sentence and the space goes to the flow and one chart.</p>
+<h3 id="charts">Charts</h3>
+<p>Charts are matplotlib figures saved as vector PDF into <code>figures/</code>, created at the final
+printed size so fonts stay at their real size (full width 6.7 in by about 2.6 in, half
+width 3.3 in). The same fonts are registered from <code>fonts/</code>, <code>pdf.fonttype</code> is 42 so text
+stays selectable, and the fallback family is DejaVu Sans.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Shared matplotlib style for report figures.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib</span>
+
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s2">"Agg"</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">font_manager</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">apply_style</span><span class="p">(</span><span class="n">font_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">font_dir</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.ttf"</span><span class="p">)):</span>
+        <span class="n">font_manager</span><span class="o">.</span><span class="n">fontManager</span><span class="o">.</span><span class="n">addfont</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">"font.family"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"Inter"</span><span class="p">,</span> <span class="s2">"DejaVu Sans"</span><span class="p">],</span>
+            <span class="s2">"font.size"</span><span class="p">:</span> <span class="mf">8.5</span><span class="p">,</span>
+            <span class="s2">"pdf.fonttype"</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span>
+            <span class="s2">"axes.spines.top"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"axes.spines.right"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s2">"axes.edgecolor"</span><span class="p">:</span> <span class="s2">"#475569"</span><span class="p">,</span>
+            <span class="s2">"axes.grid"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">"grid.color"</span><span class="p">:</span> <span class="s2">"#E2E8F0"</span><span class="p">,</span>
+            <span class="s2">"grid.linewidth"</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span>
+            <span class="s2">"axes.axisbelow"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">"savefig.bbox"</span><span class="p">:</span> <span class="s2">"tight"</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+</code></pre></div>
+<p>Chart rules: no 3D, no pie or donut, bars start at zero, at most four colours per chart,
+direct labels instead of legends where possible, one message per chart with the title
+stating it, threshold and median drawn as thin dashed lines, anomalies annotated with the
+value and the rule id. If a chart has no data, render a small "no data" placeholder box
+rather than an empty axis, and never fail the build for a missing chart.</p>
+<table>
+<thead>
+<tr>
+<th>Figure file</th>
+<th>Type</th>
+<th>Shows</th>
+<th>Chapter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>task_timeline.pdf</code></td>
+<td>horizontal timeline</td>
+<td>start and end per task, layer colour, retries hatched, failures outlined</td>
+<td>03</td>
+</tr>
+<tr>
+<td><code>volumes_dumbbell.pdf</code></td>
+<td>dumbbell</td>
+<td>rows landed today against trailing median per table</td>
+<td>04</td>
+</tr>
+<tr>
+<td><code>layer_rows.pdf</code></td>
+<td>grouped bars</td>
+<td>rows touched per layer in this run against median</td>
+<td>04</td>
+</tr>
+<tr>
+<td><code>dq_heatmap.pdf</code></td>
+<td>matrix</td>
+<td>check by layer with PASS, WARN, FAIL word in each cell</td>
+<td>05</td>
+</tr>
+<tr>
+<td><code>freshness_bullet.pdf</code></td>
+<td>bullet chart</td>
+<td>table age against its window</td>
+<td>06</td>
+</tr>
+<tr>
+<td><code>error_categories.pdf</code></td>
+<td>horizontal bars</td>
+<td>errors by category, final attempt marked</td>
+<td>07</td>
+</tr>
+<tr>
+<td><code>trend_duration.pdf</code></td>
+<td>line with band</td>
+<td>run duration over the last N runs, status markers</td>
+<td>08</td>
+</tr>
+<tr>
+<td><code>trend_failures.pdf</code></td>
+<td>small multiples</td>
+<td>failures, retries and DQ fails per source</td>
+<td>08</td>
+</tr>
+<tr>
+<td><code>publish_reconcile.pdf</code></td>
+<td>paired bars</td>
+<td>source rows against published rows per mart, gap highlighted</td>
+<td>04</td>
+</tr>
+</tbody>
+</table>
+<p><code>publish_reconcile</code> exists because of the known publish lookback gap (for example the
+<code>mart_support_performance</code> 193 row difference in <code>docs/RUNBOOK.md</code>): a gap like that should
+be visible in the report the day it appears.</p>
+<h3 id="pipeline-flow-diagram">Pipeline flow diagram</h3>
+<p>The flow is a TikZ picture generated from the steps list, so node colours and badges follow
+the run. Node fill is the layer colour, node border and badge are the status colour, the
+label carries the step name and duration. Node ids are slugs made by <code>flow.py</code>
+(<code>n01</code>, <code>n02</code>, and so on) so they never need escaping. Coordinates come from a fixed grid
+in <code>flow.py</code>: three extract nodes stacked on the left, then the gated chain, then publish
+and finalize.</p>
+<div class="highlight"><pre><span></span><code><span class="k">\begin</span><span class="nb">{</span>tikzpicture<span class="nb">}</span>[every node/.style=<span class="nb">{</span>font=<span class="k">\footnotesize</span><span class="nb">}</span>]
+<span class="k">\BLOCK</span><span class="nb">{</span>for node in flow.nodes<span class="nb">}</span>
+<span class="k">\node</span><span class="na">[flowstep, \VAR{node.layer | raw}, \VAR{node.state | raw}]</span> (<span class="k">\VAR</span><span class="nb">{</span>node.id | raw<span class="nb">}</span>) at (<span class="k">\VAR</span><span class="nb">{</span>node.x | raw<span class="nb">}</span>, <span class="k">\VAR</span><span class="nb">{</span>node.y | raw<span class="nb">}</span>) <span class="nb">{</span><span class="k">\VAR</span><span class="nb">{</span>node.label<span class="nb">}</span><span class="k">\\</span><span class="nb">{</span><span class="k">\scriptsize\VAR</span><span class="nb">{</span>node.duration<span class="nb">}}}</span>;
+<span class="k">\BLOCK</span><span class="nb">{</span>endfor<span class="nb">}</span>
+<span class="k">\BLOCK</span><span class="nb">{</span>for edge in flow.edges<span class="nb">}</span>
+<span class="k">\draw</span><span class="na">[flowarrow]</span> (<span class="k">\VAR</span><span class="nb">{</span>edge.src | raw<span class="nb">}</span>) -- (<span class="k">\VAR</span><span class="nb">{</span>edge.dst | raw<span class="nb">}</span>);
+<span class="k">\BLOCK</span><span class="nb">{</span>endfor<span class="nb">}</span>
+<span class="k">\end</span><span class="nb">{</span>tikzpicture<span class="nb">}</span>
+</code></pre></div>
+<p><code>flowstep</code>, the layer names (<code>raw</code>, <code>staging</code>, <code>analytics</code>, <code>marts</code>, <code>publish</code>, <code>audit</code>) and
+the state names (<code>ok</code>, <code>warn</code>, <code>bad</code>, <code>idle</code>) are TikZ styles defined in the style file.
+The node style is called <code>flowstep</code> and not <code>step</code>, because <code>step</code> is a PGF key that
+already means something else. Values passed with <code>raw</code> are validated by Python against an
+allow list before rendering.</p>
+<h2 id="10-the-builder">10. The builder</h2>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>reports.scripts.build<span class="w"> </span>--kind<span class="w"> </span>daily<span class="w"> </span>--dag-id<span class="w"> </span>banking_delta_daily<span class="w"> </span>--dag-run-id<span class="w"> </span><span class="s2">"&lt;id&gt;"</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>reports.scripts.build<span class="w"> </span>--kind<span class="w"> </span>incident<span class="w"> </span>--dag-run-id<span class="w"> </span><span class="s2">"&lt;id&gt;"</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>reports.scripts.build<span class="w"> </span>--kind<span class="w"> </span>weekly
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>reports.scripts.build<span class="w"> </span>--fixture<span class="w"> </span>reports/data/fixtures/major_dq_fail.json
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--kind daily\|incident\|weekly</code></td>
+<td>which chapter set to build</td>
+</tr>
+<tr>
+<td><code>--dag-id</code>, <code>--dag-run-id</code></td>
+<td>which run to report, defaults to the latest</td>
+</tr>
+<tr>
+<td><code>--fixture PATH</code></td>
+<td>skip the database and use a context file</td>
+</tr>
+<tr>
+<td><code>--all-fixtures</code></td>
+<td>build every tracked fixture, one report each</td>
+</tr>
+<tr>
+<td><code>--no-pdf</code></td>
+<td>stop after rendering <code>.tex</code> (hermetic, no TeX needed)</td>
+</tr>
+<tr>
+<td><code>--no-charts</code></td>
+<td>safe mode, no figures and no TikZ flow</td>
+</tr>
+<tr>
+<td><code>--out DIR</code></td>
+<td>output root, wins over <code>REPORT_OUTPUT_DIR</code></td>
+</tr>
+<tr>
+<td><code>--strict</code></td>
+<td>treat any degraded section as an error, for tests</td>
+</tr>
+</tbody>
+</table>
+<p>Steps, in order, with a total budget under 60 seconds in CI and under 2 minutes in Airflow:</p>
+<ol>
+<li>Collect and write <code>data/context.json</code>, validate against the schema. The same document is
+   copied next to the PDF as <code>runs/RUN_KEY/context.json</code>.</li>
+<li>Evaluate rules, attach <code>events</code> and <code>verdict</code>, decide which kinds to build.</li>
+<li>Draw charts into <code>figures/</code>, skipping any that fail.</li>
+<li>Render <code>build/meta.tex</code>, <code>build/manifest.tex</code> and the chapters. A chapter that still
+   holds a <code>\VAR{</code> or <code>\BLOCK{</code> tag fails the build with exit code 2.</li>
+<li>Compile with <code>latexmk -jobname=report main.tex</code>. The LaTeX state of the job is
+   deleted first, so a broken <code>.aux</code> from an earlier run cannot break this one. On failure
+   retry once with <code>--no-charts</code> (safe mode) and mark the report "degraded" on page one.</li>
+<li>Copy to <code>output/runs/RUN_KEY/&lt;pdf name&gt;</code> and <code>output/&lt;pdf name&gt;</code> (latest): <code>report.pdf</code>
+   for the daily, <code>incident.pdf</code>, <code>weekly.pdf</code>. Write the redacted compile log to
+   <code>build/&lt;jobname&gt;.log</code> (<code>report.log</code>, <code>incident.log</code>, <code>weekly.log</code>). Prune runs older
+   than <code>REPORT_RETENTION_DAYS</code>.</li>
+<li>Print a one line JSON result (<code>kind</code>, <code>verdict</code>, <code>pages</code>, <code>path</code>, <code>degraded</code>).</li>
+</ol>
+<p>Exit codes: <code>0</code> built, <code>2</code> render or schema error, <code>3</code> compile failed even in safe mode,
+<code>1</code> usage error. <code>RUN_KEY</code> is the run id reduced to <code>[A-Za-z0-9_]</code> by <code>paths.py</code>.</p>
+<h2 id="11-airflow-and-mail-integration">11. Airflow and mail integration</h2>
+<h3 id="dag-change">DAG change</h3>
+<p><code>banking_delta_daily</code> gets one new task between <code>finalize_audit</code> and
+<code>send_pipeline_summary</code>. It runs after <code>finalize_audit</code> because that task reaps orphaned
+<code>RUNNING</code> rows and rolls up the final status the report must show.</p>
+<pre class="mermaid"><code>flowchart LR
+    MT["marts_tests"] --&gt; PB["publish"]
+    PB --&gt; FIN["finalize_audit&lt;br/&gt;all_done"]
+    FIN --&gt; BR["build_report&lt;br/&gt;all_done, retries=1, 15m"]
+    BR --&gt; SUM["send_pipeline_summary&lt;br/&gt;all_done, attaches PDF"]
+    BR -.-&gt;|"not in the failure gate"| GATE["fail_if_any_failed"]
+
+    classDef af fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef rep fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    class MT,PB af
+    class FIN,SUM audit
+    class BR rep
+    class GATE gate</code></pre>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+<th>Retries and timeout</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_report</code></td>
+<td><code>python -m reports.scripts.build --kind daily --dag-id ... --dag-run-id ...</code></td>
+<td>1 and 15m</td>
+<td><code>trigger_rule=all_done</code>; builds <code>incident.pdf</code> too when any event is MAJOR or higher</td>
+</tr>
+</tbody>
+</table>
+<p>Use the same command builder module the other tasks use, so <code>airflow/tests/test_commands.py</code>
+keeps proving that no secrets and no unquoted ids reach a command line. Template ids with
+<code>{{ dag.dag_id }}</code> and <code>{{ run_id }}</code>. Skeleton:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># build_report task wiring for banking_delta_daily.</span>
+<span class="n">build_report</span> <span class="o">=</span> <span class="n">BashOperator</span><span class="p">(</span>
+    <span class="n">task_id</span><span class="o">=</span><span class="s2">"build_report"</span><span class="p">,</span>
+    <span class="n">bash_command</span><span class="o">=</span><span class="n">report_command</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">"daily"</span><span class="p">),</span>
+    <span class="n">trigger_rule</span><span class="o">=</span><span class="s2">"all_done"</span><span class="p">,</span>
+    <span class="n">retries</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">retry_delay</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span>
+    <span class="n">execution_timeout</span><span class="o">=</span><span class="n">timedelta</span><span class="p">(</span><span class="n">minutes</span><span class="o">=</span><span class="mi">15</span><span class="p">),</span>
+<span class="p">)</span>
+<span class="n">finalize_audit</span> <span class="o">&gt;&gt;</span> <span class="n">build_report</span> <span class="o">&gt;&gt;</span> <span class="n">send_pipeline_summary</span>
+</code></pre></div>
+<p>Rules for the wiring:</p>
+<ul>
+<li><code>build_report</code> is not an upstream of <code>fail_if_any_failed</code>. A PDF problem must not make a
+  green pipeline red. The mail says "report unavailable" instead.</li>
+<li><code>send_pipeline_summary</code> is <code>all_done</code>, so it still sends when <code>build_report</code> failed.</li>
+<li>Find the files by the deterministic path <code>output/runs/RUN_KEY/</code>, not through XCom.</li>
+<li>Mount a named volume <code>report_output</code> at the worker's report output directory. With one
+  worker the files are local; with several workers the volume (or object storage) is
+  required, because the mail task may run on a different host.</li>
+<li>Update <code>airflow/tests/test_dag_integrity.py</code>: the task exists, <code>trigger_rule</code> is
+  <code>all_done</code>, it sits after <code>finalize_audit</code> and before <code>send_pipeline_summary</code>, it is not
+  linked to the failure gate, and the retries and timeout match.</li>
+</ul>
+<h3 id="mail">Mail</h3>
+<p>Extend the existing <code>notify.py</code> and <code>summary.py</code>, never add a second SMTP path.</p>
+<ul>
+<li><code>notify</code> gains an <code>attachments</code> list. Attach with <code>EmailMessage.add_attachment</code> using
+  <code>application/pdf</code>, file name <code>Banking-Delta_&lt;kind&gt;_&lt;YYYYMMDD&gt;_&lt;VERDICT&gt;.pdf</code>.</li>
+<li>Skip an attachment larger than <code>REPORT_MAX_ATTACH_MB</code> (default 10) and say so in the body.</li>
+<li>The body shows the verdict, the top three events (names and counts only) and a line
+  stating whether the report was degraded or missing.</li>
+<li>A missing file is a warning in the body, never an exception.</li>
+<li>Recipients default to <code>ALERT_EMAIL_TO</code>, with <code>REPORT_EMAIL_TO</code> as an optional override.</li>
+<li>Add tests to <code>test_notify_render.py</code>: attachment present, wrong size skipped, no
+  attachment path still sends, subject marker unchanged.</li>
+</ul>
+<h3 id="weekly-dag-and-watchdog">Weekly DAG and watchdog</h3>
+<ul>
+<li><code>banking_report_weekly</code>: schedule <code>0 8 * * 1</code> <code>Asia/Kolkata</code>, <code>catchup=False</code>,
+  <code>max_active_runs=1</code>, one task <code>build_weekly_report</code> then a mail task reusing the mail
+  helper. Created paused like the others, un pause deliberately.</li>
+<li>Phase 2: when <code>banking_watchdog</code> raises <code>[MISSED]</code>, <code>[STUCK]</code> or <code>[WATCHDOG-ERROR]</code>, it
+  calls <code>--kind incident</code> and attaches the PDF. The watchdog stays silent when healthy and
+  must keep working if report building fails.</li>
+</ul>
+<h3 id="image-and-compose">Image and compose</h3>
+<p>TeX Live is large (roughly 500 to 800 MB). Recommended option: install it in the Airflow
+worker image, so the task runs exactly what <code>python main.py</code> and <code>make report</code> run, with
+no Docker socket mounted into Airflow. Both Dockerfiles read the same package list.</p>
+<div class="highlight"><pre><span></span><code><span class="c"># TeX toolchain for the report builder, shared package list.</span>
+<span class="k">COPY</span><span class="w"> </span>reports/apt-packages.txt<span class="w"> </span>/tmp/apt-packages.txt
+<span class="k">USER</span><span class="w"> </span><span class="s">root</span>
+<span class="k">RUN</span><span class="w"> </span>apt-get<span class="w"> </span>update<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="o">&amp;&amp;</span><span class="w"> </span>xargs<span class="w"> </span>-a<span class="w"> </span>/tmp/apt-packages.txt<span class="w"> </span>apt-get<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>--no-install-recommends<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span><span class="o">&amp;&amp;</span><span class="w"> </span>rm<span class="w"> </span>-rf<span class="w"> </span>/var/lib/apt/lists/*<span class="w"> </span>/tmp/apt-packages.txt
+<span class="k">USER</span><span class="w"> </span><span class="s">airflow</span>
+</code></pre></div>
+<p>Also copy <code>reports/</code> into the image and run <code>uv sync --frozen --group reports</code>. Never mount
+<code>/var/run/docker.sock</code> into an Airflow container for this feature. <code>reports/apt-packages.txt</code>
+starts with <code>latexmk</code>, <code>texlive-xetex</code>, <code>texlive-latex-recommended</code>,
+<code>texlive-latex-extra</code>, <code>texlive-pictures</code>, <code>texlive-fonts-recommended</code> and <code>fontconfig</code>;
+trim or extend it after the first clean compile. <code>texlive-fonts-recommended</code> provides
+Latin Modern, which the pdfLaTeX fallback needs for <code>microtype</code>; <code>fonts-inter</code> is the
+system copy of Inter for the XeLaTeX build, next to the bundled files in <code>reports/fonts/</code>.</p>
+<p><code>reports/Dockerfile</code> is the standalone builder: it installs the same package list, adds
+the report runtime (<code>jinja2</code>, <code>jsonschema</code>, <code>pyyaml</code>, <code>matplotlib</code>, <code>psycopg2-binary</code>,
+<code>python-dotenv</code>) and copies <code>src/</code> and <code>reports/</code> into <code>/work</code>. The entry point compiles
+every fixture, so <code>docker run</code> needs no arguments.</p>
+<h3 id="environment-variables">Environment variables</h3>
+<p>Add every variable to <code>.env.example</code> and <code>airflow/.env.airflow.example</code>
+(<code>tests/smoke/test_env_contract.py</code> enforces it). Read them only in <code>src/utils/config.py</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>REPORT_ENABLED</code></td>
+<td><code>true</code></td>
+<td>master switch for the Airflow task</td>
+</tr>
+<tr>
+<td><code>REPORT_OUTPUT_DIR</code></td>
+<td><code>reports/output</code></td>
+<td>root for PDFs</td>
+</tr>
+<tr>
+<td><code>REPORT_TIMEZONE</code></td>
+<td><code>Asia/Kolkata</code></td>
+<td>zone label used in the document</td>
+</tr>
+<tr>
+<td><code>REPORT_RETENTION_DAYS</code></td>
+<td><code>30</code></td>
+<td>prune older run folders</td>
+</tr>
+<tr>
+<td><code>REPORT_MAX_ATTACH_MB</code></td>
+<td><code>10</code></td>
+<td>skip larger attachments</td>
+</tr>
+<tr>
+<td><code>REPORT_EMAIL_TO</code></td>
+<td>empty</td>
+<td>optional override of <code>ALERT_EMAIL_TO</code></td>
+</tr>
+<tr>
+<td><code>REPORT_TREND_RUNS</code></td>
+<td><code>14</code></td>
+<td>runs shown in trend charts</td>
+</tr>
+</tbody>
+</table>
+<h2 id="12-make-and-tasksbat-targets">12. Make and tasks.bat targets</h2>
+<p><code>tests/smoke/test_make_parity.py</code> fails when a Makefile target is missing from <code>tasks.bat</code>
+or when <code>ci</code> picks up a non hermetic target, so add every target to both files.</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>What it does</th>
+<th>Tier</th>
+<th>Agent may run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>report-fixture</code></td>
+<td>render every fixture to <code>.tex</code> with <code>--no-pdf</code>, no TeX and no database</td>
+<td>hermetic, part of <code>make ci</code></td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>report-pdf</code></td>
+<td>compile every fixture to PDF with a local TeX Live</td>
+<td><code>tex</code> tier, not in <code>ci</code></td>
+<td>yes, when TeX is installed</td>
+</tr>
+<tr>
+<td><code>report-tex</code></td>
+<td>run the <code>tex</code> tier: every fixture compiles, the log has no error and no overfull box, the page budget holds</td>
+<td><code>tex</code> tier, not in <code>ci</code></td>
+<td>yes, when TeX is installed</td>
+</tr>
+<tr>
+<td><code>report-docker</code></td>
+<td>build <code>reports/Dockerfile</code> and compile the fixtures inside it</td>
+<td><code>tex</code> tier</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>report</code></td>
+<td>build the daily report against the environment <code>.env</code> points at</td>
+<td>reads the warehouse</td>
+<td>ask first</td>
+</tr>
+<tr>
+<td><code>report-incident RUN=&lt;id&gt;</code></td>
+<td>build an incident report for a run</td>
+<td>reads the warehouse</td>
+<td>ask first</td>
+</tr>
+<tr>
+<td><code>report-weekly</code></td>
+<td>build the weekly digest</td>
+<td>reads the warehouse</td>
+<td>ask first</td>
+</tr>
+<tr>
+<td><code>report-clean</code></td>
+<td>remove <code>reports/build</code>, <code>reports/output</code> and the generated figures</td>
+<td>local</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table>
+<p>On Windows, avoid installing MiKTeX: use the container.</p>
+<div class="highlight"><pre><span></span><code><span class="n">docker</span> <span class="n">build</span> <span class="n">-t</span> <span class="n">banking-report</span> <span class="o">-f</span> <span class="n">reports</span><span class="p">/</span><span class="n">Dockerfile</span> <span class="p">.</span>
+<span class="n">docker</span> <span class="n">run</span> <span class="p">-</span><span class="n">-rm</span> <span class="n">-v</span> <span class="s2">"${PWD}/reports/output:/work/reports/output"</span> <span class="n">banking-report</span>
+</code></pre></div>
+<p>The image carries the TeX toolchain and the report runtime, so <code>docker run</code> compiles every
+fixture with no extra flags. The build context is the repository root because the image
+also copies <code>src/</code>.</p>
+<h2 id="13-tests">13. Tests</h2>
+<p>Mirror source paths: <code>reports/scripts/render.py</code> is tested in
+<code>tests/unit/reports/test_render.py</code>. Mark every test (<code>unit</code>, <code>smoke</code>, or the new <code>tex</code>
+marker registered in <code>pyproject.toml</code>), otherwise it silently never runs.</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Guards against</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tex_escape</code> handles all ten special characters, <code>None</code>, unicode</td>
+<td>broken compiles from error text</td>
+</tr>
+<tr>
+<td>escape neutralises <code>\input{...}</code>, <code>\write18</code>, <code>\immediate</code> in free text</td>
+<td>LaTeX injection through audit messages</td>
+</tr>
+<tr>
+<td><code>RawTeX</code> is the only escape bypass, <code>StrictUndefined</code> raises on a missing key</td>
+<td>silent blanks, accidental raw output</td>
+</tr>
+<tr>
+<td>severity rules, one table driven test per rule R001 to R018</td>
+<td>wrong or downgraded severity</td>
+</tr>
+<tr>
+<td>verdict is the maximum severity, UNKNOWN never renders as ok</td>
+<td>false green report</td>
+</tr>
+<tr>
+<td>latest attempt per table decides the table status</td>
+<td>a retry that succeeded reported as failed</td>
+</tr>
+<tr>
+<td>redaction applied to every free text field, 300 character cap</td>
+<td>secrets in mail or PDF</td>
+</tr>
+<tr>
+<td><code>context.json</code> validates against the schema for every fixture</td>
+<td>contract drift</td>
+</tr>
+<tr>
+<td>chapter selection per kind and <code>drop_when_empty</code></td>
+<td>wrong chapters appearing</td>
+</tr>
+<tr>
+<td>deterministic render: same context gives byte identical <code>.tex</code></td>
+<td>flaky diffs</td>
+</tr>
+<tr>
+<td>palette in <code>charts.py</code> equals the colours in the style file</td>
+<td>design drift</td>
+</tr>
+<tr>
+<td>chart functions return a figure for empty data</td>
+<td>build failure on quiet days</td>
+</tr>
+<tr>
+<td><code>build --fixture X --no-pdf</code> leaves no <code>\VAR{</code> or <code>\BLOCK{</code> in <code>build/</code></td>
+<td>unrendered template text</td>
+</tr>
+<tr>
+<td><code>tex</code> tier: every fixture compiles, the log has no <code>!</code> errors, pages within budget</td>
+<td>broken LaTeX</td>
+</tr>
+<tr>
+<td><code>tex</code> tier: safe mode compiles when the figures directory is empty</td>
+<td>degraded path rot</td>
+</tr>
+<tr>
+<td>mail: attachment added, oversize skipped, missing file still sends</td>
+<td>lost summary mail</td>
+</tr>
+<tr>
+<td>DAG integrity for <code>build_report</code> and the weekly DAG</td>
+<td>orchestration regressions</td>
+</tr>
+<tr>
+<td>a read only guard test: collector issues only <code>SELECT</code> statements</td>
+<td>accidental writes</td>
+</tr>
+</tbody>
+</table>
+<p>Never weaken a test to get green. A fix ships with a regression test that failed first.</p>
+<h2 id="14-build-plan-for-agents">14. Build plan for agents</h2>
+<p>One concern per branch (<code>feature/report-...</code>), small PRs, tests with the code, PR opened
+and then stop. Commit scope <code>reports</code> is not in the allowed list in <code>docs/GITWORKFLOWS.md</code>
+yet: ask a human to add it to the doc and the <code>commit-msg</code> hook, or use <code>repo</code> meanwhile.</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Deliverable</th>
+<th>Done when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>read <code>AGENTS.md</code>, the docs listed at the top, the audit DDL and <code>legacy/</code> for visual hints</td>
+<td>a written list of real column names and open questions in the PR description</td>
+</tr>
+<tr>
+<td>1</td>
+<td><code>config/</code>, <code>context.schema.json</code>, five fixtures, <code>paths.py</code></td>
+<td>schema validates all fixtures, unit tests green</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>render.py</code>, <code>bankingreport.sty</code>, templates, <code>main.tex</code>, <code>latexmkrc</code>, <code>report-fixture</code></td>
+<td><code>make ci</code> green, no unrendered tags</td>
+</tr>
+<tr>
+<td>3</td>
+<td><code>charts.py</code>, <code>flow.py</code>, figures wired into chapters</td>
+<td>charts render from fixtures, empty data placeholders work</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>compile.py</code>, <code>reports/Dockerfile</code>, <code>apt-packages.txt</code>, <code>report-pdf</code>, <code>report-docker</code></td>
+<td>all fixtures compile in the container within the page budget</td>
+</tr>
+<tr>
+<td>5</td>
+<td><code>collect.py</code></td>
+<td>read only guard test green, run once against a disposable or approved database with approval</td>
+</tr>
+<tr>
+<td>6</td>
+<td><code>severity.py</code> and rule tests</td>
+<td>every rule has a passing and a failing case</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Airflow task, mail attachment, compose volume, image change, env vars</td>
+<td>DAG integrity and mail tests green, one approved real run attached to mail</td>
+</tr>
+<tr>
+<td>8</td>
+<td>incident kind, weekly DAG, watchdog hook</td>
+<td>incident PDF appears on a seeded failing fixture run</td>
+</tr>
+<tr>
+<td>9</td>
+<td>docs sync</td>
+<td>every item in the checklist below is done</td>
+</tr>
+</tbody>
+</table>
+<p>Docs to update in the same PRs: <code>docs/AIRFLOW.md</code> (DAG diagram, task table, volume),
+<code>docs/DEPLOYMENT.md</code> (TeX image, env vars), <code>docs/TESTING.md</code> (<code>tex</code> tier, new regression
+rows), <code>docs/CI-CD.md</code> (optional nightly <code>report-pdf</code> job), <code>docs/RUNBOOK.md</code> (how to
+regenerate and read a report), <code>docs/TROUBLESHOOTING.md</code> (symptoms below),
+<code>docs/GITWORKFLOWS.md</code> (scope), <code>reports/README.md</code> (pointer to this page) and <code>AGENTS.md</code>
+(link and the rules in section 3).</p>
+<h2 id="15-troubleshooting">15. Troubleshooting</h2>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Likely cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Undefined control sequence</code> in the log</td>
+<td>unescaped text, or a macro missing from the style file</td>
+<td>check the <code>.tex</code> line named in the log, make sure the value went through <code>\VAR{}</code></td>
+</tr>
+<tr>
+<td><code>Missing character</code> or tofu glyphs</td>
+<td>font lacks a glyph</td>
+<td>keep status glyphs to words, or add the glyph to the fallback chain</td>
+</tr>
+<tr>
+<td><code>File 'bankingreport.sty' not found</code></td>
+<td><code>TEXINPUTS</code> not set</td>
+<td>run through <code>latexmk</code> with the repo <code>latexmkrc</code>, from <code>reports/</code></td>
+</tr>
+<tr>
+<td><code>Overfull \hbox</code> in tables</td>
+<td>long identifier or a message that cannot wrap</td>
+<td>use the <code>ident</code> or <code>breakable</code> filter, or a narrower column; the <code>tex</code> tier fails on any overfull box</td>
+</tr>
+<tr>
+<td>Blank figure or empty chart</td>
+<td>no data for that section</td>
+<td>expected: the placeholder box shows, check <code>sections_failed</code></td>
+</tr>
+<tr>
+<td>Charts use the wrong font</td>
+<td>fonts not registered</td>
+<td>confirm <code>fonts/*.ttf</code> exist, matplotlib font cache may need clearing</td>
+</tr>
+<tr>
+<td>Build works locally, fails in Airflow</td>
+<td>package missing from the image</td>
+<td>compare <code>apt-packages.txt</code>, rebuild the image</td>
+</tr>
+<tr>
+<td>Mail arrives without PDF</td>
+<td>build failed or file over the size limit</td>
+<td>check <code>build_report</code> logs and <code>REPORT_MAX_ATTACH_MB</code>, the body names the reason</td>
+</tr>
+<tr>
+<td>Report says <code>UNKNOWN</code> for a step</td>
+<td>no audit evidence for it</td>
+<td>expected by rule 6, investigate the missing audit rows, do not default to ok</td>
+</tr>
+<tr>
+<td>Times look 5.5 hours off</td>
+<td>known timezone offset issue</td>
+<td>see open issue 3 in <code>docs/TROUBLESHOOTING.md</code>, do not patch inside the report</td>
+</tr>
+<tr>
+<td>PDF differs between runs</td>
+<td><code>now()</code> leaked into the body or unsorted data</td>
+<td>fix determinism, set <code>SOURCE_DATE_EPOCH</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="16-decisions-for-a-human">16. Decisions for a human</h2>
+<p>These block specific phases. Do not guess; list them in the PR and ask.</p>
+<ol>
+<li>TeX inside the Airflow worker image (recommended) against a separate builder service.
+   Needs an image size and build time decision.</li>
+<li>Font files: resolved. Inter 4.1 and JetBrains Mono 2.304 are in <code>reports/fonts/</code> with
+   their OFL licence texts, the style file loads them with <code>fontspec</code> and
+   <code>reports/latexmkrc</code> sets <code>$pdf_mode = 5</code> (XeLaTeX). The <code>lastpage.sty</code> package is
+   still optional for the same reason as before: without it the footer shows "Page x"
+   instead of "Page x of y".</li>
+<li>Recipients and the weekly schedule, and whether incident PDFs go to a wider list.</li>
+<li>Retention of PDFs and whether archived reports should also go to a bucket or volume.</li>
+<li>Whether the report should include a short "known open issues" appendix read from
+   <code>config/</code> or only link <code>docs/TROUBLESHOOTING.md</code>.</li>
+<li>Any severity downgrade or threshold change from the defaults in section 5 and 6.</li>
+</ol>
+<h2 id="rules-that-must-not-break">Rules that must not break</h2>
+<ul>
+<li>The report only reads. It never writes to the warehouse, Databricks or <code>audit.*</code>.</li>
+<li>No row values, PII, secrets or credentials in context, figures, LaTeX, logs or mail.</li>
+<li>Every value is escaped by default; shell escape stays off.</li>
+<li>Unknown is never shown as success; a failed report never fails the pipeline.</li>
+<li>Same context in, same PDF out.</li>
+<li>Thresholds and severities change only with human approval.</li>
+<li>The mail path is the existing one; attachments extend it, they do not replace it.</li>
+</ul>
+<h2 id="definition-of-done">Definition of done</h2>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>make ci</code> green, including <code>report-fixture</code>; <code>make report-pdf</code> green where TeX exists</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> every new test is marked and actually runs under its make target</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> all five fixtures render and compile within the page budget</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> schema, fixtures and templates agree on <code>schema_version</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> <code>tasks.bat</code> has the same targets as the Makefile</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> new environment variables are in both example env files</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> DAG integrity and mail tests cover the new task and attachment</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> one approved real run produced a PDF in the mail, with the verdict matching
+      <code>audit.pipeline_runs.status</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> docs listed in section 14 updated in the same PRs</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> restricted actions were approved and the approval is quoted in the PR</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

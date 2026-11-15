@@ -1,0 +1,1963 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../PIPELINE/">
+      
+      
+        <link rel="next" href="../DATA-QUALITY/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Data contracts - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#data-contracts" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Data contracts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed-column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allowed column types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landed-audit-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Landed audit columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watermarks-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watermarks and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-registry-mirror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry mirror
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-or-removing-a-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing or removing a contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#file-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        File format
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="File format">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#field-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Field reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#allowed-column-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allowed column types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#landed-audit-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Landed audit columns
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#watermarks-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Watermarks and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-registry-mirror" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The registry mirror
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-or-removing-a-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changing or removing a contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rules
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="data-contracts">Data Contracts</h1>
+<p>A <strong>data contract</strong> is a checked-in JSON file that pins the shape of one table as
+it crosses a boundary. In this project the boundary is <strong>source → <code>raw</code> landing</strong>:
+a contract states what the source system is allowed to send, what the pipeline
+promises to store, and how the table is quality-checked. If the contract is
+valid, the pipeline has a right to assume the data conforms; if the source
+changes shape, the contract is what fails first — in CI, before the run.</p>
+<p>Contracts live under <code>contracts/</code>, one file per table, validated by
+<code>contracts/validate.py</code>, and they are the machine-readable companion to
+<code>audit.source_tables</code> in <code>sql/scripts/03_register_sources.sql</code>.</p>
+<div class="highlight"><pre><span></span><code>contracts/
+├── source-table.schema.json     # JSON Schema (draft 2020-12) — the contract of contracts
+├── registry.json                # mirror of audit.source_tables (all 10 landing tables)
+├── validate.py                  # validator used by pre-commit, make contracts and CI
+├── __init__.py
+├── mysql/
+│   ├── accounts.json            # one file per landed table
+│   └── customers.json
+├── mongodb/
+│   └── support_tickets.json
+├── databricks/
+│   └── transactions.json
+└── example_table/               # worked template (skipped by registry check)
+    └── example_table.json
+</code></pre></div>
+<p>There are two ways to read validity:</p>
+<ul>
+<li><strong><code>source-table.schema.json</code></strong> — the JSON Schema, for tooling and editors.</li>
+<li><strong><code>contracts/validate.py</code></strong> — the enforced judgements (naming, referential
+  integrity against <code>columns</code>, money types, watermark rules), run in CI. The
+  schema and the validator are kept in step; when they disagree, the validator
+  wins because it is what the gate runs.</li>
+</ul>
+<h2 id="file-format">File format</h2>
+<p>Every field is defined in <code>source-table.schema.json</code>. A full example:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">"contract_version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"accounts"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"description"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MySQL account master. Full load; amounts are NUMERIC(18,2), never float."</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"source"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mysql_source"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"source_schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"banking_core_db"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"source_table"</span><span class="p">:</span><span class="w"> </span><span class="s2">"accounts"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target_schema"</span><span class="p">:</span><span class="w"> </span><span class="s2">"raw"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"target_table"</span><span class="p">:</span><span class="w"> </span><span class="s2">"accounts"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"business_key"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"account_id"</span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"load_strategy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"full"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"num_partitions"</span><span class="p">:</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"columns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"account_id"</span><span class="p">,</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"bigint"</span><span class="p">,</span><span class="w"> </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">false</span><span class="p">,</span><span class="w"> </span><span class="nt">"key"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="p">{</span><span class="w"> </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"balance"</span><span class="p">,</span><span class="w"> </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"numeric(18,2)"</span><span class="p">,</span><span class="w"> </span><span class="nt">"nullable"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w"> </span><span class="p">}</span>
+<span class="w">  </span><span class="p">],</span>
+<span class="w">  </span><span class="nt">"quality"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">"row_count"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nt">"mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"source_vs_landed_exact"</span><span class="p">,</span><span class="w"> </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ERROR"</span><span class="w"> </span><span class="p">},</span>
+<span class="w">    </span><span class="nt">"freshness"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">"mode"</span><span class="p">:</span><span class="w"> </span><span class="s2">"max_loaded_at_within_window"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"window"</span><span class="p">:</span><span class="w"> </span><span class="s2">"PT24H"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"compare"</span><span class="p">:</span><span class="w"> </span><span class="s2">"landing_loaded_at"</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">"severity"</span><span class="p">:</span><span class="w"> </span><span class="s2">"WARNING"</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">},</span>
+<span class="w">  </span><span class="nt">"owner"</span><span class="p">:</span><span class="w"> </span><span class="s2">"banking-data-platform"</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">"tags"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">"master-data"</span><span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+<h3 id="field-reference">Field reference</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Rules</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>contract_version</code></td>
+<td>yes</td>
+<td>must be <code>1</code>. Bump only with a migration of every contract.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>yes</td>
+<td>snake_case; equals <code>target_table</code>; equals the file name.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>yes</td>
+<td>≥ 8 chars; say what the table is and where it comes from.</td>
+</tr>
+<tr>
+<td><code>source</code></td>
+<td>yes</td>
+<td>one of <code>mongodb_source</code>, <code>mysql_source</code>, <code>databricks_source</code>.</td>
+</tr>
+<tr>
+<td><code>source_schema</code></td>
+<td>yes</td>
+<td>e.g. <code>banking_core_db</code>, <code>banking_support_db</code>, <code>public</code>.</td>
+</tr>
+<tr>
+<td><code>source_table</code></td>
+<td>yes</td>
+<td>name in the source system.</td>
+</tr>
+<tr>
+<td><code>target_schema</code></td>
+<td>yes</td>
+<td>must be <code>raw</code> for a landing contract.</td>
+</tr>
+<tr>
+<td><code>target_table</code></td>
+<td>yes</td>
+<td>snake_case; matches the file name and <code>registry.json</code>.</td>
+</tr>
+<tr>
+<td><code>business_key</code></td>
+<td>yes</td>
+<td>non-empty list of column names that must exist in <code>columns</code>.</td>
+</tr>
+<tr>
+<td><code>load_strategy</code></td>
+<td>yes</td>
+<td><code>full</code> or <code>incremental</code>.</td>
+</tr>
+<tr>
+<td><code>incremental_column</code></td>
+<td>if incremental</td>
+<td>snake_case (leading <code>_</code> allowed, e.g. <code>_id</code>). <strong>Null/absent for full loads.</strong></td>
+</tr>
+<tr>
+<td><code>watermark_strategy</code></td>
+<td>if incremental</td>
+<td><code>timestamp</code>, <code>numeric</code> or <code>objectid</code>. <strong>Null/absent for full loads.</strong></td>
+</tr>
+<tr>
+<td><code>match_mode</code></td>
+<td>no</td>
+<td><code>strict_gt</code> (default) or <code>inclusive_gte</code>; how the watermark filter compares.</td>
+</tr>
+<tr>
+<td><code>lookback</code></td>
+<td>no</td>
+<td>ISO-8601 duration (<code>PT6H</code>) re-read to absorb late arrivals.</td>
+</tr>
+<tr>
+<td><code>num_partitions</code></td>
+<td>no</td>
+<td>integer ≥ 1; read parallelism hint (mirrors <code>source_tables</code>).</td>
+</tr>
+<tr>
+<td><code>columns[]</code></td>
+<td>yes</td>
+<td>non-empty, unique <code>name</code>, no duplicates, each <code>type</code> from the allowed set.</td>
+</tr>
+<tr>
+<td><code>columns[].type</code></td>
+<td>yes</td>
+<td>see the table below. <strong>Money is <code>numeric(18,2)</code>, never <code>float</code>.</strong></td>
+</tr>
+<tr>
+<td><code>columns[].nullable</code></td>
+<td>no</td>
+<td><code>true</code> only if the source can genuinely emit null.</td>
+</tr>
+<tr>
+<td><code>columns[].key</code></td>
+<td>no</td>
+<td>mark business-key columns; must be consistent with <code>business_key</code>.</td>
+</tr>
+<tr>
+<td><code>columns[].pii</code></td>
+<td>no</td>
+<td><code>true</code> for names, DOB, phone, email; drives masking in marts.</td>
+</tr>
+<tr>
+<td><code>quality.row_count.mode</code></td>
+<td>yes</td>
+<td><code>source_vs_landed_exact</code> or <code>source_vs_landed_tolerant</code>.</td>
+</tr>
+<tr>
+<td><code>quality.row_count.tolerance_ratio</code></td>
+<td>if tolerant</td>
+<td>0–1.</td>
+</tr>
+<tr>
+<td><code>quality.row_count.severity</code></td>
+<td>yes</td>
+<td><code>ERROR</code> blocks publish; <code>WARNING</code> only reports.</td>
+</tr>
+<tr>
+<td><code>quality.freshness.mode</code></td>
+<td>yes</td>
+<td><code>max_loaded_at_within_window</code> or <code>none</code>.</td>
+</tr>
+<tr>
+<td><code>quality.freshness.window</code></td>
+<td>if not <code>none</code></td>
+<td>ISO-8601 duration, e.g. <code>PT24H</code>.</td>
+</tr>
+<tr>
+<td><code>quality.freshness.compare</code></td>
+<td>no</td>
+<td><code>landing_loaded_at</code> (default) or <code>source_incremental_column</code>.</td>
+</tr>
+<tr>
+<td><code>quality.freshness.severity</code></td>
+<td>yes</td>
+<td><code>ERROR</code> or <code>WARNING</code>.</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>no</td>
+<td>team or GitHub handle responsible for the contract.</td>
+</tr>
+<tr>
+<td><code>tags</code></td>
+<td>no</td>
+<td>free-form labels (<code>master-data</code>, <code>pii</code>, <code>incremental</code>, …).</td>
+</tr>
+</tbody>
+</table>
+<h3 id="allowed-column-types">Allowed column types</h3>
+<p>Landing types are deliberately Postgres-shaped. Anything else is rejected.</p>
+<div class="highlight"><pre><span></span><code>bigint  integer  smallint
+numeric(18,2)  numeric(5,2)          -- money / rates; never float
+double precision                     -- measurements only, never money
+boolean  text  date  timestamptz  jsonb
+</code></pre></div>
+<ul>
+<li><code>timestamptz</code> for every instant. Sources are UTC; naive datetimes are a bug.</li>
+<li><code>numeric(18,2)</code> for money. A CI test fails any <code>amount</code>/<code>balance</code>/<code>income</code>
+  column that is not <code>numeric(18,2)</code>.</li>
+<li>MongoDB dates arrive as strings and are cast during landing, so the contract
+  still declares the <em>landed</em> type (<code>timestamptz</code>).</li>
+</ul>
+<h2 id="landed-audit-columns">Landed audit columns</h2>
+<p>Do <strong>not</strong> declare <code>_batch_id</code> or <code>_loaded_at</code>. Every landing write adds them
+(<code>src/utils/spark_io.py:add_audit_columns</code>): <code>_batch_id</code> is the <code>table_run_id</code>
+(a UUID) that produced the row and <code>_loaded_at</code> is the write timestamp. Both are
+owned by the pipeline, so a contract that lists them fails validation.</p>
+<h2 id="watermarks-and-idempotency">Watermarks and idempotency</h2>
+<p>Contracts are what make a load safe to run twice:</p>
+<ul>
+<li><code>incremental_column</code> + <code>watermark_strategy</code> describe the high-water mark. The
+  watermark is advanced <strong>only inside the same transaction as the write</strong>, so a
+  crash leaves the watermark where the data is. Never mix
+  <code>audit.extract_watermarks</code> (MySQL/Mongo) with <code>audit.etl_watermarks</code>.</li>
+<li><code>match_mode: strict_gt</code> reads strictly newer than the mark (the default).
+  <code>inclusive_gte</code> re-reads the boundary row; use <code>lookback</code> with it to absorb
+  late-arriving rows. The write is idempotent, so re-reads are safe.</li>
+<li><code>objectid</code> strategy orders MongoDB documents by <code>_id</code>; <code>created_at</code> in those
+  collections is a plain string and <strong>cannot</strong> be a timestamp watermark.</li>
+<li><code>full</code> loads redefine the table every run; their contract must leave
+  <code>incremental_column</code> and <code>watermark_strategy</code> empty.</li>
+</ul>
+<h2 id="the-registry-mirror">The registry mirror</h2>
+<p><code>contracts/registry.json</code> is a machine-readable copy of <code>audit.source_tables</code>
+(all 10 landing tables). A test asserts that for every contract the registry
+agrees on <code>source</code>, <code>business_key</code>, <code>load_strategy</code>, <code>incremental_column</code> and
+<code>watermark_strategy</code>. <strong>SQL is the source of truth</strong>: when you register or
+change a table, edit <code>03_register_sources.sql</code> first, then <code>registry.json</code> and
+the contract in the same PR.</p>
+<h2 id="validation">Validation</h2>
+<p>Run it three ways; all of them execute the same code.</p>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>contracts<span class="w">                                  </span><span class="c1"># all files</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>contracts.validate<span class="w">             </span><span class="c1"># same thing</span>
+uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>contracts.validate<span class="w"> </span>contracts/mysql/accounts.json
+</code></pre></div>
+<p><code>contracts/validate.py</code> fails with a path-prefixed reason, e.g.:</p>
+<div class="highlight"><pre><span></span><code>contract validation failed:
+  - contracts/mysql/accounts.json: business_key column 'account' is not in columns
+</code></pre></div>
+<p>The gate runs in:</p>
+<ul>
+<li><strong>pre-commit</strong> — staged <code>contracts/**/*.json</code> must parse <em>and</em> validate.</li>
+<li><strong>pre-push</strong> — every <code>contracts/**/*.json</code> must parse.</li>
+<li><strong>CI</strong> (<code>make contracts</code>, Linux and Windows) and <strong><code>make ci</code></strong> locally.</li>
+<li><strong><code>tests/unit/test_contracts.py</code></strong> — discovery, per-file validity, name/type
+  rules, registry agreement and negative cases.</li>
+</ul>
+<h2 id="adding-a-contract">Adding a contract</h2>
+<ol>
+<li>Register the table in <code>sql/scripts/03_register_sources.sql</code> (idempotent) and
+   apply it to the warehouse.</li>
+<li>Copy <code>contracts/example_table/example_table.json</code> to
+   <code>contracts/&lt;source&gt;/&lt;target_table&gt;.json</code> and fill in the fields.</li>
+<li>Add the row to <code>contracts/registry.json</code> to match the SQL.</li>
+<li>Run <code>make contracts</code> until clean, then <code>make ci</code>.</li>
+<li>Commit SQL, registry and contract together; the PR template reminds you.</li>
+</ol>
+<h2 id="changing-or-removing-a-contract">Changing or removing a contract</h2>
+<ul>
+<li><strong>Non-breaking</strong> (add a nullable column, add an optional field): one PR.</li>
+<li><strong>Breaking</strong> (rename/retype/drop a column, change a business key or
+  watermark): additive-then-migrate. Land the new column, backfill, switch
+  readers, then remove the old column in a later PR. Never edit a merged
+  contract to match a silent source change — treat it as an incident.</li>
+<li><strong>Removing a table</strong>: remove it from the SQL registry, <code>registry.json</code>, the
+  contract file and its tests in the same PR.</li>
+</ul>
+<h2 id="rules">Rules</h2>
+<ul>
+<li>JSON only, no comments; <code>snake_case</code> names.</li>
+<li><code>name</code>, <code>target_table</code> and the file name always agree.</li>
+<li>Money is <code>numeric(18,2)</code>; instants are <code>timestamptz</code>; never <code>float</code>.</li>
+<li>Landing audit columns are pipeline-owned; do not declare them.</li>
+<li>SQL registry is the source of truth; the mirror and contracts follow it.</li>
+<li>The validator is part of the gate. Do not weaken it to make a red build green.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

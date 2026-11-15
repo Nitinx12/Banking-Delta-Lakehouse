@@ -1,0 +1,2307 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../QUICKSTART/">
+      
+      
+        <link rel="next" href="../ARCHITECTURE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Problem statement - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-problem-we-solved-banking-delta-lakehouse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Problem statement
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-business-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The business problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-we-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What we built
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The approach
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-four-layers-one-owner-each" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Four layers, one owner each
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-every-run-is-a-chain-of-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Every run is a chain of gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-crash-safe-by-construction-watermarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Crash-safe by construction: watermarks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-everything-is-recorded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Everything is recorded
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-three-moving-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The three moving parts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. The three moving parts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#airflow-when-it-runs-and-who-it-tells" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/ — when it runs and who it tells
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-the-read-only-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dashboard/ — the read-only view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports-the-paper-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reports/ — the paper trail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-what-the-business-gets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. What the business gets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-guardrails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Guardrails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-where-to-go-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Where to go next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-the-business-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. The business problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-what-we-built" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. What we built
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-the-approach" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. The approach
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-four-layers-one-owner-each" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Four layers, one owner each
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-every-run-is-a-chain-of-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Every run is a chain of gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-crash-safe-by-construction-watermarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Crash-safe by construction: watermarks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-everything-is-recorded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Everything is recorded
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-the-three-moving-parts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. The three moving parts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. The three moving parts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#airflow-when-it-runs-and-who-it-tells" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/ — when it runs and who it tells
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dashboard-the-read-only-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        dashboard/ — the read-only view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reports-the-paper-trail" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reports/ — the paper trail
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-what-the-business-gets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. What the business gets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-design-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Design decisions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-guardrails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Guardrails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-where-to-go-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Where to go next
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="the-problem-we-solved-banking-delta-lakehouse">The Problem We Solved — Banking-Delta-Lakehouse</h1>
+<blockquote>
+<p><strong>Business problem in one line:</strong> a bank's data lived in three disconnected systems,
+nobody agreed on a number, and decisions waited on manual reports — so we built one
+daily, audited pipeline that turns those systems into a single source of truth.</p>
+</blockquote>
+<p>What was broken, how we approached it, how the design works, and what the three
+deliverable components (<code>airflow/</code>, <code>dashboard/</code>, <code>reports/</code>) do. The engineering
+blueprint is <a href="../ARCHITECTURE.md">../ARCHITECTURE.md</a>.</p>
+<p><strong>Colour legend</strong> (same as <code>ARCHITECTURE.md</code>): blue = sources, violet = orchestration,
+orange = <code>raw</code>, cyan = <code>staging</code>, green = analytics / success, pink = <code>marts</code>,
+yellow = Delta, slate = audit, red = pain / DQ gates, indigo = consumers.</p>
+<hr />
+<h2 id="1-the-business-problem">1. The business problem</h2>
+<table>
+<thead>
+<tr>
+<th>System</th>
+<th>What it holds</th>
+<th>Shape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MySQL <code>banking_core_db</code></td>
+<td>customers, accounts, branches, employees, cards</td>
+<td>OLTP, full-state tables</td>
+</tr>
+<tr>
+<td>MongoDB <code>banking_support_db</code></td>
+<td>support tickets, card transactions</td>
+<td>schemaless documents</td>
+</tr>
+<tr>
+<td>Databricks <code>public</code></td>
+<td>loans, loan_payments, transactions</td>
+<td>analytical, timestamped</td>
+</tr>
+</tbody>
+</table>
+<p>Operations, risk and leadership needed the <em>same</em> answers — a customer's full
+relationship, branch performance, whether fraud was rising — but each answer had to be
+assembled by hand from three engines with three query languages and no shared history.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph BEFORE["The starting point · data silos"]
+        direction LR
+        MYSQL[("MySQL&lt;br/&gt;core banking")]
+        MONGO[("MongoDB&lt;br/&gt;support · card txn")]
+        DBXPUB[("Databricks&lt;br/&gt;loans · payments")]
+    end
+
+    CSV["Manual extracts&lt;br/&gt;CSV · point-in-time"]
+    DESK["Spreadsheet joins&lt;br/&gt;per team, per week"]
+    PAIN["Same KPI, 3 different numbers&lt;br/&gt;no lineage · week-old data&lt;br/&gt;failures discovered late"]
+
+    MYSQL --&gt; CSV
+    MONGO --&gt; CSV
+    DBXPUB --&gt; CSV
+    CSV --&gt; DESK --&gt; PAIN
+
+    classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef manual fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef pain fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    class MYSQL,MONGO,DBXPUB src
+    class CSV,DESK manual
+    class PAIN pain</code></pre>
+<p><strong>What it cost:</strong> new questions took days to answer, numbers were irreproducible,
+nobody could say which extract a figure came from, bad data surfaced only after a
+report shipped, and a broken overnight job showed up as a stale dashboard.</p>
+<hr />
+<h2 id="2-what-we-built">2. What we built</h2>
+<p>A <strong>daily lakehouse pipeline</strong>: land the three sources <em>as-is</em> into PostgreSQL, shape
+them through four controlled layers, gate every step with data-quality checks, then
+publish the finished business tables to Databricks Delta for the dashboard and
+reports. Airflow schedules it at 02:00; <code>main.py</code> runs exactly the same steps by hand.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph SRC["Source systems · read-only"]
+        MYSQL[("MySQL&lt;br/&gt;5 tables · full")]
+        MONGO[("MongoDB&lt;br/&gt;2 collections · incr")]
+        DBXPUB[("Databricks public&lt;br/&gt;3 tables · incr")]
+    end
+
+    subgraph ORCH["Orchestration · airflow/"]
+        AF["banking_delta_daily&lt;br/&gt;02:00 IST"]
+        MAIN["main.py&lt;br/&gt;10 gated steps"]
+    end
+
+    subgraph PG["PostgreSQL warehouse · banking_delta"]
+        RAW[("raw&lt;br/&gt;verbatim")] --&gt;|stored procedures| STG[("staging&lt;br/&gt;typed · deduped")]
+        STG --&gt; ANA[("analytics&lt;br/&gt;dim_* / fact_*")] --&gt; MRT[("marts&lt;br/&gt;mart_*")]
+        AUD[("audit&lt;br/&gt;runs · watermarks · DQ")]
+    end
+
+    subgraph SERVE["Serving"]
+        DELTA[("Databricks Delta&lt;br/&gt;marts.mart_*")]
+        DASH["dashboard/&lt;br/&gt;Streamlit · read-only"]
+        RPT["reports/&lt;br/&gt;daily · incident · weekly"]
+    end
+
+    MYSQL --&gt; MAIN
+    MONGO --&gt; MAIN
+    DBXPUB --&gt; MAIN
+    AF --&gt; MAIN
+    MAIN --&gt; RAW
+    MAIN --&gt;|publish_marts.py| DELTA
+    DELTA --&gt; DASH
+    MAIN --&gt; RPT
+    RAW -.-&gt; AUD
+    MRT -.-&gt; AUD
+
+    classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef orch fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef ui fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+
+    class MYSQL,MONGO,DBXPUB src
+    class AF,MAIN orch
+    class RAW raw
+    class STG staging
+    class ANA analytics
+    class MRT marts
+    class DELTA delta
+    class AUD audit
+    class DASH,RPT ui</code></pre>
+<hr />
+<h2 id="3-the-approach">3. The approach</h2>
+<p>We did not start with dashboards. We made the <em>data</em> trustworthy first, then earned
+the right to serve it.</p>
+<pre class="mermaid"><code>flowchart LR
+    P1["1 · Discover&lt;br/&gt;inventory sources,&lt;br/&gt;agree the contract"] --&gt; P2["2 · Land&lt;br/&gt;raw, as-is, replayable"]
+    P2 --&gt; P3["3 · Shape&lt;br/&gt;type · dedupe · SCD1"]
+    P3 --&gt; P4["4 · Model&lt;br/&gt;dim_* + fact_*"]
+    P4 --&gt; P5["5 · Serve&lt;br/&gt;business-shaped marts"]
+    P5 --&gt; P6["6 · Trust&lt;br/&gt;DQ gates · audit · orchestration"]
+
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef trust fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    class P1,P2,P3,P4,P5 step
+    class P6 trust</code></pre>
+<ol>
+<li><strong>Discover</strong> — every source table got a JSON contract (columns, business key,
+   load strategy) validated in CI, so an upstream schema change breaks the build, not
+   a report.</li>
+<li><strong>Land first</strong> — <code>raw</code> copies the source verbatim plus <code>_batch_id</code>/<code>_loaded_at</code>;
+   anything downstream can be replayed from the original rows.</li>
+<li><strong>Shape once, in SQL</strong> — <code>staging</code> procedures type, dedupe and keep current state.</li>
+<li><strong>Model for questions</strong> — a star schema in <code>analytics</code>, business-shaped tables in
+   <code>marts</code>.</li>
+<li><strong>Gate everything</strong> — DQ suites run between layers; a critical failure blocks publish.</li>
+<li><strong>Wrap with observability</strong> — audit tables, Airflow retries/alerts, a watchdog DAG.</li>
+</ol>
+<hr />
+<h2 id="4-the-design">4. The design</h2>
+<h3 id="41-four-layers-one-owner-each">4.1 Four layers, one owner each</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Answers</th>
+<th>Written by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>raw</code></td>
+<td><em>What did the source actually give us?</em></td>
+<td>the extractors (PySpark)</td>
+</tr>
+<tr>
+<td><code>staging</code></td>
+<td><em>Clean, current state of each entity?</em></td>
+<td><code>staging.sp_load_*</code></td>
+</tr>
+<tr>
+<td><code>analytics</code></td>
+<td><em>How do entities relate?</em> (star schema)</td>
+<td><code>analytics.sp_load_*</code></td>
+</tr>
+<tr>
+<td><code>marts</code></td>
+<td><em>What does the business question look like?</em></td>
+<td><code>marts.sp_load_*</code></td>
+</tr>
+<tr>
+<td>Databricks Delta</td>
+<td><em>Where do consumers read?</em></td>
+<td><code>publish_marts.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>Only one writer may touch a schema, so two jobs can never fight over the same table.</p>
+<h3 id="42-every-run-is-a-chain-of-gates">4.2 Every run is a chain of gates</h3>
+<p>Ten steps in order; a failing data-quality check stops the run before the next layer
+loads, so nothing downstream ever reads a half-loaded table.</p>
+<pre class="mermaid"><code>flowchart LR
+    PRE["1 preflight"] --&gt; S1["2 raw-inject"]
+    S1 --&gt; G1{"3 raw-tests&lt;br/&gt;DQ pass?"}
+    G1 --&gt;|yes| S3["4 staging-load"]
+    G1 --&gt;|no| STOP["stop&lt;br/&gt;publish blocked"]
+    S3 --&gt; G2{"5 staging-tests&lt;br/&gt;DQ pass?"}
+    G2 --&gt;|yes| S5["6 analytics-load"]
+    G2 --&gt;|no| STOP
+    S5 --&gt; G3{"7 analytics-tests&lt;br/&gt;DQ pass?"}
+    G3 --&gt;|yes| S7["8 marts-load"]
+    G3 --&gt;|no| STOP
+    S7 --&gt; G4{"9 marts-tests&lt;br/&gt;DQ pass?"}
+    G4 --&gt;|yes| S9["10 publish"]
+    G4 --&gt;|no| STOP
+    S9 --&gt; DELTA[("Databricks marts")]
+
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class PRE,S1,S3,S5,S7,S9 step
+    class G1,G2,G3,G4,STOP gate
+    class DELTA delta</code></pre>
+<ul>
+<li><strong>44 SQL checks</strong> across four suites (keys, bad dates, orphans, business rules,
+  duplicates, completeness, reconciliation…), verdicts stored in <code>audit.dq_*</code>.</li>
+<li>The gate <strong>commits its verdict, then raises</strong> — the reason for a failure survives
+  the rollback.</li>
+<li>A critical failure <strong>blocks publish</strong>: bad data never reaches the dashboard.</li>
+</ul>
+<h3 id="43-crash-safe-by-construction-watermarks">4.3 Crash-safe by construction: watermarks</h3>
+<p>The expensive bugs — duplicated or lost rows after a crash — are removed structurally:
+the data and its watermark move in <strong>one transaction</strong>, with optimistic locking so two
+concurrent runs cannot both win.</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph EXT["Extract · source → raw"]
+        SRC[("source system")] --&gt;|read only the new window| TMP[("raw._stg_table&lt;br/&gt;transient")]
+        TMP --&gt;|"ONE txn: promote + advance"| RAW[("raw.table")]
+        RAW -.-&gt;|same txn| EW[("audit.extract_watermarks")]
+        EW -.-&gt;|next window starts here| SRC
+    end
+    subgraph LOADC["Load · raw → staging"]
+        RAW2[("raw.table")] --&gt;|filter newer than watermark| STG2[("staging.table")]
+        STG2 -.-&gt;|same block| TW[("audit.etl_watermarks")]
+        TW -.-&gt;|next window starts here| RAW2
+    end
+
+    classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    class SRC src
+    class TMP,RAW,RAW2 raw
+    class STG2 staging
+    class EW,TW audit</code></pre>
+<ul>
+<li><strong>Idempotent</strong> — re-running adds no duplicates (incremental layers dedupe on the
+  business key; full loads <code>TRUNCATE</code> + <code>INSERT</code> atomically).</li>
+<li><strong>Crash-safe</strong> — a failure before commit leaves table and watermark untouched; the
+  retry re-reads the same window.</li>
+<li><strong>Incremental</strong> — only the new slice of each source is read, so the run stays minutes.</li>
+<li>Two watermark stores (source→raw, raw→staging) that are never mixed.</li>
+</ul>
+<h3 id="44-everything-is-recorded">4.4 Everything is recorded</h3>
+<p>Audit rows are written in their <strong>own</strong> transactions, so a <code>FAILED</code> record survives the
+data load's rollback: <code>audit.pipeline_runs</code> (one per execution), <code>audit.table_runs</code>
+(per attempt, with row counts), <code>audit.pipeline_errors</code> (classified, secret-redacted),
+<code>audit.dq_run</code> / <code>dq_violation</code>, and the two watermark tables. Runs always resolve to
+<code>SUCCESS</code>, <code>PARTIAL</code> or <code>FAILED</code>.</p>
+<hr />
+<h2 id="5-the-three-moving-parts">5. The three moving parts</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph AF["airflow/ · orchestration"]
+        DAG["banking_delta_daily&lt;br/&gt;02:00 IST"]
+        WD["banking_watchdog&lt;br/&gt;every 3h"]
+        RUN["main.py → 10 gated steps"]
+    end
+    PG[("PostgreSQL&lt;br/&gt;warehouse")]
+    DELTA[("Databricks&lt;br/&gt;marts.mart_*")]
+    DASH["dashboard/&lt;br/&gt;Streamlit · read-only"]
+    RPT["reports/&lt;br/&gt;PDF + LaTeX"]
+
+    DAG --&gt; RUN --&gt; PG
+    WD -.-&gt;|reads audit.pipeline_runs| PG
+    PG --&gt;|publish_marts.py| DELTA
+    DELTA --&gt; DASH
+    RUN --&gt;|build_report + summary email| RPT
+
+    classDef orch fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef pg fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef ui fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    class DAG,WD,RUN orch
+    class PG pg
+    class DELTA delta
+    class DASH,RPT ui</code></pre>
+<h3 id="airflow-when-it-runs-and-who-it-tells"><code>airflow/</code> — when it runs and who it tells</h3>
+<p>Docker Compose stack (scheduler, worker, API server on <code>:8080</code>, Celery + Redis) with
+two DAGs — and <strong>no pipeline logic</strong>: it calls the same <code>main.py</code> entry points a human
+would.</p>
+<ul>
+<li><code>banking_delta_daily</code> — <code>02:00 IST</code>, one active run, 5h timeout; loads retry once,
+  DQ gates never retry (<code>retries=0</code>) because a data defect does not fix itself.</li>
+<li><code>banking_watchdog</code> — every 3 hours, reads <code>audit.pipeline_runs</code>, <strong>silent when
+  healthy</strong>, mails <code>[MISSED]</code> / <code>[STUCK]</code> otherwise.</li>
+<li><code>send_pipeline_summary</code> emails <code>[SUCCESS]</code> / <code>[FAILED]</code> with the report PDF and
+  <code>.tex</code> attached; <code>fail_if_any_failed</code> turns the run red so Airflow matches reality.</li>
+</ul>
+<h3 id="dashboard-the-read-only-view"><code>dashboard/</code> — the read-only view</h3>
+<p>Streamlit + Plotly, six pages — Overview, KPI Explorer, Customers, Loans, Cards,
+Branches — each mapped to one mart.</p>
+<ul>
+<li>Every chart is a <strong>live <code>SELECT</code></strong> against Databricks Delta: no extracts, no cached
+  copies; a 5-minute cache plus a manual refresh protect the warehouse.</li>
+<li>Read-only credentials; runs locally (<code>streamlit run app.py</code>) or in Docker.</li>
+</ul>
+<h3 id="reports-the-paper-trail"><code>reports/</code> — the paper trail</h3>
+<p>A LaTeX report builder (<code>reports/chapters/</code>, <code>reports/scripts/build.py</code>) producing
+three kinds: <strong>daily</strong> (verdict banner, KPI cards, checks), <strong>incident</strong> (one run,
+deep-dive) and <strong>weekly</strong> (digest).</p>
+<ul>
+<li>Built as an Airflow task right after the run; PDF + <code>.tex</code> source are attached to
+  the summary email, kept 30 days.</li>
+<li><code>make report</code>, <code>report-incident RUN=&lt;id&gt;</code>, <code>report-weekly</code>, <code>report-fixture</code> (no TeX,
+  part of CI).</li>
+</ul>
+<hr />
+<h2 id="6-what-the-business-gets">6. What the business gets</h2>
+<table>
+<thead>
+<tr>
+<th>Mart</th>
+<th>The question it answers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mart_customer_360</code></td>
+<td>Who is this customer across every product?</td>
+</tr>
+<tr>
+<td><code>mart_branch_performance</code></td>
+<td>How is each branch performing vs its peers?</td>
+</tr>
+<tr>
+<td><code>mart_monthly_transactions</code></td>
+<td>What is the transaction volume and value trend?</td>
+</tr>
+<tr>
+<td><code>mart_loan_portfolio</code></td>
+<td>What is the state of the loan book?</td>
+</tr>
+<tr>
+<td><code>mart_card_fraud</code></td>
+<td>Is card fraud increasing, and where?</td>
+</tr>
+<tr>
+<td><code>mart_support_performance</code></td>
+<td>Are tickets being resolved fast and well?</td>
+</tr>
+<tr>
+<td><code>mart_kpi_monthly</code></td>
+<td>The single set of monthly KPI numbers for leadership</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source of truth</td>
+<td>three systems, per-team extracts</td>
+<td>one warehouse, one governed mart layer</td>
+</tr>
+<tr>
+<td>Time to a new answer</td>
+<td>days of manual joining</td>
+<td>a query against a ready-made mart</td>
+</tr>
+<tr>
+<td>Reproducible?</td>
+<td>no — depends when you ran it</td>
+<td>yes — watermarks, batch ids, audit history</td>
+</tr>
+<tr>
+<td>Data quality</td>
+<td>found after publication</td>
+<td>44 checks gate every layer, publish blocked</td>
+</tr>
+<tr>
+<td>Failure visibility</td>
+<td>stale dashboard, discovered late</td>
+<td>Airflow red, watchdog mails, report explains</td>
+</tr>
+<tr>
+<td>Trust</td>
+<td><em>"whose number is right?"</em></td>
+<td><em>"here is the run and the checks behind it"</em></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-design-decisions">7. Design decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Why</th>
+<th>Rejected</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Land verbatim into <code>raw</code> first</td>
+<td>replayable, auditable, no history lost</td>
+<td>transform straight from source</td>
+</tr>
+<tr>
+<td>PostgreSQL for transforms</td>
+<td>set-based procedures in one transaction</td>
+<td>Spark-side transforms</td>
+</tr>
+<tr>
+<td>Watermark advances with the data</td>
+<td>crash can neither lose nor double-count</td>
+<td>separate watermark update</td>
+</tr>
+<tr>
+<td>DQ gates between layers, commit-then-raise</td>
+<td>verdict survives; publish blocked</td>
+<td>validate after publish</td>
+</tr>
+<tr>
+<td><code>main.py</code> and Airflow share one code path</td>
+<td>manual run reproduces the scheduled run</td>
+<td>Airflow-only logic — drifts fast</td>
+</tr>
+<tr>
+<td><code>NUMERIC(18,2)</code> money, UTC <code>timestamptz</code></td>
+<td>float rounds a balance off; UTC ends tz bugs</td>
+<td><code>float</code>, server-local time</td>
+</tr>
+<tr>
+<td>Contracts validated in CI</td>
+<td>upstream change breaks the build, not a report</td>
+<td>discover at runtime</td>
+</tr>
+<tr>
+<td>Retry loads, never DQ gates</td>
+<td>infra fixes itself, data defects do not</td>
+<td>retry everything — hides defects</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="8-guardrails">8. Guardrails</h2>
+<ol>
+<li>Watermarks advance only inside the load/extract transaction.</li>
+<li>Every load is safe to run twice with the same input.</li>
+<li>A critical DQ failure blocks publish.</li>
+<li>Each schema is written only by its owner.</li>
+<li>Money is <code>NUMERIC(18,2)</code>; all instants are UTC.</li>
+<li>Audit rows survive failure (own transactions; commit before raise).</li>
+<li>Never weaken a test, hook or CI check to get green.</li>
+</ol>
+<hr />
+<h2 id="9-where-to-go-next">9. Where to go next</h2>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Document</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The blueprint, layer by layer</td>
+<td><a href="../ARCHITECTURE.md">../ARCHITECTURE.md</a></td>
+</tr>
+<tr>
+<td>The daily run end to end</td>
+<td><a href="../PIPELINE/">PIPELINE.md</a></td>
+</tr>
+<tr>
+<td>Data contracts and DQ gates</td>
+<td><a href="../CONTRACTS/">CONTRACTS.md</a> · <a href="../DATA-QUALITY/">DATA-QUALITY.md</a></td>
+</tr>
+<tr>
+<td>Audit, watermarks, lineage</td>
+<td><a href="../AUDIT/">AUDIT.md</a></td>
+</tr>
+<tr>
+<td>Orchestration and alerts</td>
+<td><a href="../AIRFLOW/">AIRFLOW.md</a> · <a href="../airflow/README.md">../airflow/README.md</a></td>
+</tr>
+<tr>
+<td>Reports and the dashboard</td>
+<td><a href="../REPORTING/">REPORTING.md</a> · <a href="../dashboard/README.md">../dashboard/README.md</a></td>
+</tr>
+<tr>
+<td>Operating it day to day</td>
+<td><a href="../RUNBOOK/">RUNBOOK.md</a></td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

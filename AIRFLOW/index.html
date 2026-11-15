@@ -1,0 +1,2020 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../AUDIT/">
+      
+      
+        <link rel="next" href="../TESTING/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Airflow - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#airflow-banking-delta-lakehouse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Airflow
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compose-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compose stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-split-easy-to-get-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment split (easy to get wrong)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_delta_daily" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_delta_daily
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_watchdog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_watchdog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_report_weekly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_report_weekly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-failure-and-audit-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary, failure and audit flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operating-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operating commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-task-states-env-and-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary task states, env and build
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compose-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compose stack
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Compose stack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-split-easy-to-get-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment split (easy to get wrong)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_delta_daily" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_delta_daily
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_watchdog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_watchdog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dag-banking_report_weekly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DAG banking_report_weekly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-failure-and-audit-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary, failure and audit flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operating-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operating commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#summary-task-states-env-and-build" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary task states, env and build
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="airflow-banking-delta-lakehouse">Airflow — Banking-Delta-Lakehouse</h1>
+<p>Airflow 3.3.2 (CeleryExecutor) in Docker Compose orchestrates the daily run. It contains
+<strong>no pipeline logic</strong>: every task calls the same scripts and SQL as <code>python main.py</code>
+(<code>docs/PIPELINE.md</code>). Two DAGs live in <code>airflow/dags/</code>.</p>
+<p>Colour legend: <code>docs/PIPELINE.md</code> (violet = Airflow services, indigo = pipeline steps run
+inside the worker, slate = audit, red = gates/failures, yellow = mail).</p>
+<h2 id="compose-stack">Compose stack</h2>
+<p>Image (<code>airflow/Dockerfile</code>, build context = repo root): <code>apache/airflow</code> + JRE +
+project venv (<code>uv sync --frozen</code>) + <code>main.py</code>, <code>src/</code>, <code>scripts/</code>, <code>sql/</code>,
+<code>tests/data-quality/</code>, <code>airflow/{dags,include,scripts}</code>. The Dockerfile-specific
+<code>Dockerfile.dockerignore</code> keeps <code>.env</code>, <code>.venv</code>, <code>.spark</code> and keys out of the context.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph STACK["banking-delta-airflow (CeleryExecutor)"]
+        DB[("airflow-db&lt;br/&gt;postgres:16-alpine")]
+        RD[("airflow-redis&lt;br/&gt;redis:7-alpine")]
+        INIT["airflow-init&lt;br/&gt;db migrate + admin + pools"]
+        API["airflow-apiserver&lt;br/&gt;127.0.0.1:8080"]
+        SCH["airflow-scheduler"]
+        DP["airflow-dag-processor"]
+        TRG["airflow-triggerer"]
+        WRK["airflow-worker&lt;br/&gt;Celery, mem_limit 6g&lt;br/&gt;volumes: spark_cache, report_output"]
+    end
+
+    subgraph PIPE["Pipeline containers run inside airflow-worker"]
+        PRE["preflight"]
+        EX["run_jobs.py x3"]
+        LD["main.py load/test steps"]
+        PB["publish_marts.py"]
+        FIN["finalize_audit"]
+        BR["build_report"]
+        SUM["send_pipeline_summary"]
+    end
+
+    DB --&gt; INIT
+    RD --&gt; INIT
+    INIT --&gt; API
+    INIT --&gt; SCH
+    INIT --&gt; DP
+    INIT --&gt; TRG
+    INIT --&gt; WRK
+    SCH --&gt;|queue| WRK
+    WRK --&gt; PRE --&gt; EX --&gt; LD --&gt; PB --&gt; FIN --&gt; BR --&gt; SUM
+
+    classDef infra fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef af fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef pipe fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    class DB,RD infra
+    class INIT,API,SCH,DP,TRG,WRK af
+    class PRE,EX,LD,PB,FIN,BR,SUM pipe</code></pre>
+<p><code>airflow-init</code> runs <code>airflow db migrate</code>, creates the admin user and pool <code>spark_jvm</code>
+(3 slots — the extracts and publish share it). The worker mounts <code>spark_cache</code> at
+<code>.spark</code> so Ivy jars survive restarts.</p>
+<h3 id="environment-split-easy-to-get-wrong">Environment split (easy to get wrong)</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Loaded by</th>
+<th>Holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>airflow/.env.airflow</code></td>
+<td><code>docker compose --env-file .env.airflow</code> (interpolation) and every container (<code>env_file:</code>)</td>
+<td><code>AIRFLOW_VERSION</code>, <code>PYTHON_VERSION</code>, image tag, DB/Redis settings, pipeline secrets (<code>PG_*</code>, <code>MYSQL_*</code>, <code>MONGO_*</code>, <code>DATABRICKS_*</code>, <code>SMTP_*</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>environment:</code> in <code>docker-compose.yml</code> beats <code>env_file:</code> for the same key, so
+<code>ENVIRONMENT</code> (default <code>development</code>) and <code>GIT_SHA</code> (set by <code>make up</code> to the local
+HEAD, <code>-dirty</code> when uncommitted) always come from the compose file; shell or CI
+exports win over both. Copy <code>.env.airflow.example</code> → <code>.env.airflow</code> and fill it in.
+Missing <code>AIRFLOW_VERSION</code> makes <code>docker compose config</code> fail immediately.
+<code>docker-compose.dev.yml</code> bind-mounts code, sets <code>DAGS_ARE_PAUSED_AT_CREATION=false</code>
+and adds <code>host.docker.internal</code> so containers can reach services on the host.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># from the repo root (GIT_SHA = local HEAD, ENVIRONMENT defaults to development)</span>
+make<span class="w"> </span>up
+make<span class="w"> </span>down
+<span class="c1"># or from airflow/ with the explicit env file (always include the dev override):</span>
+<span class="nb">cd</span><span class="w"> </span>airflow
+cp<span class="w"> </span>.env.airflow.example<span class="w"> </span>.env.airflow<span class="w">          </span><span class="c1"># fill secrets</span>
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--env-file<span class="w"> </span>.env.airflow<span class="w"> </span>up<span class="w"> </span>airflow-init<span class="w">     </span><span class="c1"># must exit 0</span>
+docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>docker-compose.yml<span class="w"> </span>-f<span class="w"> </span>docker-compose.dev.yml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--env-file<span class="w"> </span>.env.airflow<span class="w"> </span>up<span class="w"> </span>-d
+<span class="c1"># UI: http://127.0.0.1:8080 (login from .env.airflow)</span>
+</code></pre></div>
+<h2 id="dag-banking_delta_daily">DAG <code>banking_delta_daily</code></h2>
+<p><code>schedule=0 2 * * *</code> Asia/Kolkata (<code>BANKING_DAG_SCHEDULE</code>), <code>catchup=False</code>,
+<code>max_active_runs=1</code>, <code>max_active_tasks=4</code>, <code>dagrun_timeout=5h</code>, param <code>publish_full</code>
+(default false). Created <strong>paused</strong> — un-pause deliberately.</p>
+<pre class="mermaid"><code>flowchart LR
+    PRE["preflight&lt;br/&gt;retries=3 · 10m"]
+    subgraph EXT["extracts · pool spark_jvm · retries=2 · 2h"]
+        EM["extract_mongo&lt;br/&gt;weight 30"]
+        ED["extract_databricks&lt;br/&gt;weight 20"]
+        EX["extract_mysql&lt;br/&gt;weight 10"]
+    end
+    RT["raw_tests"]
+    SL["staging_load"]
+    ST["staging_tests"]
+    AL["analytics_load"]
+    AT["analytics_tests"]
+    ML["marts_load"]
+    MT["marts_tests"]
+    PB["publish&lt;br/&gt;pool spark_jvm · retries=2 · 2h"]
+    FIN["finalize_audit&lt;br/&gt;all_done"]
+    BR["build_report&lt;br/&gt;all_done · retries=1 · 15m"]
+    SUM["send_pipeline_summary&lt;br/&gt;all_done · retries=3"]
+    GATE["fail_if_any_failed&lt;br/&gt;one_failed · retries=0"]
+
+    PRE --&gt; EM
+    PRE --&gt; ED
+    PRE --&gt; EX
+    EM --&gt; RT
+    ED --&gt; RT
+    EX --&gt; RT
+    RT --&gt; SL --&gt; ST --&gt; AL --&gt; AT --&gt; ML --&gt; MT --&gt; PB
+    PB --&gt; FIN --&gt; BR --&gt; SUM
+    RT -.-&gt; GATE
+    SL -.-&gt; GATE
+    ST -.-&gt; GATE
+    AL -.-&gt; GATE
+    AT -.-&gt; GATE
+    ML -.-&gt; GATE
+    MT -.-&gt; GATE
+    PB -.-&gt; GATE
+    EM -.-&gt; GATE
+    ED -.-&gt; GATE
+    EX -.-&gt; GATE
+    PRE -.-&gt; GATE
+
+    classDef pre fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef publish fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+
+    class PRE pre
+    class EM,ED,EX,RT raw
+    class SL,ST staging
+    class AL,AT analytics
+    class ML,MT marts
+    class PB publish
+    class FIN audit
+    class BR report
+    class SUM audit
+    class GATE gate</code></pre>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+<th>Retries / timeout</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>preflight</code></td>
+<td><code>python -m banking_airflow.preflight</code></td>
+<td>3 / 10m</td>
+<td>Java, disk, warehouse, sources, Maven — fails in seconds</td>
+</tr>
+<tr>
+<td><code>extract_mongo</code> / <code>extract_databricks</code> / <code>extract_mysql</code></td>
+<td><code>scripts/run_jobs.py --sources &lt;src&gt; --dag-id … --dag-run-id …</code></td>
+<td>2 / 2h</td>
+<td>pool <code>spark_jvm</code></td>
+</tr>
+<tr>
+<td><code>raw_tests</code> … <code>marts_tests</code></td>
+<td><code>main.py --only &lt;layer&gt;-tests</code></td>
+<td><strong>0</strong> / 30m</td>
+<td>DQ gate — a data problem does not fix itself</td>
+</tr>
+<tr>
+<td><code>staging_load</code> … <code>marts_load</code></td>
+<td><code>main.py --only &lt;layer&gt;-load</code></td>
+<td>1 / 1h</td>
+<td><code>CALL &lt;schema&gt;.sp_load_all(...)</code></td>
+</tr>
+<tr>
+<td><code>publish</code></td>
+<td><code>src/jobs/publish_marts.py … [--full]</code></td>
+<td>2 / 2h</td>
+<td><code>--full</code> from the <code>publish_full</code> param</td>
+</tr>
+<tr>
+<td><code>finalize_audit</code></td>
+<td><code>python -m banking_airflow.finalize_audit</code></td>
+<td>1 / 10m</td>
+<td><code>trigger_rule=all_done</code></td>
+</tr>
+<tr>
+<td><code>build_report</code></td>
+<td><code>python -m reports.scripts.build --kind daily --dag-id … --dag-run-id …</code></td>
+<td>1 / 15m</td>
+<td><code>trigger_rule=all_done</code>; also builds <code>incident.pdf</code> on MAJOR+ events</td>
+</tr>
+<tr>
+<td><code>send_pipeline_summary</code></td>
+<td><code>summary.build_and_send(context)</code></td>
+<td>3 / 10m</td>
+<td><code>trigger_rule=all_done</code>; attaches PDFs</td>
+</tr>
+<tr>
+<td><code>fail_if_any_failed</code></td>
+<td>Python task</td>
+<td>0</td>
+<td><code>trigger_rule=one_failed</code> — makes the run red so Airflow state matches reality</td>
+</tr>
+</tbody>
+</table>
+<p>Design rules: one task per <code>main.py</code> step name (UI, mail and <code>main.py</code> tell the same
+story); <code>max_active_runs=1</code> queues duplicate triggers instead of overlapping;
+<code>dagrun_timeout=5h</code> &lt; watchdog <code>STUCK_HOURS=5</code> so a stuck run is detectable.</p>
+<h2 id="dag-banking_watchdog">DAG <code>banking_watchdog</code></h2>
+<p>Runs every 3 hours; reads <code>audit.pipeline_runs</code> directly (independent of the scheduler)
+and stays <strong>silent when healthy</strong>. On <code>[MISSED]</code>, <code>[STUCK]</code> or <code>[WATCHDOG-ERROR]</code> it
+also triggers <code>python -m reports.scripts.build --kind incident</code> for the affected run
+so the alert mail carries the incident PDF.</p>
+<pre class="mermaid"><code>flowchart TB
+    TICK(["every 3 hours"]) --&gt; CONN{"warehouse&lt;br/&gt;reachable?"}
+    CONN --&gt;|no| ERR["[WATCHDOG-ERROR]&lt;br/&gt;pipeline status unknown"]
+    CONN --&gt;|yes| LAST["latest SUCCESS ended_at"]
+    LAST --&gt; AGE{"older than&lt;br/&gt;WATCHDOG_MAX_AGE_HOURS=30?"}
+    AGE --&gt;|yes| MISSED["[MISSED]&lt;br/&gt;no success in N hours"]
+    AGE --&gt;|no| RUN["latest RUNNING/PARTIAL started_at"]
+    RUN --&gt; STUCK{"older than&lt;br/&gt;WATCHDOG_STUCK_HOURS=5?"}
+    STUCK --&gt;|yes| STUCKMAIL["[STUCK]&lt;br/&gt;run stuck for N hours"]
+    STUCK --&gt;|no| SILENT["stay silent (healthy)"]
+
+    MISSED --&gt; INC["build incident report"]
+    STUCKMAIL --&gt; INC
+    ERR --&gt; INC
+
+    classDef tick fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef check fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class TICK tick
+    class CONN,AGE,STUCK,RUN,LAST check
+    class ERR,MISSED,STUCKMAIL bad
+    class SILENT ok
+    class INC report</code></pre>
+<h2 id="dag-banking_report_weekly">DAG <code>banking_report_weekly</code></h2>
+<p><code>schedule=0 8 * * 1</code> Asia/Kolkata (Monday 08:00 IST), <code>catchup=False</code>,
+<code>max_active_runs=1</code>. Created <strong>paused</strong> — un-pause deliberately.</p>
+<pre class="mermaid"><code>flowchart LR
+    BR["build_weekly_report&lt;br/&gt;retries=1 · 15m"]
+    SUM["send_weekly_summary&lt;br/&gt;all_done · retries=3"]
+
+    BR --&gt; SUM
+
+    classDef report fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    class BR report
+    class SUM audit</code></pre>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Command</th>
+<th>Retries / timeout</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_weekly_report</code></td>
+<td><code>python -m reports.scripts.build --kind weekly --dag-id … --dag-run-id …</code></td>
+<td>1 / 15m</td>
+<td><code>trigger_rule=all_done</code></td>
+</tr>
+<tr>
+<td><code>send_weekly_summary</code></td>
+<td><code>summary.build_and_send(context)</code></td>
+<td>3 / 10m</td>
+<td><code>trigger_rule=all_done</code>; attaches <code>weekly.pdf</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="summary-failure-and-audit-flow">Summary, failure and audit flow</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph RUN["DAG run"]
+        T1["preflight → extracts → loads → gates → publish"]
+        FIN["finalize_audit&lt;br/&gt;all_done"]
+        BR["build_report&lt;br/&gt;all_done"]
+        SUM["send_pipeline_summary&lt;br/&gt;all_done"]
+        FAIL["fail_if_any_failed&lt;br/&gt;one_failed"]
+        T1 --&gt; FIN
+        T1 -.-&gt;|any task failed| FAIL
+        FIN --&gt; BR --&gt; SUM
+    end
+
+    subgraph AUD["audit schema (PostgreSQL)"]
+        PR[("audit.pipeline_runs")]
+        TR[("audit.table_runs")]
+        ER[("audit.pipeline_errors")]
+        DQ[("audit.data_quality_results")]
+        VD[("audit.v_dq_latest")]
+    end
+
+    FIN --&gt;|reap RUNNING table_runs&lt;br/&gt;roll up status| PR
+    SUM --&gt;|read-only| PR
+    SUM --&gt;|read-only| TR
+    SUM --&gt;|read-only| ER
+    SUM --&gt;|read-only| DQ
+    SUM --&gt;|read-only| VD
+
+    T1 --&gt;|extract/publish/DQ write| TR
+    T1 --&gt;|extract/publish write| ER
+    T1 --&gt;|extract/publish + SQL DQ suites write| DQ
+
+    SUM --&gt; MAIL["SMTP: multipart summary&lt;br/&gt;[SUCCESS|PARTIAL|FAILED|UNKNOWN]"]
+    FAIL --&gt; CBM["on_failure_callback → notify&lt;br/&gt;[FAILED] dag.task (try n/m)"]
+
+    classDef run fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    classDef mail fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class T1,FIN,SUM run
+    class PR,TR,ER,DQ,VD audit
+    class FAIL gate
+    class MAIL,CBM mail</code></pre>
+<p>Mail modules: <code>include/banking_airflow/notify.py</code> (SMTP, <code>python -m banking_airflow.notify
+--test</code>), <code>summary.py</code> (step table + audit sections; each section degrades independently),
+<code>audit_reader.py</code> (read-only, parameterised, counts/names/statuses only — never row data),
+<code>redact.py</code> (URL creds, <code>password=</code>/<code>token=</code>, PEM, long base64/hex, ≤ 300 chars).</p>
+<h2 id="operating-commands">Operating commands</h2>
+<div class="highlight"><pre><span></span><code><span class="c1"># bring up / tear down (from the repo root; make up exports GIT_SHA from git)</span>
+make<span class="w"> </span>up
+make<span class="w"> </span>down
+<span class="nv">DC</span><span class="o">=</span><span class="s2">"docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow"</span>
+<span class="nv">$DC</span><span class="w"> </span>down<span class="w"> </span>-v<span class="w">                                            </span><span class="c1"># drop metadata + logs</span>
+
+<span class="c1"># trigger</span>
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span>airflow<span class="w"> </span>dags<span class="w"> </span>trigger<span class="w"> </span>banking_delta_daily
+<span class="c1"># full republish:</span>
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>airflow<span class="w"> </span>dags<span class="w"> </span>trigger<span class="w"> </span>banking_delta_daily<span class="w"> </span>--conf<span class="w"> </span><span class="s1">'{"publish_full": true}'</span>
+
+<span class="c1"># inspect</span>
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span>airflow<span class="w"> </span>dags<span class="w"> </span>list-runs<span class="w"> </span>-o<span class="w"> </span>table
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>airflow<span class="w"> </span>tasks<span class="w"> </span>states-for-dag-run<span class="w"> </span>banking_delta_daily<span class="w"> </span><span class="s2">"&lt;run_id&gt;"</span>
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>airflow<span class="w"> </span>tasks<span class="w"> </span>logs<span class="w"> </span>banking_delta_daily<span class="w"> </span><span class="s2">"&lt;run_id&gt;"</span><span class="w"> </span>preflight
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span>airflow<span class="w"> </span>dags<span class="w"> </span>list-import-errors
+
+<span class="c1"># smoke tests</span>
+<span class="nv">DC</span><span class="o">=</span><span class="s2">"docker compose -f airflow/docker-compose.yml --env-file airflow/.env.airflow"</span>
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-worker<span class="w"> </span>/opt/banking-venv/bin/python<span class="w"> </span>-m<span class="w"> </span>banking_airflow.preflight
+<span class="nv">$DC</span><span class="w"> </span><span class="nb">exec</span><span class="w"> </span>airflow-worker<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>banking_airflow.notify<span class="w"> </span>--test
+</code></pre></div>
+<p>Day-to-day operations: <code>docs/RUNBOOK.md</code>. Problems: <code>docs/TROUBLESHOOTING.md</code>.</p>
+<h2 id="tests">Tests</h2>
+<p><code>airflow/tests/</code> (run by <code>make unit</code> / <code>make smoke</code>): <code>test_dag_integrity.py</code> (DagBag
+loads both DAGs; graph, retries, pools, <code>max_active_runs=1</code>, <code>dagrun_timeout &lt; 6h</code>),
+<code>test_commands.py</code> (no secrets in command builders, <code>exec</code>/<code>cd</code>/ctx ids),
+<code>test_no_secrets.py</code>, <code>test_notify_render.py</code> (template redaction),
+<code>test_summary.py</code> (<code>decide_status</code> never SUCCESS on a missing state; audit rows plus
+Task SDK states, <code>UNKNOWN</code> rendered on a gap).
+<code>conftest.py</code> stubs POSIX-only hooks so tests import on Windows.</p>
+<h2 id="summary-task-states-env-and-build">Summary task states, env and build</h2>
+<p><code>summary.collect_task_states()</code> merges three sources in order: <code>audit.table_runs</code>
+(pipeline truth — <code>SKIPPED</code> means no data past the watermark, and it wins),
+<code>context["task_states"]</code> (Airflow 2 only, absent in Airflow 3) and the Airflow 3
+Task SDK (<code>ti.get_task_states(dag_id=…, run_ids=[run_id])</code> through the supervisor,
+never the metadata DB). Step durations come from <code>ti.get_task_breadcrumbs</code>. A core
+step with no state renders <code>UNKNOWN</code> and banners <code>[UNKNOWN]</code>, never <code>NOT_RUN</code> and
+never a false green; the notes then list how many states were unavailable.</p>
+<p><code>env=</code> and <code>build=</code> in the mail and the report come from the container environment:
+compose passes <code>ENVIRONMENT</code> (default <code>development</code>, set it explicitly outside
+development) and <code>GIT_SHA</code>. <code>make up</code> exports the local HEAD (<code>-dirty</code> when
+uncommitted); CI should export <code>GIT_SHA=$GITHUB_SHA</code>. The report prefers the
+<code>GIT_SHA</code> environment variable and falls back to <code>.git/HEAD</code> on the host. Check a
+running stack with:</p>
+<div class="highlight"><pre><span></span><code>docker<span class="w"> </span>compose<span class="w"> </span>-f<span class="w"> </span>airflow/docker-compose.yml<span class="w"> </span>--env-file<span class="w"> </span>airflow/.env.airflow<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="nb">exec</span><span class="w"> </span>airflow-scheduler<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">'ENVIRONMENT|GIT_SHA'</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
