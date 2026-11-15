@@ -215,11 +215,14 @@ kept in sync by `tests/smoke/test_make_parity.py`.
 | [docs/AUDIT.md](docs/AUDIT.md) | Audit tables, watermarks and run lineage. |
 | [docs/AIRFLOW.md](docs/AIRFLOW.md) | DAGs, schedule and task gating. |
 | [docs/TESTING.md](docs/TESTING.md) | Test markers, layouts and how to run them. |
-| [docs/CI-CD.md](docs/CI-CD.md) | Workflows, required checks and release flow. |
-| [docs/GITWORKFLOWS.md](docs/GITWORKFLOWS.md) | Branching, commits and hooks. |
+| [docs/GITWORKFLOWS.md](docs/GITWORKFLOWS.md) | Branching, commits, hooks and the CI/CD release flow. |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Environments and rollout. |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Operating the pipeline day to day. |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Common failures and fixes. |
+
+The documentation is also served on GitHub Pages: production from `main` at the
+site root, previews from `dev`/`staging`/`qa` under `/preview/<branch>/`
+(`docs/DEPLOYMENT.md` §5).
 
 Contributing and security policies live in [CONTRIBUTING.md](CONTRIBUTING.md)
 and [SECURITY.md](SECURITY.md).

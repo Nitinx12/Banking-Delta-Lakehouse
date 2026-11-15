@@ -125,6 +125,39 @@ Docker: `docker build -t banking-dashboard .` → `docker run -p 8501:8501 banki
 (secrets as env vars or a mounted secrets file). `.streamlit/secrets.toml` is git-ignored.
 The app is read-only and shows only **published** Databricks marts.
 
+## 5. GitHub Pages (documentation site)
+
+The `docs/` tree (plus root `ARCHITECTURE.md`, included at build time via
+`docs/ARCHITECTURE.md`) is built with MkDocs Material and published from the
+`gh-pages` branch by `.github/workflows/pages.yml`:
+
+| URL | Source | Notes |
+|---|---|---|
+| `https://nitinx12.github.io/Banking-Delta-Lakehouse/` | `main` | production site root |
+| `https://nitinx12.github.io/Banking-Delta-Lakehouse/preview/dev/` | `dev` | `noindex` |
+| `https://nitinx12.github.io/Banking-Delta-Lakehouse/preview/staging/` | `staging` | `noindex` |
+| `https://nitinx12.github.io/Banking-Delta-Lakehouse/preview/qa/` | `qa` | `noindex` |
+
+- Every push to `main`/`dev`/`staging`/`qa` runs `uv sync --group docs` +
+  `uv run mkdocs build --strict` and publishes with `keep_files`, so previews and
+  production coexist on one `gh-pages` branch (shared concurrency group, no
+  cancel-in-progress). Preview builds set `MKDOCS_NOINDEX=true`.
+- No `site_url` is configured: all links are relative, which is what makes the
+  same build work at `/` and `/preview/<branch>/`.
+- Local preview: `uv sync --group docs && uv run mkdocs build --strict`
+  (output in `site/`; copy `assets/` into `site/assets/` if you want the
+  insight charts to render).
+
+**Promotion flow:** `dev` → `staging` → `qa` → `main`, one merge per hop; each
+merge republishes that branch's preview immediately, and the merge into `main`
+promotes it to the production root.
+
+**Rollback:** revert the offending commit on `main` (or the branch) and push —
+the site is republished from the pushed commit (the production root is
+overwritten in place; `keep_files` preserves the preview directories between
+deploys). Preview branches roll back the same way. One-time setup: Settings →
+Pages → **Deploy from a branch** → `gh-pages` / `/ (root)`.
+
 ## Configuration reference
 
 `.env` is read in exactly one place (`src/utils/config.py`, `override=False` — shell /
