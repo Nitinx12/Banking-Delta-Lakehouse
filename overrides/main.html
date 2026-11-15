@@ -1,0 +1,8 @@
+{# Preview builds set MKDOCS_NOINDEX=true so search engines skip them. #}
+{% extends "base.html" %}
+{% block extrahead %}
+  {{ super() }}
+  {% if config.extra.noindex %}
+  <meta name="robots" content="noindex">
+  {% endif %}
+{% endblock %}

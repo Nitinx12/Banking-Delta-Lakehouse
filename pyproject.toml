@@ -39,6 +39,9 @@ dev = [
     "ruff==0.12.0",
     "sqlfluff>=4.4,<5",
 ]
+docs = [
+    "mkdocs-material>=9.8.1",
+]
 reports = [
     "jinja2>=3.1.6",
     "jsonschema>=4.26.0",

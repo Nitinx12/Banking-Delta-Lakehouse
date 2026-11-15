@@ -1,0 +1,70 @@
+site_name: Banking Delta Lakehouse
+docs_dir: docs
+site_dir: site
+# No site_url: every URL stays relative so one gh-pages branch can host the
+# production site at / and previews at /preview/<branch>/.
+
+theme:
+  name: material
+  custom_dir: overrides
+
+nav:
+  - Home: index.md
+  - Getting started:
+      - Quickstart: QUICKSTART.md
+      - Problem statement: PROBLEM.md
+  - Architecture:
+      - Blueprint: ARCHITECTURE.md
+      - Pipeline: PIPELINE.md
+      - Data contracts: CONTRACTS.md
+      - Data quality: DATA-QUALITY.md
+      - Data dictionary: DATA-DICTIONARY.md
+      - Audit and watermarks: AUDIT.md
+  - Operations:
+      - Airflow: AIRFLOW.md
+      - Testing: TESTING.md
+      - CI/CD and Git workflow: GITWORKFLOWS.md
+      - Deployment: DEPLOYMENT.md
+      - Runbook: RUNBOOK.md
+      - Troubleshooting: TROUBLESHOOTING.md
+  - Insights:
+      - Overview: INSIGHTS.md
+      - Customers: insights/01-customers.md
+      - Loans: insights/02-loans.md
+      - Card fraud: insights/03-card-fraud.md
+      - Transactions: insights/04-transactions.md
+      - Branches: insights/05-branches.md
+      - Support: insights/06-support.md
+      - Methods: METHODS.md
+  - Model cards:
+      - Attrition risk: MODEL-CARDS/attrition_risk.md
+      - Fraud detection: MODEL-CARDS/fraud_detection.md
+      - PD scorecard: MODEL-CARDS/pd_scorecard.md
+  - Reports: REPORTING.md
+  - R analysis layer: R.md
+  - Decision log: DECISIONS.md
+
+markdown_extensions:
+  - tables
+  - pymdownx.highlight
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+# Docs link to repo files outside docs/ (root ARCHITECTURE.md, assets/,
+# airflow/, dashboard/) for GitHub rendering; those are not site pages.
+validation:
+  links:
+    not_found: info
+
+# MKDOCS_NOINDEX=true adds a noindex meta tag (preview builds); unset for prod.
+# The default is an unquoted bool because !ENV yaml-parses the value either way.
+extra:
+  noindex: !ENV [MKDOCS_NOINDEX, false]

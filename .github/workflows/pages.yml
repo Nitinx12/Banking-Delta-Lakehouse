@@ -1,0 +1,66 @@
+# GitHub Pages: production from main at the site root, branch previews under
+# /preview/<branch>/ (noindex). All builds publish to one gh-pages branch with
+# keep_files, so deploys never wipe each other; the shared concurrency group
+# serialises them. Pages must be enabled as "Deploy from branch: gh-pages/root".
+name: pages
+
+on:
+  push:
+    branches: [main, dev, staging, qa]
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    name: build and deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+
+      - name: Set up Python (from pyproject)
+        run: uv python install
+
+      - name: Install docs dependencies
+        run: uv sync --group docs
+
+      - name: Resolve deploy destination
+        id: dest
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "dir=" >> "$GITHUB_OUTPUT"
+          else
+            echo "dir=preview/$GITHUB_REF_NAME" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build site (previews are noindexed)
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_NAME" != "main" ]; then
+            export MKDOCS_NOINDEX=true
+          fi
+          uv run mkdocs build --strict
+          # docs link to ../assets/... for GitHub; merge them in so charts render
+          cp -R assets/. site/assets/
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./site
+          destination_dir: ${{ steps.dest.outputs.dir }}
+          keep_files: true
