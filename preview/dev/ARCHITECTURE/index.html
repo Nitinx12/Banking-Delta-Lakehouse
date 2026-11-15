@@ -1,0 +1,2973 @@
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../PROBLEM/">
+      
+      
+        <link rel="next" href="../PIPELINE/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
+    
+    
+      
+        <title>Blueprint - Banking Delta Lakehouse</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  
+  
+  <meta name="robots" content="noindex">
+  
+
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-banking-delta-lakehouse" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Banking Delta Lakehouse" class="md-header__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Banking Delta Lakehouse
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Blueprint
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Banking Delta Lakehouse" class="md-nav__button md-logo" aria-label="Banking Delta Lakehouse" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Banking Delta Lakehouse
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../QUICKSTART/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROBLEM/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Problem statement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Blueprint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-in-one-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. In one picture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Design principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-repository-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Repository map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-daily-run-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The daily run, step by step
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The daily run, step by step">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extracts-in-detail-step-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extracts in detail (step 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-layer-model-and-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Layer model and ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-watermarks-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Watermarks and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-audit-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Audit model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Audit model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-run-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline run lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-data-quality-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Data-quality gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-publish-to-databricks-delta-step-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Publish to Databricks Delta (step 10)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-orchestration-airflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Orchestration (Airflow)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-configuration-and-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Configuration and secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing-and-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Testing and CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-deployment-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Deployment topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-cross-cutting-contracts-do-not-break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Cross-cutting contracts (do not break)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-where-to-go-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Where to go next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-airflow-orchestration-reports-fix-history-oct-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Airflow Orchestration &amp; Reports — Fix History (Oct 2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Airflow Orchestration &amp; Reports — Fix History (Oct 2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-problem-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1 Problem Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-files-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2 Files Modified
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16.2 Files Modified">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowcommandspy-lines-6368" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/commands.py (lines 63–68)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowsummarypy-lines-117131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/summary.py (lines 117–131)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowsummarypy-lines-311345" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/summary.py (lines 311–345)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowdocker-composeyml-services-scheduler-apiserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/docker-compose.yml (services: scheduler, apiserver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflownotifypy-lines-7796" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/notify.py (lines 77–96)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reportsscriptsbuildpy-lines-279319-_build_kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reports/scripts/build.py (lines 279–319, _build_kind)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-verification-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3 Verification Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-runbook-for-future-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.4 Runbook for Future Debugging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PIPELINE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CONTRACTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data contracts
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-QUALITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data quality
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DATA-DICTIONARY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data dictionary
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AUDIT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Audit and watermarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Operations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../AIRFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Airflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GITWORKFLOWS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CI/CD and Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DEPLOYMENT/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RUNBOOK/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Insights
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Insights
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSIGHTS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/01-customers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Customers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/02-loans/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Loans
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/03-card-fraud/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Card fraud
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/04-transactions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transactions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/05-branches/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Branches
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../insights/06-support/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../METHODS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model cards
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Model cards
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Attrition risk
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud detection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PD scorecard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../REPORTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reports
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../R/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    R analysis layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../DECISIONS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Decision log
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-in-one-picture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. In one picture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Design principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-repository-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Repository map
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-the-daily-run-step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. The daily run, step by step
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. The daily run, step by step">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#extracts-in-detail-step-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Extracts in detail (step 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-layer-model-and-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Layer model and ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-watermarks-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Watermarks and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-audit-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Audit model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Audit model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-run-lifecycle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline run lifecycle
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-data-quality-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Data-quality gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-publish-to-databricks-delta-step-10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Publish to Databricks Delta (step 10)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-orchestration-airflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Orchestration (Airflow)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-configuration-and-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Configuration and secrets
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-testing-and-ci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Testing and CI
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-deployment-topology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Deployment topology
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-cross-cutting-contracts-do-not-break" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Cross-cutting contracts (do not break)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-where-to-go-next" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Where to go next
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#16-airflow-orchestration-reports-fix-history-oct-2026" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16. Airflow Orchestration &amp; Reports — Fix History (Oct 2026)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16. Airflow Orchestration &amp; Reports — Fix History (Oct 2026)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#161-problem-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.1 Problem Summary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#162-files-modified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.2 Files Modified
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="16.2 Files Modified">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowcommandspy-lines-6368" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/commands.py (lines 63–68)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowsummarypy-lines-117131" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/summary.py (lines 117–131)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflowsummarypy-lines-311345" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/summary.py (lines 311–345)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowdocker-composeyml-services-scheduler-apiserver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/docker-compose.yml (services: scheduler, apiserver)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflowincludebanking_airflownotifypy-lines-7796" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        airflow/include/banking_airflow/notify.py (lines 77–96)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reportsscriptsbuildpy-lines-279319-_build_kind" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reports/scripts/build.py (lines 279–319, _build_kind)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#163-verification-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.3 Verification Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#164-runbook-for-future-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        16.4 Runbook for Future Debugging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<!-- Build-time include of the root ARCHITECTURE.md (pymdownx.snippets); edit that file, not this one. -->
+<h1 id="architecture-banking-delta-lakehouse">Architecture — Banking-Delta-Lakehouse</h1>
+<blockquote>
+<p>The blueprint of the project. Read this first; <code>AGENTS.md</code> holds the rules for
+working in the repo, and <code>docs/*.md</code> drill into each subsystem. If this file and
+the code disagree, the code wins — then fix this file.</p>
+</blockquote>
+<p>Banking-Delta-Lakehouse is a <strong>daily lakehouse pipeline</strong>: three source systems are landed
+into PostgreSQL with PySpark, transformed by SQL stored procedures through four
+layers (<code>raw → staging → analytics → marts</code>), gated by data-quality suites at every
+step, and finally published to Databricks Delta where a read-only dashboard serves
+them. Airflow schedules it; <code>main.py</code> runs the identical steps by hand.</p>
+<h2 id="1-in-one-picture">1. In one picture</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph SRC["Source systems (read-only)"]
+        MYSQL[("MySQL&lt;br/&gt;banking_core_db&lt;br/&gt;5 tables · full")]
+        MONGO[("MongoDB&lt;br/&gt;banking_support_db&lt;br/&gt;2 collections · incr _id")]
+        DBXPUB[("Databricks public&lt;br/&gt;3 tables · incr created_at")]
+    end
+
+    subgraph ORCH["Orchestration"]
+        AF["Airflow 3.3.2&lt;br/&gt;CeleryExecutor&lt;br/&gt;banking_delta_daily · 02:00 IST"]
+        MAIN["main.py&lt;br/&gt;10 gated steps"]
+        RUNJOBS["scripts/run_jobs.py&lt;br/&gt;mongo → databricks → mysql"]
+    end
+
+    subgraph PG["PostgreSQL warehouse · banking_delta"]
+        RAW[("raw.*&lt;br/&gt;+ _batch_id _loaded_at")]
+        STG[("staging.*&lt;br/&gt;SCD1 · deduped")]
+        ANA[("analytics.*&lt;br/&gt;dim_* + fact_*")]
+        MRT[("marts.*&lt;br/&gt;mart_* business")]
+        AUD[("audit.*&lt;br/&gt;runs · errors · watermarks · DQ")]
+    end
+
+    subgraph DELTA["Databricks (published, consumed)"]
+        DMART[("marts.mart_*&lt;br/&gt;Delta tables")]
+    end
+
+    DASH["Streamlit dashboard&lt;br/&gt;read-only · SELECT"]
+
+    MYSQL --&gt;|Spark JDBC| RUNJOBS
+    MONGO --&gt;|mongo spark connector| RUNJOBS
+    DBXPUB --&gt;|SQL connector → parquet → Spark| RUNJOBS
+    AF --&gt;|BashOperator| MAIN
+    MAIN --&gt;|subprocess| RUNJOBS
+    RUNJOBS --&gt;|_stg_ then raw| RAW
+    MAIN --&gt;|CALL sp_load_all| STG
+    MAIN --&gt;|CALL sp_load_all| ANA
+    MAIN --&gt;|CALL sp_load_all| MRT
+    MAIN --&gt;|publish_marts.py| DMART
+    RAW -.-&gt;|table_runs · extract_watermarks| AUD
+    STG -.-&gt;|etl_watermarks| AUD
+    ANA -.-&gt;|table_runs| AUD
+    MRT -.-&gt;|table_runs| AUD
+    DMART --&gt;|SELECT| DASH
+
+    classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef orch fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef ui fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+
+    class MYSQL,MONGO,DBXPUB src
+    class AF,MAIN,RUNJOBS orch
+    class RAW raw
+    class STG staging
+    class ANA analytics
+    class MRT marts
+    class DMART delta
+    class AUD audit
+    class DASH ui</code></pre>
+<p><strong>Colour legend</strong> (used in every diagram in this repo): blue = source systems,
+violet = orchestration / entry points, orange = <code>raw</code>, cyan = <code>staging</code>, green =
+<code>analytics</code>, pink = <code>marts</code>, yellow = Databricks Delta, slate = audit /
+cross-cutting, red = DQ gates and failures, indigo = read-only consumers.</p>
+<h2 id="2-design-principles">2. Design principles</h2>
+<ol>
+<li><strong>One way to run the pipeline.</strong> <code>main.py</code> and the Airflow DAG call the <em>same</em>
+   scripts and the <em>same</em> SQL. Airflow adds scheduling, retries, pools and alerting —
+   it contains no pipeline logic of its own (<code>airflow/dags/banking_delta_daily.py</code>).</li>
+<li><strong>Gate before the next layer.</strong> A failing step stops the run; a critical data-quality
+   failure blocks publish. Nothing downstream ever reads a half-loaded layer.</li>
+<li><strong>Idempotent by construction.</strong> Every load is safe to run twice with the same input.</li>
+<li><strong>Watermarks move only with the data.</strong> A watermark advances inside the <em>same
+   transaction</em> as the write, so a crash never loses or double-counts rows.</li>
+<li><strong>Audit survives failure.</strong> Audit rows are written in their own short transactions;
+   the DQ gate <code>COMMIT</code>s its verdict <em>before</em> it <code>RAISE</code>s.</li>
+<li><strong>Correct types.</strong> Money is <code>NUMERIC(18,2)</code> / <code>Decimal</code>, never <code>float</code>. All instants
+   are timezone-aware UTC; Spark JVM + SQL session run in UTC.</li>
+<li><strong>Layer ownership is strict.</strong> Each schema is written by exactly one owner (see §5).</li>
+<li><strong>Hermetic by default.</strong> CI and the local gate need nothing external; anything that
+   touches real data or credentials is scheduled, gated and approved.</li>
+</ol>
+<h2 id="3-repository-map">3. Repository map</h2>
+<div class="highlight"><pre><span></span><code>Banking-Delta-Lakehouse/
+├── main.py                     # 10 gated steps; the manual entry point
+├── Makefile / tasks.bat        # single source of truth for dev tasks (Linux / Windows)
+├── pyproject.toml              # deps, pytest markers, coverage floor, ruff config
+├── AGENTS.md · ARCHITECTURE.md # rules for agents · this blueprint
+│
+├── src/
+│   ├── jobs/                   # one extractor per source + the publisher
+│   │   ├── extract_mysql.py · extract_mongo.py · extract_databricks.py
+│   │   └── publish_marts.py    # PostgreSQL marts → Databricks Delta
+│   └── utils/
+│       ├── config.py           # THE only place .env is read (override=False)
+│       ├── connection.py       # psycopg2 / pymysql / pymongo / databricks-sql + JDBC opts
+│       ├── engine.py           # tuned, pre-flight-checked SparkSession
+│       ├── session.py          # spark singleton + per-block pg/mysql/mongo transactions
+│       ├── spark_io.py         # read window, staging write, promote, watermark, casts
+│       ├── extract_runner.py   # shared batch-window / load / DQ / parallel-tables logic
+│       ├── audit.py            # run tracking, errors, watermarks, DQ results
+│       └── logger.py           # the project logger (no print, no row values)
+│
+├── scripts/                    # thin CLI wrappers used by main.py and Airflow
+│   ├── run_jobs.py             # extracts in order (mongo → databricks → mysql)
+│   ├── run_{raw,staging,analytics,marts}_tests.py   # data-quality runners
+│   └── seed_watermarks.py      # first incremental run of a new table
+│   ├── run_notebooks.py     # execute the source-exploration notebooks
+│
+├── sql/
+│   ├── scripts/00–06           # bootstrap: DB, schemas, audit, registry, watermarks
+│   ├── staging/                # sp_load_*_scd1.sql + 00_master_load.sql
+│   ├── analytics/              # dim_* / fact_* + master load
+│   ├── marts/                  # mart_* + master load
+│   ├── functions/              # audit.fn_* reporting functions (pipeline/DQ summaries)
+│   ├── raw / metadata          # exploration queries (not part of the run)
+│
+├── tests/
+│   ├── data-quality/{raw,staging,analytics,marts}/  # SQL DQ suites (audit.dq_*)
+│   ├── smoke/ · unit/          # Python code tests (hermetic)
+│   └── conftest.py             # fake_env + autouse no_network
+│
+├── contracts/                  # source → raw landing contracts (validated)
+├── airflow/                    # dags/, include/banking_airflow/, compose, Dockerfile
+├── dashboard/                  # Streamlit read-only app (Databricks SQL)
+├── r/                          # R analysis layer (read-only consumer; see docs/R.md)
+├── reports/                    # daily/weekly/incident PDF + TeX output
+├── docs/                       # per-subsystem guides
+└── conf/ · notebooks/          # log4j2 config · source exploration notebooks
+</code></pre></div>
+<h2 id="4-the-daily-run-step-by-step">4. The daily run, step by step</h2>
+<p><code>python main.py</code> runs ten steps in gate order (<code>--list</code> prints them): <code>preflight</code>
+first, then the nine the Airflow DAG runs as its own tasks.</p>
+<pre class="mermaid"><code>flowchart LR
+    PRE["1 preflight&lt;br/&gt;src/utils/preflight.py"]
+    S1["2 raw-inject&lt;br/&gt;run_jobs.py"]
+    G1{"3 raw-tests&lt;br/&gt;DQ pass?"}
+    S3["4 staging-load&lt;br/&gt;CALL staging.sp_load_all"]
+    G2{"5 staging-tests&lt;br/&gt;DQ pass?"}
+    S5["6 analytics-load&lt;br/&gt;CALL analytics.sp_load_all"]
+    G3{"7 analytics-tests&lt;br/&gt;DQ pass?"}
+    S7["8 marts-load&lt;br/&gt;CALL marts.sp_load_all"]
+    G4{"9 marts-tests&lt;br/&gt;DQ pass?"}
+    S9["10 publish&lt;br/&gt;publish_marts.py"]
+
+    PRE --&gt; S1
+    S1 --&gt; G1
+    G1 --&gt;|yes| S3
+    G1 --&gt;|no| STOP["stop · publish blocked"]
+    S3 --&gt; G2
+    G2 --&gt;|yes| S5
+    G2 --&gt;|no| STOP
+    S5 --&gt; G3
+    G3 --&gt;|yes| S7
+    G3 --&gt;|no| STOP
+    S7 --&gt; G4
+    G4 --&gt;|yes| S9
+    G4 --&gt;|no| STOP
+    S9 --&gt; DELTA[("Databricks marts")]
+
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class PRE,S1,S3,S5,S7,S9 step
+    class G1,G2,G3,G4,STOP gate
+    class DELTA delta</code></pre>
+<p>Only steps 2, 3, 5, 7, 9 and 10 are Python jobs (plus step 1, which runs inside
+<code>main.py</code>); the three <code>*-load</code> steps are a single
+<code>CALL &lt;schema&gt;.sp_load_all(...)</code> inside PostgreSQL (<code>main.py:run_load</code>). A failing step
+stops the run unless <code>--keep-going</code> is passed.</p>
+<p>Step 1 (<code>preflight</code>, <code>src/utils/preflight.py</code>) sends one cheap statement to each
+source - PostgreSQL, MySQL, MongoDB, Databricks - with capped exponential backoff, so
+an unreachable source or a rejected Databricks token stops the run before Spark starts.
+Airflow keeps its own <code>banking_airflow.preflight</code> task (Java, disk, Maven, SMTP) and
+runs the other nine through <code>main.py --only &lt;step&gt;</code>.</p>
+<h3 id="extracts-in-detail-step-2">Extracts in detail (step 2)</h3>
+<p>The three extractors share <code>src/utils/extract_runner.py</code>. Each table follows the same
+safe, twice-runnable loop (<code>src/utils/spark_io.py</code>):</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    participant X as extract_&lt;source&gt;.py
+    participant A as audit
+    participant S as source system
+    participant P as PostgreSQL
+
+    X-&gt;&gt;A: fail_stale_runs(6h) · start_pipeline_run
+    loop each enabled table
+        X-&gt;&gt;A: table_run(...) opens RUNNING row
+        alt incremental
+            X-&gt;&gt;A: get_watermark + begin_batch (lock_version)
+            X-&gt;&gt;S: MAX(incremental_column)
+            Note over X: skip when there is no new data
+        end
+        X-&gt;&gt;S: Spark reads ONLY the batch window
+        X-&gt;&gt;P: write raw._stg_&lt;table&gt;
+        X-&gt;&gt;P: ONE transaction: promote → raw + advance_watermark
+        X-&gt;&gt;P: drop raw._stg_&lt;table&gt;
+        X-&gt;&gt;A: row_count_source_vs_landed
+        X-&gt;&gt;A: close table_run (SUCCESS/FAILED/SKIPPED)
+    end
+    X-&gt;&gt;A: finish_pipeline_run (SUCCESS/PARTIAL/FAILED)</code></pre>
+<p>Key points:</p>
+<ul>
+<li><strong>Snapshot, read, promote, advance.</strong> The window is <code>[last_watermark, MAX(source col)]</code>.
+  Spark writes to a transient <code>raw._stg_&lt;table&gt;</code>, then one Postgres transaction promotes it
+  to <code>raw.&lt;table&gt;</code> <em>and</em> advances the watermark. If anything fails before that commit, the
+  target and watermark are untouched, so a retry simply re-extracts the same window.</li>
+<li><strong>Upper bound re-reads the boundary.</strong> MySQL/Mongo use <code>&gt;=</code> on the lower bound (dedupe
+  happens in staging); Databricks uses strict <code>&gt;</code> because <code>created_at</code> is often shared by a
+  whole batch (<code>spark_io._dbx_where</code>).</li>
+<li><strong>Schemaless sources are tamed.</strong> Mongo dates/ids arrive as strings; <code>cast_temporal</code>,
+  <code>cast_integers</code>, and <code>prepare_for_jdbc</code> convert them (structs/maps → <code>jsonb</code>). MySQL
+  columns get exact Postgres types from <code>information_schema</code>. Databricks results are
+  streamed through Arrow to local Parquet (memory-flat, no JDBC driver).</li>
+<li><strong>Schema drift is absorbed.</strong> <code>promote_staging</code> creates the target on first run and adds
+  new source columns automatically (<code>ALTER TABLE ... ADD COLUMN</code>).</li>
+</ul>
+<h2 id="5-layer-model-and-ownership">5. Layer model and ownership</h2>
+<pre class="mermaid"><code>flowchart LR
+    RAW[("raw&lt;br/&gt;landed as-is&lt;br/&gt;+ _batch_id/_loaded_at")]
+    STG[("staging&lt;br/&gt;typed · deduped&lt;br/&gt;SCD1 current")]
+    ANA[("analytics&lt;br/&gt;dim_* / fact_*&lt;br/&gt;star schema")]
+    MRT[("marts&lt;br/&gt;mart_*&lt;br/&gt;business-shaped")]
+    RAW --&gt;|"sp_load_* (etl_watermarks)"| STG
+    STG --&gt;|"sp_load_*"| ANA
+    ANA --&gt;|"sp_load_*"| MRT
+
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    class RAW raw
+    class STG staging
+    class ANA analytics
+    class MRT marts</code></pre>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Schema</th>
+<th>Contents</th>
+<th>Written by (owner)</th>
+<th>Watermark</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Landing</td>
+<td><code>raw</code></td>
+<td>source tables verbatim + <code>_batch_id</code>/<code>_loaded_at</code> (NOT NULL, <code>timestamptz</code>)</td>
+<td><code>extract_*.py</code> (Spark)</td>
+<td><code>audit.extract_watermarks</code></td>
+</tr>
+<tr>
+<td>Cleansing</td>
+<td><code>staging</code></td>
+<td>typed, deduped, SCD1 current state, <code>scd1_history</code> for overwrites</td>
+<td><code>staging.sp_load_*</code> procedures</td>
+<td><code>audit.etl_watermarks</code></td>
+</tr>
+<tr>
+<td>Modelling</td>
+<td><code>analytics</code></td>
+<td><code>dim_*</code> dimensions + <code>fact_*</code> facts (star schema)</td>
+<td><code>analytics.sp_load_*</code> procedures</td>
+<td><code>audit.etl_watermarks</code></td>
+</tr>
+<tr>
+<td>Serving</td>
+<td><code>marts</code></td>
+<td><code>mart_*</code> business tables (KPI, fraud, 360, portfolio…)</td>
+<td><code>marts.sp_load_*</code> procedures</td>
+<td><code>audit.etl_watermarks</code></td>
+</tr>
+<tr>
+<td>Consumption</td>
+<td>Databricks</td>
+<td><code>marts.mart_*</code> Delta tables</td>
+<td><code>publish_marts.py</code></td>
+<td>read from the Delta target</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Analytics entities:</strong> <code>dim_customer, dim_account, dim_branch, dim_employee, dim_card,
+  dim_loan, dim_txn_profile</code>; <code>fact_card_transactions, fact_loan_payments,
+  fact_transactions, fact_support_tickets</code>.</li>
+<li><strong>Marts:</strong> <code>mart_customer_360, mart_branch_performance, mart_monthly_transactions,
+  mart_loan_portfolio, mart_card_fraud, mart_support_performance, mart_kpi_monthly,
+  mart_loan_vintage</code>.</li>
+<li>A schema is only ever written by its owner. Never hand-edit <code>raw</code>/<code>staging</code>/<code>analytics</code>/
+  <code>marts</code>; go through the extractor or the <code>sp_load_*</code> procedures.</li>
+<li><code>staging._stg_*</code> tables are transient: they exist only between the Spark write and the
+  promote, and are excluded from DQ schema checks.</li>
+</ul>
+<h2 id="6-watermarks-and-idempotency">6. Watermarks and idempotency</h2>
+<p>Two <strong>separate</strong> watermark stores. They must never be conflated (<code>docs/AUDIT.md</code>).</p>
+<pre class="mermaid"><code>flowchart LR
+    subgraph EXT["extract · source → raw"]
+        SRC[("source")] --&gt;|Spark read window| RAW[("raw.&lt;table&gt;")]
+        RAW -.-&gt;|advance in same txn| EW[("audit.extract_watermarks")]
+        EW -.-&gt;|next window start| SRC
+    end
+    subgraph STG["staging · raw → staging"]
+        RAW2[("raw.&lt;table&gt;")] --&gt;|"sp_load filters &gt; wm"| STG2[("staging.&lt;table&gt;")]
+        STG2 -.-&gt;|advance in same block| TW[("audit.etl_watermarks")]
+        TW -.-&gt;|next window start| RAW2
+    end
+
+    classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    class SRC src
+    class RAW,RAW2 raw
+    class STG2 staging
+    class EW,TW audit</code></pre>
+<ul>
+<li><code>audit.extract_watermarks</code> — last <strong>source</strong> value landed into <code>raw</code>, advanced by
+  <code>advance_watermark</code> inside the extract transaction; bootstrapped by
+  <code>scripts/seed_watermarks.py</code>.</li>
+<li><code>audit.etl_watermarks</code> — last <strong>raw</strong> value consumed into <code>staging</code>, advanced by each
+  <code>staging.sp_load_*</code> (defaults to <code>_loaded_at</code>).</li>
+<li>Both use <strong>optimistic locking</strong> (<code>lock_version</code>): <code>begin_batch</code> snapshots it,
+  <code>advance_watermark</code> updates <code>WHERE lock_version = expected</code> and raises a conflict
+  (→ rollback) if a concurrent run won.</li>
+<li>Full loads (MySQL) have no watermark and <code>TRUNCATE</code> + <code>INSERT</code> atomically, so readers
+  never see an empty table.</li>
+</ul>
+<h2 id="7-audit-model">7. Audit model</h2>
+<p>Everything is recorded in the <code>audit</code> schema with plain <code>psycopg2</code>, in <strong>its own</strong>
+transactions, so a FAILED record survives the data load's rollback.</p>
+<pre class="mermaid"><code>erDiagram
+    SOURCE_REGISTRY ||--o{ SOURCE_TABLES : registers
+    PIPELINE_RUNS ||--o{ TABLE_RUNS : has
+    PIPELINE_RUNS ||--o{ PIPELINE_ERRORS : has
+    PIPELINE_RUNS ||--o{ DATA_QUALITY_RESULTS : has
+    SOURCE_TABLES ||--o{ TABLE_RUNS : configures
+    SOURCE_TABLES ||--o{ EXTRACT_WATERMARKS : tracks
+    SOURCE_TABLES ||--o{ ETL_WATERMARKS : tracks
+
+    PIPELINE_RUNS {
+        uuid pipeline_run_id PK
+        text dag_id
+        text dag_run_id
+        text status
+        int successful_tables
+        int failed_tables
+    }
+    TABLE_RUNS {
+        uuid table_run_id PK
+        uuid pipeline_run_id FK
+        text processing_layer
+        text target_table
+        int attempt_number
+        text status
+        bigint rows_landed
+    }
+    PIPELINE_ERRORS {
+        uuid error_id PK
+        text error_category
+        text severity
+        text message
+    }
+    DATA_QUALITY_RESULTS {
+        uuid result_id PK
+        text check_name
+        text status
+        bigint records_failed
+    }
+    SOURCE_REGISTRY {
+        uuid source_id PK
+        text source_name
+        bool is_enabled
+    }
+    SOURCE_TABLES {
+        uuid config_id PK
+        text source_table
+        text load_strategy
+        text watermark_strategy
+    }
+    EXTRACT_WATERMARKS {
+        uuid config_id FK
+        text last_watermark_value
+        int lock_version
+    }
+    ETL_WATERMARKS {
+        text table_name PK
+        text last_watermark_value
+        int lock_version
+    }</code></pre>
+<ul>
+<li><strong><code>audit.pipeline_runs</code></strong> — one row per execution. The three parallel per-source Airflow
+  tasks share <strong>one</strong> row via <code>ON CONFLICT (dag_id, dag_run_id)</code>. <code>finish_pipeline_run</code>
+  rolls up using only the <strong>latest attempt per table</strong>; <code>finalize_dag_run</code> first reaps
+  orphaned <code>RUNNING</code> rows.</li>
+<li><strong><code>audit.table_runs</code></strong> — one row per table <strong>attempt</strong> (<code>attempt_number</code> increments),
+  with row counts, watermarks and <code>execution_metadata</code> jsonb. <code>fail_stale_runs(6h)</code> reaps
+  crashed rows at job start.</li>
+<li><strong><code>audit.pipeline_errors</code></strong> — classified (<code>CONNECTION</code> / <code>CONCURRENCY</code> / <code>SPARK</code> /
+  <code>DATA</code> / <code>UNKNOWN</code>), secret-redacted, linked from <code>table_runs.error_id</code>.</li>
+<li><strong><code>audit.source_registry</code> + <code>audit.source_tables</code></strong> — the config every extractor reads
+  via <code>get_enabled_tables</code> (the runtime source of truth for the extract layer).</li>
+<li>DQ verdicts also land in <code>audit.dq_run</code> / <code>audit.dq_violation</code> (view <code>audit.v_dq_latest</code>).</li>
+</ul>
+<h3 id="pipeline-run-lifecycle">Pipeline run lifecycle</h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; RUNNING : start_pipeline_run
+    RUNNING --&gt; RUNNING : table_run attempts update counts
+    RUNNING --&gt; SUCCESS : finish (0 failed, 0 running)
+    RUNNING --&gt; PARTIAL : finish (some ok, some failed)
+    RUNNING --&gt; FAILED : finish (all failed)
+    RUNNING --&gt; FAILED : finalize_dag_run reaps orphans
+    SUCCESS --&gt; [*]
+    PARTIAL --&gt; [*]
+    FAILED --&gt; [*]</code></pre>
+<h2 id="8-data-quality-gates">8. Data-quality gates</h2>
+<p>Each layer is gated by a SQL suite that runs <strong>against the warehouse</strong> before the next
+layer may load. A critical failure blocks publish. This is <em>data</em> testing;
+<em>code</em> testing lives in <code>docs/TESTING.md</code>.</p>
+<pre class="mermaid"><code>flowchart LR
+    DISC["discover *.sql&lt;br/&gt;numeric order"] --&gt; APPLY["CREATE OR REPLACE&lt;br/&gt;audit.dq_&lt;layer&gt;_&lt;check&gt;"]
+    APPLY --&gt; CALL["CALL each procedure"]
+    CALL --&gt; RUN[("audit.dq_run")]
+    CALL --&gt; VIO[("audit.dq_violation")]
+    RUN --&gt; VERDICT{"any FAIL?"}
+    VIO --&gt; VERDICT
+    VERDICT --&gt;|no| PASS["exit 0 · gate open"]
+    VERDICT --&gt;|yes| FAIL["COMMIT then RAISE&lt;br/&gt;exit 1 · blocks publish"]
+
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef ok fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef bad fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    class DISC,APPLY,CALL step
+    class RUN,VIO audit
+    class PASS ok
+    class FAIL,VERDICT bad</code></pre>
+<ul>
+<li>Suites: <code>tests/data-quality/{raw,staging,analytics,marts}/</code> — 10 / 10 / 13 / 11 checks
+  (plus the DDL-only <code>analytics/00_lp_check_upstream_freshness.sql</code> helper function).</li>
+<li>Each file defines <strong>one</strong> procedure <code>audit.dq_&lt;layer&gt;_&lt;check&gt;()</code> that writes
+  <code>audit.dq_run</code> + <code>audit.dq_violation</code>, updates the verdict, <strong><code>COMMIT</code>s, then <code>RAISE</code>s</strong>
+  on failure — the one intentional <code>COMMIT</code> inside SQL, so the reason survives the rollback.</li>
+<li><strong>Check catalogue:</strong> <code>metadata_col, primary_keys, bad_dates, orphan_rows, business_rules,
+  numeric_ranges, schema_contract, completeness, duplicate_rows, value_domains,
+  date_key_integrity, derived_attributes, reconciliation</code>.</li>
+<li>The smoke suite (<code>tests/smoke/test_sql_contract.py</code>) enforces the per-file contract
+  (master file present, unique numeric prefixes, <code>audit.dq_*</code> name, COMMIT-before-RAISE).</li>
+</ul>
+<h2 id="9-publish-to-databricks-delta-step-10">9. Publish to Databricks Delta (step 10)</h2>
+<pre class="mermaid"><code>flowchart LR
+    PG[("PostgreSQL marts.mart_*")]
+    WM["read Delta watermark&lt;br/&gt;SELECT max(wm) FROM target"]
+    READ["Spark JDBC read&lt;br/&gt;windowed rows"]
+    PQ["pyarrow Parquet&lt;br/&gt;local files"]
+    VOL["upload to Unity Catalog volume&lt;br/&gt;Workspace SDK"]
+    SQL["MERGE INTO … read_files&lt;br/&gt;or INSERT OVERWRITE"]
+    DELTA[("Databricks marts.mart_*")]
+
+    WM --&gt; READ
+    PG --&gt; READ
+    READ --&gt; PQ --&gt; VOL --&gt; SQL --&gt; DELTA
+    DELTA -.-&gt;|watermark next run| WM
+
+    classDef pg fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef step fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef files fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef delta fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    class PG pg
+    class WM,READ,SQL step
+    class PQ,VOL files
+    class DELTA delta</code></pre>
+<ul>
+<li>The watermark is read from the Delta target itself, so publishing self-increments. Date
+  watermarks re-read the last N months (<code>--lookback</code> / <code>PUBLISH_LOOKBACK_MONTHS</code>); timestamp
+  watermarks use strict <code>&gt;</code>.</li>
+<li><code>MART_CONFIG</code> in <code>publish_marts.py</code> defines each mart's key columns + watermark
+  (date marts on <code>month_start</code>/<code>month_opened</code>, snapshot marts on <code>mart_refreshed_at</code>).
+  Tables are MERGEd when keyed, <code>INSERT OVERWRITE</code> otherwise.</li>
+<li>pyarrow writes Parquet locally (no Hadoop), files are uploaded to a UC volume, and one
+  <code>MERGE INTO … USING read_files(...)</code> runs straight from the files. Missing columns are
+  added automatically.</li>
+</ul>
+<h2 id="10-orchestration-airflow">10. Orchestration (Airflow)</h2>
+<p>Airflow 3.3.2 (CeleryExecutor) in Docker Compose. Three DAGs; the DAGs hold no pipeline
+logic, only task wiring.</p>
+<pre class="mermaid"><code>flowchart LR
+    PRE["preflight&lt;br/&gt;retries=3"]
+    subgraph EXT["extracts · pool spark_jvm · retries=2"]
+        EM["extract_mongo&lt;br/&gt;w=30"]
+        ED["extract_databricks&lt;br/&gt;w=20"]
+        EX["extract_mysql&lt;br/&gt;w=10"]
+    end
+    RT["raw_tests&lt;br/&gt;retries=0"]
+    SL["staging_load"] --&gt; ST["staging_tests&lt;br/&gt;retries=0"]
+    ST --&gt; AL["analytics_load"] --&gt; AT["analytics_tests&lt;br/&gt;retries=0"]
+    AT --&gt; ML["marts_load"] --&gt; MT["marts_tests&lt;br/&gt;retries=0"]
+    MT --&gt; PB["publish&lt;br/&gt;pool spark_jvm"]
+    PB --&gt; FIN["finalize_audit&lt;br/&gt;all_done"]
+    FIN --&gt; SUM["send_pipeline_summary&lt;br/&gt;all_done"]
+    GATE["fail_if_any_failed&lt;br/&gt;one_failed"]
+
+    PRE --&gt; EM &amp; ED &amp; EX
+    EM &amp; ED &amp; EX --&gt; RT --&gt; SL
+    RT -.-&gt; GATE
+    SL -.-&gt; GATE
+    AL -.-&gt; GATE
+    ML -.-&gt; GATE
+    PB -.-&gt; GATE
+
+    classDef pre fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
+    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
+    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
+    classDef publish fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef gate fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    class PRE pre
+    class EM,ED,EX,RT raw
+    class SL,ST staging
+    class AL,AT analytics
+    class ML,MT marts
+    class PB publish
+    class FIN,SUM audit
+    class GATE gate</code></pre>
+<ul>
+<li><code>banking_delta_daily</code> — <code>0 2 * * *</code> Asia/Kolkata, <code>catchup=False</code>, <code>max_active_runs=1</code>,
+  <code>max_active_tasks=4</code>, <code>dagrun_timeout=5h</code>, param <code>publish_full</code>; created <strong>paused</strong>.</li>
+<li><code>banking_watchdog</code> — every 3 hours; reads <code>audit.pipeline_runs</code> directly and stays
+  <strong>silent when healthy</strong>; mails <code>[MISSED]</code> / <code>[STUCK]</code> / <code>[WATCHDOG-ERROR]</code> otherwise.</li>
+<li><code>banking_report_weekly</code> — Monday 08:00 IST; builds the weekly digest PDF and mails it.</li>
+<li><code>preflight</code> fails in seconds if Java, disk, the warehouse, a source or Maven is missing.</li>
+<li>DQ-gate tasks use <code>retries=0</code> (a data problem does not fix itself); loads retry once.</li>
+<li><code>finalize_audit</code> and <code>send_pipeline_summary</code> use <code>trigger_rule=all_done</code>;
+  <code>fail_if_any_failed</code> (<code>one_failed</code>) makes the run red so Airflow state matches reality.</li>
+</ul>
+<h2 id="11-configuration-and-secrets">11. Configuration and secrets</h2>
+<pre class="mermaid"><code>flowchart LR
+    ENV[".env&lt;br/&gt;git-ignored"] --&gt; CFG["src/utils/config.py&lt;br/&gt;load_dotenv(override=False)"]
+    SHELL["shell / Airflow / CI exports"] --&gt; CFG
+    CFG --&gt; CONN["connection.py&lt;br/&gt;require(NAME)"]
+    CONN --&gt; PG[("PostgreSQL")]
+    CONN --&gt; MY[("MySQL")]
+    CONN --&gt; MO[("MongoDB")]
+    CONN --&gt; DBX[("Databricks")]
+
+    AFENV[".env.airflow&lt;br/&gt;per container"] --&gt; AFSTACK["Airflow containers"]
+
+    classDef cfg fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef db fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    class CFG,CONN cfg
+    class PG,MY,MO,DBX db
+    class ENV,AFENV,SHELL audit</code></pre>
+<ul>
+<li><code>.env</code> is read in exactly one place — <code>src/utils/config.py</code>, with <code>override=False</code>, so
+  shell / Airflow / CI exports always win. Credentials come only from the environment.</li>
+<li>Airflow containers use <code>airflow/.env.airflow</code>; Compose interpolation uses <code>airflow/.env</code>.</li>
+<li>Every <code>require()</code>d variable is listed in <code>.env.example</code>, enforced by
+  <code>tests/smoke/test_env_contract.py</code>. Never commit <code>.env</code>, secrets or keys.</li>
+</ul>
+<h2 id="12-testing-and-ci">12. Testing and CI</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph LOCAL["Local gate · make ci (hermetic, no external deps)"]
+        L1["lint (ruff)"]
+        L2["contracts (JSON schema)"]
+        L3["sql-lint (sqlfluff)"]
+        L4["unit"]
+        L5["smoke"]
+    end
+    subgraph CI["GitHub Actions"]
+        C1["ci · gate + windows-gate (required)"]
+        C2["leaks · gitleaks full history"]
+        C3["codeql · python"]
+        C4["nightly · sql-smoke + integration&lt;br/&gt;disposable Postgres"]
+        C5["release · tag vX.Y.Z"]
+    end
+    subgraph HEAVY["Scheduled / manual · needs real services"]
+        H1["sql-smoke · integration"]
+        H2["spark-smoke"]
+        H3["DQ suites · daily · publish · smoke-live"]
+    end
+    LOCAL --&gt; CI
+    CI --&gt; HEAVY
+
+    classDef gate fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef sec fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef night fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    classDef rel fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    class L1,L2,L3,L4,L5,C1 gate
+    class C2,C3 sec
+    class C4,H1,H2,H3 night
+    class C5 rel</code></pre>
+<ul>
+<li><strong>Markers</strong> (<code>pyproject.toml</code>): <code>unit, smoke, spark, integration, live, spark_smoke</code>.
+  Unmarked tests are silently never run.</li>
+<li><strong>Tiers.</strong> <code>unit</code>/<code>smoke</code> are hermetic (conftest blocks sockets). <code>sql-smoke</code>,
+  <code>integration</code>, <code>spark-smoke</code> and <code>smoke-live</code> need real services and are <strong>out of the
+  PR gate</strong>.</li>
+<li><strong>Windows parity.</strong> <code>tasks.bat</code> mirrors every Makefile target; <code>test_make_parity.py</code>
+  fails if a target is missing or <code>ci</code> picks up a non-hermetic target.</li>
+<li><strong>Coverage.</strong> <code>make cov</code> enforces <code>fail_under</code> in <code>pyproject.toml</code>. Never lower it to
+  pass. <code>sql-lint</code> is currently red on pre-existing <code>sql/</code> violations (separate fix branch).</li>
+<li>Full detail: <code>docs/TESTING.md</code>, <code>docs/GITWORKFLOWS.md</code>.</li>
+</ul>
+<h2 id="13-deployment-topology">13. Deployment topology</h2>
+<pre class="mermaid"><code>flowchart LR
+    subgraph DEV["developer / CI"]
+        UV["uv + make / tasks.bat"]
+        CODE["repo code"]
+    end
+    subgraph PG["PostgreSQL (one per env)"]
+        WH[("banking_delta&lt;br/&gt;raw · staging · analytics · marts · audit")]
+    end
+    subgraph AF["Docker Compose"]
+        STACK["banking-delta-airflow&lt;br/&gt;scheduler · worker · UI :8080"]
+    end
+    subgraph DBX["Databricks"]
+        PUBL[("marts.mart_* Delta")]
+    end
+    DASH["Streamlit :8501&lt;br/&gt;read-only"]
+    UV --&gt; CODE --&gt;|bootstrap sql/scripts| WH
+    STACK --&gt;|same scripts| WH
+    WH --&gt;|publish_marts.py| PUBL
+    DASH --&gt;|SELECT| PUBL
+
+    classDef dev fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef wh fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
+    classDef af fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
+    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
+    class UV,CODE,DASH dev
+    class WH wh
+    class STACK af
+    class PUBL delta</code></pre>
+<p>Four independently deployable pieces — the local toolchain, the PostgreSQL warehouse,
+the Airflow stack and the Streamlit dashboard. Databricks is consumed, not deployed.
+Detail: <code>docs/DEPLOYMENT.md</code>, <code>docs/AIRFLOW.md</code>, <code>docs/RUNBOOK.md</code>,
+<code>docs/TROUBLESHOOTING.md</code>.</p>
+<h2 id="14-cross-cutting-contracts-do-not-break">14. Cross-cutting contracts (do not break)</h2>
+<pre class="mermaid"><code>flowchart TB
+    R1["Watermarks advance only inside the load/extract transaction"]
+    R2["Every load is safe to run twice with the same input"]
+    R3["A critical DQ failure blocks publish"]
+    R4["Layers written only by their owners"]
+    R5["Money is NUMERIC(18,2) · instants are timestamptz UTC"]
+    R6["Audit survives failure (own txns · COMMIT before RAISE)"]
+    R7["The two watermark stores are never mixed"]
+    R8["Never weaken a test, hook or check to reach green"]
+
+    classDef rule fill:#fee2e2,stroke:#b91c1c,color:#7f1d1d,stroke-width:2px
+    class R1,R2,R3,R4,R5,R6,R7,R8 rule</code></pre>
+<ol>
+<li>Watermarks advance only inside the load/extract transaction; <code>extract_watermarks</code>
+   (source→raw) and <code>etl_watermarks</code> (raw→staging) are never mixed.</li>
+<li>Every load is safe to run twice with the same input.</li>
+<li>A critical DQ failure blocks publish.</li>
+<li><code>raw</code>, <code>staging</code>, <code>analytics</code>, <code>marts</code> are written only by their owners.</li>
+<li>Money is <code>NUMERIC(18,2)</code>; all instants are timezone-aware UTC.</li>
+<li>Audit rows survive failure; the DQ gate commits before it raises.</li>
+<li>Never weaken, skip or delete a test, hook or CI check to get green — fix the code
+   or ask.</li>
+</ol>
+<h2 id="15-where-to-go-next">15. Where to go next</h2>
+<ul>
+<li>R analysis layer: see <code>docs/R.md</code> and <code>r/</code> (read-only consumer; runs <code>main.R</code>).</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Document</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>How does the daily pipeline work, end to end?</td>
+<td><code>docs/PIPELINE.md</code></td>
+</tr>
+<tr>
+<td>What is a source → raw data contract?</td>
+<td><code>docs/CONTRACTS.md</code></td>
+</tr>
+<tr>
+<td>How do the DQ gates work?</td>
+<td><code>docs/DATA-QUALITY.md</code></td>
+</tr>
+<tr>
+<td>What is in the audit schema?</td>
+<td><code>docs/AUDIT.md</code></td>
+</tr>
+<tr>
+<td>How does Airflow orchestrate it?</td>
+<td><code>docs/AIRFLOW.md</code></td>
+</tr>
+<tr>
+<td>How do I run, test and gate code?</td>
+<td><code>docs/TESTING.md</code></td>
+</tr>
+<tr>
+<td>What are the CI/CD workflows?</td>
+<td><code>docs/GITWORKFLOWS.md</code></td>
+</tr>
+<tr>
+<td>How do branches, commits and hooks work?</td>
+<td><code>docs/GITWORKFLOWS.md</code></td>
+</tr>
+<tr>
+<td>How is each piece deployed?</td>
+<td><code>docs/DEPLOYMENT.md</code></td>
+</tr>
+<tr>
+<td>The pipeline is failing right now</td>
+<td><code>docs/RUNBOOK.md</code> · <code>docs/TROUBLESHOOTING.md</code></td>
+</tr>
+<tr>
+<td>Rules for working in this repo</td>
+<td><code>AGENTS.md</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="16-airflow-orchestration-reports-fix-history-oct-2026">16. Airflow Orchestration &amp; Reports — Fix History (Oct 2026)</h2>
+<p>This section documents the critical fixes applied to make Airflow orchestration and the report subsystem fully operational. These were <strong>not</strong> design changes — they fixed bugs that prevented the pipeline from completing end-to-end.</p>
+<h3 id="161-problem-summary">16.1 Problem Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>Symptom</th>
+<th>Root Cause</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Report generation failure</td>
+<td><code>build_report</code> task <code>up_for_retry</code>, no PDF produced</td>
+<td><code>commands.py:report_command()</code> returned <code>python -m reports.scripts.build...</code> but <code>banking_cmd()</code> already prepends the interpreter → <code>exec "/opt/venv/bin/python" python -m ...</code> fails</td>
+</tr>
+<tr>
+<td>False FAILED emails</td>
+<td><code>[FAILED]</code> subject on fully successful runs</td>
+<td><code>summary.py:decide_status()</code> used <code>task_states.get(t, "")</code> — missing keys returned <code>""</code> which is in <code>PENDING_STATES</code></td>
+</tr>
+<tr>
+<td>Missing email attachments</td>
+<td>Emails sent but no PDF/LaTeX attached</td>
+<td>1) <code>summary.py</code> run_key sanitization ≠ <code>paths.py</code> run_key (per-char vs regex) 2) <code>send_pipeline_summary</code> runs in <strong>scheduler</strong> container but reports written to <strong>worker</strong>'s <code>report_output</code> volume 3) <code>notify.py</code> hardcoded <code>subtype="pdf"</code> for all attachments</td>
+</tr>
+</tbody>
+</table>
+<h3 id="162-files-modified">16.2 Files Modified</h3>
+<h4 id="airflowincludebanking_airflowcommandspy-lines-6368"><code>airflow/include/banking_airflow/commands.py</code> (lines 63–68)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># BEFORE (broken)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">report_command</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"daily"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"python -m reports.scripts.build --kind </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> ..."</span>
+
+
+<span class="c1"># AFTER (fixed)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">report_command</span><span class="p">(</span><span class="n">kind</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"daily"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"-m reports.scripts.build --kind </span><span class="si">{</span><span class="n">kind</span><span class="si">}</span><span class="s2"> ..."</span>
+</code></pre></div>
+<code>banking_cmd()</code> wraps the command with <code>exec "{BANKING_PYTHON}" {args}</code> — the module flag <code>-m</code> is the correct argument.</p>
+<h4 id="airflowincludebanking_airflowsummarypy-lines-117131"><code>airflow/include/banking_airflow/summary.py</code> (lines 117–131)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># BEFORE (false FAILED)</span>
+<span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">CORE_STEPS</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">task_states</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">task_id</span><span class="p">,</span> <span class="s2">""</span><span class="p">)</span> <span class="ow">in</span> <span class="n">PENDING_STATES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"FAILED"</span>
+
+<span class="c1"># AFTER (correct)</span>
+<span class="k">for</span> <span class="n">task_id</span> <span class="ow">in</span> <span class="n">CORE_STEPS</span><span class="p">:</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">task_states</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">task_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">PENDING_STATES</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">"FAILED"</span>
+</code></pre></div>
+Only tasks with an actual state are checked; missing/unset states no longer trigger failure.</p>
+<h4 id="airflowincludebanking_airflowsummarypy-lines-311345"><code>airflow/include/banking_airflow/summary.py</code> (lines 311–345)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># BEFORE (mismatched run_key, no .tex)</span>
+<span class="n">run_key</span> <span class="o">=</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s2">"_"</span> <span class="k">else</span> <span class="s2">"_"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">run_id</span><span class="p">)</span>
+<span class="n">daily_path</span> <span class="o">=</span> <span class="n">output_root</span> <span class="o">/</span> <span class="s2">"runs"</span> <span class="o">/</span> <span class="n">run_key</span> <span class="o">/</span> <span class="s2">"report.pdf"</span>
+
+<span class="c1"># AFTER (matches paths.run_key, includes .tex)</span>
+<span class="n">_UNSAFE</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"[^A-Za-z0-9_]+"</span><span class="p">)</span>
+<span class="n">run_key</span> <span class="o">=</span> <span class="n">_UNSAFE</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">"_"</span><span class="p">,</span> <span class="n">run_id</span> <span class="ow">or</span> <span class="s2">""</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">"_"</span><span class="p">)</span>
+<span class="c1"># ... finds both report.pdf and incident.pdf</span>
+<span class="k">for</span> <span class="n">tex_file</span> <span class="ow">in</span> <span class="p">(</span><span class="n">output_root</span> <span class="o">/</span> <span class="s2">"runs"</span> <span class="o">/</span> <span class="n">run_key</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.tex"</span><span class="p">):</span>
+    <span class="n">attachments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tex_file</span><span class="p">)</span>
+</code></pre></div>
+Uses the same regex as <code>paths.run_key()</code> (collapses sequences, strips). Also attaches all LaTeX source files.</p>
+<h4 id="airflowdocker-composeyml-services-scheduler-apiserver"><code>airflow/docker-compose.yml</code> (services: scheduler, apiserver)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># ADDED volume mount so scheduler can read report files</span>
+<span class="nt">airflow-scheduler</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;&lt;</span><span class="p">:</span><span class="w"> </span><span class="nv">*airflow-common</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">scheduler</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">report_output:/opt/banking/reports/output</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+
+<span class="nt">airflow-apiserver</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">&lt;&lt;</span><span class="p">:</span><span class="w"> </span><span class="nv">*airflow-common</span>
+<span class="w">    </span><span class="nt">command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">api-server</span>
+<span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="s">"127.0.0.1:8080:8080"</span><span class="p p-Indicator">]</span>
+<span class="w">    </span><span class="nt">volumes</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">report_output:/opt/banking/reports/output</span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+</code></pre></div>
+The <code>send_pipeline_summary</code> task runs in the <strong>scheduler</strong> container (it's a <code>@task</code> decorator, not a <code>BashOperator</code> on the worker). Without this mount, the scheduler couldn't see <code>/opt/banking/reports/output/runs/...</code> written by the worker.</p>
+<h4 id="airflowincludebanking_airflownotifypy-lines-7796"><code>airflow/include/banking_airflow/notify.py</code> (lines 77–96)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># BEFORE (hardcoded PDF subtype)</span>
+<span class="n">msg</span><span class="o">.</span><span class="n">add_attachment</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">maintype</span><span class="o">=</span><span class="s2">"application"</span><span class="p">,</span> <span class="n">subtype</span><span class="o">=</span><span class="s2">"pdf"</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<span class="c1"># AFTER (MIME type by extension)</span>
+<span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".tex"</span><span class="p">:</span>
+    <span class="n">maintype</span><span class="p">,</span> <span class="n">subtype</span> <span class="o">=</span> <span class="s2">"application"</span><span class="p">,</span> <span class="s2">"x-tex"</span>
+<span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">suffix</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">".pdf"</span><span class="p">:</span>
+    <span class="n">maintype</span><span class="p">,</span> <span class="n">subtype</span> <span class="o">=</span> <span class="s2">"application"</span><span class="p">,</span> <span class="s2">"pdf"</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">maintype</span><span class="p">,</span> <span class="n">subtype</span> <span class="o">=</span> <span class="s2">"application"</span><span class="p">,</span> <span class="s2">"octet-stream"</span>
+<span class="n">msg</span><span class="o">.</span><span class="n">add_attachment</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">maintype</span><span class="o">=</span><span class="n">maintype</span><span class="p">,</span> <span class="n">subtype</span><span class="o">=</span><span class="n">subtype</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">path</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div>
+LaTeX source files (<code>.tex</code>) now attach with correct MIME type <code>application/x-tex</code>.</p>
+<h4 id="reportsscriptsbuildpy-lines-279319-_build_kind"><code>reports/scripts/build.py</code> (lines 279–319, <code>_build_kind</code>)</h4>
+<p><div class="highlight"><pre><span></span><code><span class="c1"># ADDED: copy .tex files to run directory for email attachment</span>
+<span class="n">run_dir</span> <span class="o">=</span> <span class="n">paths</span><span class="o">.</span><span class="n">run_dir</span><span class="p">(</span><span class="n">run_key</span><span class="p">,</span> <span class="n">out_root</span><span class="p">)</span>
+<span class="n">run_dir</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">parents</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">tex_file</span> <span class="ow">in</span> <span class="n">paths</span><span class="o">.</span><span class="n">BUILD_DIR</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s2">"*.tex"</span><span class="p">):</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">tex_file</span><span class="p">,</span> <span class="n">run_dir</span> <span class="o">/</span> <span class="n">tex_file</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</code></pre></div>
+After rendering (both normal and degraded builds), all <code>.tex</code> files are copied from the ephemeral <code>build/</code> directory to the persistent run directory so <code>_find_report_attachments()</code> can find them.</p>
+<h3 id="163-verification-checklist">16.3 Verification Checklist</h3>
+<p>All fixes verified by running the pipeline end-to-end:</p>
+<ul class="task-list">
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <code>build_report</code> task completes <code>SUCCESS</code> (not <code>up_for_retry</code>)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> <code>send_pipeline_summary</code> task completes <code>SUCCESS</code></li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Email subject shows <code>[SUCCESS]</code> when all tasks pass</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Email subject shows <code>[FAILED]</code> only when a task actually fails</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Email includes <code>report.pdf</code> attachment</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Email includes all <code>.tex</code> chapter attachments (01_summary.tex … 09_appendix.tex, meta.tex, manifest.tex)</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Scheduled run (02:00 IST) completes without manual intervention</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Watchdog DAG stays silent when pipeline healthy</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Report retention pruning works (30 days via <code>REPORT_RETENTION_DAYS</code>)</li>
+</ul>
+<h3 id="164-runbook-for-future-debugging">16.4 Runbook for Future Debugging</h3>
+<table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build_report</code> fails</td>
+<td><code>docker logs &lt;worker&gt;</code> → look for <code>reports.scripts.build</code> output; verify <code>commands.py</code> uses <code>-m</code> not <code>python</code></td>
+</tr>
+<tr>
+<td>Email says FAILED but tasks green</td>
+<td><code>summary.py:decide_status()</code> — ensure <code>task_states.get(t)</code> not <code>get(t, "")</code></td>
+</tr>
+<tr>
+<td>No attachments in email</td>
+<td>1) <code>docker exec scheduler ls /opt/banking/reports/output/runs/</code> — volume mounted? 2) <code>notify.py</code> MIME type logic 3) <code>build.py</code> copies <code>.tex</code> files?</td>
+</tr>
+<tr>
+<td>Run key mismatch</td>
+<td><code>paths.run_key()</code> vs <code>summary.py</code> — both must use <code>_UNSAFE.sub("_", ...)</code></td>
+</tr>
+</tbody>
+</table>
+<p>(End of file - total 798 lines)</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": [], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>
