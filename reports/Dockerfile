@@ -1,5 +1,5 @@
 # TeX and Python image for the report builder; shell escape stays off.
-FROM python:3.13-slim-bookworm
+FROM python:3.15-slim-bookworm
 
 ARG DEBIAN_FRONTEND=noninteractive
 
