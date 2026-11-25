@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A reproducible daily lakehouse pipeline from MySQL, MongoDB and Databricks public through PostgreSQL layers to Databricks Delta marts, gated by 44 data quality checks.">
+    <meta property="og:title" content="Banking Delta Lakehouse — controlled daily data product">
+    <meta property="og:description" content="Three sources, ten gated steps, four data quality layers and eight Delta marts in one reproducible daily pipeline.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="favicon.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Banking Delta Lakehouse — controlled daily data product">
+    <meta name="twitter:description" content="Three sources, ten gated steps, four data quality layers and eight Delta marts in one reproducible daily pipeline.">
+    <title>Banking Delta Lakehouse — controlled daily data product</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap">
+    <link rel="stylesheet" href="style/tokens.css">
+    <link rel="stylesheet" href="style/base.css">
+    <link rel="stylesheet" href="style/components.css">
+    <link rel="stylesheet" href="style/diagrams.css">
+    <script>document.documentElement.classList.add("js");</script>
+    <script src="scripts/site.js" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" id="top">
+      <nav class="site-nav wrap" aria-label="Primary">
+        <a class="brand" href="#top" aria-label="Banking Delta Lakehouse">
+          <span class="brand-mark" aria-hidden="true">BD</span>
+          <span>Banking Delta Lakehouse</span>
+        </a>
+
+        <button class="menu-button" id="menu-button" type="button" aria-expanded="false" aria-controls="nav-links">Menu</button>
+
+        <div class="navlinks" id="nav-links">
+          <a class="navlink" href="#pipeline">Pipeline</a>
+          <a class="navlink" href="#quality">Quality</a>
+          <a class="navlink" href="#orchestration">Orchestration</a>
+          <a class="navlink" href="#stack">Stack</a>
+          <a class="navlink" href="#repository">Repository</a>
+          <a class="navlink" href="#docs">Docs</a>
+        </div>
+
+        <div class="nav-actions">
+          <div class="more-wrap">
+            <button class="icon-button" id="more-button" type="button" aria-expanded="false" aria-controls="more-menu">More</button>
+            <div class="more-menu" id="more-menu" hidden>
+              <a href="#extract">Extract order</a>
+              <a href="#layers">Layers</a>
+              <a href="#watermarks">Watermarks</a>
+              <a href="#audit">Audit lane</a>
+              <a href="#publish">Publish</a>
+              <a href="#principles">Principles</a>
+              <a href="#testing">Testing</a>
+            </div>
+          </div>
+          <button class="icon-button" id="theme-toggle" type="button" aria-label="Switch to light theme" aria-pressed="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path>
+            </svg>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero section--flush" aria-labelledby="hero-title">
+        <div class="wrap">
+          <div class="hero-grid">
+            <div class="hero-copy">
+              <span class="eyebrow">Daily lakehouse · reproducible by design</span>
+              <h1 id="hero-title">From three source systems to <span class="gradient-text">trusted Delta marts</span>.</h1>
+              <p class="lead">A local-first PySpark pipeline lands MySQL, MongoDB and Databricks <code class="codechip">public</code> data into PostgreSQL, transforms it through medallion layers, gates every layer with SQL data quality suites, then publishes eight marts to Databricks Delta.</p>
+              <div class="hero-actions">
+                <a class="button button--primary" href="#pipeline">Explore the pipeline</a>
+                <a class="button button--ghost" href="#docs">Read the source docs</a>
+              </div>
+              <div class="stat-strip" aria-label="Pipeline summary">
+                <div class="stat">
+                  <span class="stat-value">3</span>
+                  <span class="stat-label">source systems</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">10</span>
+                  <span class="stat-label">gated steps</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">44</span>
+                  <span class="stat-label">DQ checks</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value">8</span>
+                  <span class="stat-label">Delta marts</span>
+                </div>
+              </div>
+            </div>
+
+            <figure class="mini-flow" aria-label="Compact data path">
+              <div class="mini-node">
+                <strong>Sources</strong>
+                <span>MySQL · Mongo · public</span>
+              </div>
+              <span class="mini-link" aria-hidden="true"></span>
+              <div class="mini-node">
+                <strong>PySpark</strong>
+                <span>ordered extract</span>
+              </div>
+              <span class="mini-link" aria-hidden="true"></span>
+              <div class="mini-node">
+                <strong>PostgreSQL</strong>
+                <span>raw to marts</span>
+              </div>
+              <span class="mini-link" aria-hidden="true"></span>
+              <div class="mini-node">
+                <strong>DQ gates</strong>
+                <span>44 checks</span>
+              </div>
+              <span class="mini-link" aria-hidden="true"></span>
+              <div class="mini-node">
+                <strong>Delta</strong>
+                <span>8 marts</span>
+              </div>
+              <figcaption class="visually-hidden">Sources flow through PySpark and PostgreSQL layers, DQ gates and Delta publication.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="pipeline" aria-labelledby="pipeline-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Pipeline map</span>
+            <h2 id="pipeline-title">One run, ten steps, four hard gates</h2>
+            <p class="lead">The path is generated from measured nodes, not fixed coordinates. Follow the data lane, orchestration lane and audit lane; select any node for detail.</p>
+          </div>
+
+          <div class="diagram-shell">
+            <div class="diagram-toolbar">
+              <button class="icon-button" id="play-button" type="button">Play</button>
+              <button class="icon-button" id="pause-button" type="button">Pause</button>
+              <label class="visually-hidden" for="replay-range">Replay step</label>
+              <input class="replay-range" id="replay-range" type="range" min="0" max="11" value="0" step="1">
+              <span class="pill diagram-toolbar-label">Illustrative replay</span>
+            </div>
+
+            <div class="diagram-canvas" id="diagram-canvas">
+              <svg class="diagram-connectors" id="flow-connectors" aria-hidden="true"></svg>
+
+              <div class="diagram-main">
+                <p class="lane-title">Data flow</p>
+                <ol class="flow-list" id="flow-list">
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--sources" data-detail="sources" type="button">
+                      <span class="flow-sign">IN</span>
+                      <span class="flow-copy"><strong>Three source systems</strong><span>MySQL · MongoDB · Databricks public</span></span>
+                      <span class="flow-meta">10 tables</span>
+                    </button>
+                    <span class="edge-pill">ordered extract</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node" data-detail="extract" type="button">
+                      <span class="flow-sign">01</span>
+                      <span class="flow-copy"><strong>Extract with PySpark</strong><span>Mongo → Databricks → MySQL</span></span>
+                      <span class="flow-meta">retry</span>
+                    </button>
+                    <span class="edge-pill">landing frames</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--raw" data-detail="raw" type="button">
+                      <span class="flow-sign">02</span>
+                      <span class="flow-copy"><strong>Land raw</strong><span>PostgreSQL raw, idempotent per run</span></span>
+                      <span class="flow-meta">10 tables</span>
+                    </button>
+                    <span class="edge-pill">raw suite</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--gate" data-detail="dq-raw" type="button">
+                      <span class="flow-sign">G1</span>
+                      <span class="flow-copy"><strong>Raw DQ gate</strong><span>Critical failure stops the run</span></span>
+                      <span class="flow-meta">10 checks</span>
+                    </button>
+                    <span class="edge-pill">certified raw</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--staging" data-detail="staging" type="button">
+                      <span class="flow-sign">04</span>
+                      <span class="flow-copy"><strong>Bronze to silver</strong><span>staging.stg_* typed and conformed</span></span>
+                      <span class="flow-meta">10 tables</span>
+                    </button>
+                    <span class="edge-pill">staging suite</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--gate" data-detail="dq-staging" type="button">
+                      <span class="flow-sign">G2</span>
+                      <span class="flow-copy"><strong>Staging DQ gate</strong><span>Critical failure stops the run</span></span>
+                      <span class="flow-meta">10 checks</span>
+                    </button>
+                    <span class="edge-pill">certified staging</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--analytics" data-detail="analytics" type="button">
+                      <span class="flow-sign">06</span>
+                      <span class="flow-copy"><strong>Silver to gold</strong><span>7 dimensions · 4 facts</span></span>
+                      <span class="flow-meta">core</span>
+                    </button>
+                    <span class="edge-pill">analytics suite</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--gate" data-detail="dq-analytics" type="button">
+                      <span class="flow-sign">G3</span>
+                      <span class="flow-copy"><strong>Analytics DQ gate</strong><span>Critical failure stops the run</span></span>
+                      <span class="flow-meta">13 checks</span>
+                    </button>
+                    <span class="edge-pill">certified core</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--marts" data-detail="marts" type="button">
+                      <span class="flow-sign">08</span>
+                      <span class="flow-copy"><strong>Business marts</strong><span>customer 360 · loans · transactions</span></span>
+                      <span class="flow-meta">8 marts</span>
+                    </button>
+                    <span class="edge-pill">marts suite</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--gate" data-detail="dq-marts" type="button">
+                      <span class="flow-sign">G4</span>
+                      <span class="flow-copy"><strong>Marts DQ gate</strong><span>Critical failure blocks publish</span></span>
+                      <span class="flow-meta">11 checks</span>
+                    </button>
+                    <span class="edge-pill">publish lock</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--publish" data-detail="publish" type="button">
+                      <span class="flow-sign">10</span>
+                      <span class="flow-copy"><strong>Publish marts</strong><span>Parquet to UC volume to Delta overwrite</span></span>
+                      <span class="flow-meta">full refresh</span>
+                    </button>
+                    <span class="edge-pill">Databricks</span>
+                  </li>
+                  <li class="flow-item">
+                    <button class="flow-node flow-node--consumer" data-detail="consumer" type="button">
+                      <span class="flow-sign">OUT</span>
+                      <span class="flow-copy"><strong>Delta marts</strong><span>Streamlit and reporting consumers</span></span>
+                      <span class="flow-meta">core · mart</span>
+                    </button>
+                  </li>
+                </ol>
+              </div>
+
+              <div class="diagram-side">
+                <section class="side-lane" id="orchestration-lane" aria-labelledby="orchestration-lane-title">
+                  <h3 id="orchestration-lane-title">Orchestration lane</h3>
+                  <button class="lane-node" data-detail="airflow" type="button"><span>Airflow daily</span><span>0 2 * * *</span></button>
+                  <button class="lane-node" data-detail="main" type="button"><span>main.py</span><span>10 gated steps</span></button>
+                  <button class="lane-node" data-detail="run-order" type="button"><span>run_jobs.py</span><span>mongo → databricks → mysql</span></button>
+                  <button class="lane-node" data-detail="retry" type="button"><span>Retry policy</span><span>3 · 30s · 300s</span></button>
+                  <button class="lane-node" data-detail="watchdog" type="button"><span>Watchdog</span><span>0 */3 * * *</span></button>
+                  <button class="lane-node" data-detail="weekly" type="button"><span>Weekly report</span><span>Mon 08:00</span></button>
+                </section>
+
+                <section class="side-lane" id="audit" aria-labelledby="audit-title">
+                  <h3 id="audit-title">Audit lane</h3>
+                  <button class="lane-node" data-detail="audit" type="button"><span>audit.dq_*</span><span>SQL suites</span></button>
+                  <span class="stop-chip" data-stop-for="dq-raw">raw stop</span>
+                  <span class="stop-chip" data-stop-for="dq-staging">staging stop</span>
+                  <span class="stop-chip" data-stop-for="dq-analytics">core stop</span>
+                  <span class="stop-chip" data-stop-for="dq-marts">publish blocked</span>
+                  <button class="lane-node" data-detail="attempt-rollup" type="button"><span>finish_pipeline_run</span><span>latest attempt</span></button>
+                  <button class="lane-node" data-detail="orphan-reap" type="button"><span>finalize_dag_run</span><span>reap orphans</span></button>
+                </section>
+              </div>
+            </div>
+
+            <div class="diagram-terminal" aria-label="Illustrative replay console">
+              <div class="terminal-head">
+                <span class="terminal-lights" aria-hidden="true"><i></i><i></i><i></i></span>
+                <span class="tiny">local replay · no live connection</span>
+              </div>
+              <div class="terminal-lines" id="terminal-lines" aria-live="polite">
+                <span class="terminal-line">ready · select play to replay a normal daily run</span>
+              </div>
+            </div>
+
+            <ol class="flow-stepper" aria-label="Pipeline steps">
+              <li><strong>Extract</strong><span>MongoDB, Databricks public and MySQL with retries.</span></li>
+              <li><strong>Land raw</strong><span>Idempotent raw tables in PostgreSQL.</span></li>
+              <li><strong>Raw DQ gate</strong><span>10 checks; critical failures stop the run.</span></li>
+              <li><strong>Bronze to silver</strong><span>Typed staging tables.</span></li>
+              <li><strong>Staging DQ gate</strong><span>10 checks; critical failures stop the run.</span></li>
+              <li><strong>Silver to gold</strong><span>7 dimensions and 4 facts.</span></li>
+              <li><strong>Analytics DQ gate</strong><span>13 checks; critical failures stop the run.</span></li>
+              <li><strong>Build marts</strong><span>8 business marts.</span></li>
+              <li><strong>Marts DQ gate</strong><span>11 checks; critical failures block publish.</span></li>
+              <li><strong>Publish marts</strong><span>Parquet to UC volume to Delta overwrite.</span></li>
+            </ol>
+          </div>
+
+          <aside class="detail-drawer" id="detail-drawer" aria-hidden="true" aria-labelledby="drawer-title">
+            <div class="drawer-head">
+              <h3 id="drawer-title">Pipeline detail</h3>
+              <button class="drawer-close" id="drawer-close" type="button">Close</button>
+            </div>
+            <p class="muted" id="drawer-body">Select a node in the diagram to inspect it.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="extract" aria-labelledby="extract-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Extract</span>
+            <h2 id="extract-title">Three systems, one deterministic order</h2>
+            <p class="lead">Extraction runs MongoDB first, then Databricks public, then MySQL. Each attempt has three tries, 30-second backoff and a 300-second timeout.</p>
+          </div>
+
+          <div class="bento">
+            <article class="card bento-item">
+              <div class="card-head"><h3>MySQL</h3><span class="pill">5 full</span></div>
+              <p class="muted">Full loads of <code class="codechip">accounts</code>, <code class="codechip">branches</code>, <code class="codechip">cards</code>, <code class="codechip">customers</code> and <code class="codechip">employees</code>.</p>
+            </article>
+            <article class="card bento-item">
+              <div class="card-head"><h3>MongoDB</h3><span class="pill">2 incremental</span></div>
+              <p class="muted"><code class="codechip">support_tickets</code> and <code class="codechip">card_transactions</code> re-read by <code class="codechip">_id</code>.</p>
+            </article>
+            <article class="card bento-item">
+              <div class="card-head"><h3>Databricks public</h3><span class="pill">3 incremental</span></div>
+              <p class="muted"><code class="codechip">loans</code>, <code class="codechip">loan_payments</code> and <code class="codechip">transactions</code> re-read by <code class="codechip">created_at</code>.</p>
+            </article>
+          </div>
+
+          <div class="snippet">
+            <div class="snippet-head">
+              <span class="tiny">source order</span>
+              <button class="copy-button" type="button" data-copy="mongo,databricks,mysql">Copy</button>
+            </div>
+            <pre>mongo,databricks,mysql</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="layers" aria-labelledby="layers-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Layers</span>
+            <h2 id="layers-title">Medallion layers with explicit owners</h2>
+            <p class="lead">Landing, staging, core and mart are written only by their owners. SQL procedures transform inside PostgreSQL; Databricks receives published marts.</p>
+          </div>
+
+          <div class="bento">
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>raw</h3><span class="pill">10 tables</span></div>
+              <p class="muted">PySpark lands source snapshots with run tags. MySQL full loads truncate and insert atomically; incremental sources re-read a bounded window.</p>
+            </article>
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>staging</h3><span class="pill">10 tables</span></div>
+              <p class="muted">Stored procedures conform types, normalise keys and prepare SCD2 hashes for core loads.</p>
+            </article>
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>core</h3><span class="pill">7 dims · 4 facts</span></div>
+              <p class="muted">Dimensions use SCD2; facts store measures as <code class="codechip">NUMERIC(18,2)</code> and timestamps as <code class="codechip">timestamptz</code>.</p>
+            </article>
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>mart</h3><span class="pill">8 marts</span></div>
+              <p class="muted">Business tables are exported to Parquet, staged in a UC volume and written to Delta/core and Delta/mart.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="quality" aria-labelledby="quality-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Quality</span>
+            <h2 id="quality-title">44 checks across four gates</h2>
+            <p class="lead">Every layer has a SQL DQ suite in <code class="codechip">tests/data-quality/</code>. A critical failure blocks publish; watermarks advance only inside the load transaction.</p>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat"><span class="stat-value">10</span><span class="stat-label">raw checks</span></div>
+            <div class="stat"><span class="stat-value">10</span><span class="stat-label">staging checks</span></div>
+            <div class="stat"><span class="stat-value">13</span><span class="stat-label">analytics checks</span></div>
+            <div class="stat"><span class="stat-value">11</span><span class="stat-label">mart checks</span></div>
+          </div>
+
+          <div class="callout callout--danger" id="principles">
+            <strong>Never mixed.</strong>
+            <span>Full MySQL loads have no watermark. Truncate and insert are atomic so readers never see an empty table, and every load is safe to run twice with the same input.</span>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <caption class="visually-hidden">Data quality suites by layer</caption>
+              <thead>
+                <tr><th scope="col">Layer</th><th scope="col">Checks</th><th scope="col">Suite</th></tr>
+              </thead>
+              <tbody>
+                <tr><td data-label="Layer">raw</td><td data-label="Checks">10</td><td data-label="Suite"><code class="codechip">tests/data-quality/raw</code></td></tr>
+                <tr><td data-label="Layer">staging</td><td data-label="Checks">10</td><td data-label="Suite"><code class="codechip">tests/data-quality/staging</code></td></tr>
+                <tr><td data-label="Layer">analytics</td><td data-label="Checks">13</td><td data-label="Suite"><code class="codechip">tests/data-quality/analytics</code></td></tr>
+                <tr><td data-label="Layer">marts</td><td data-label="Checks">11</td><td data-label="Suite"><code class="codechip">tests/data-quality/marts</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card" id="watermarks">
+            <div class="card-head"><h3>Watermark behaviour</h3><button class="copy-button" type="button" data-copy="--lookback / PUBLISH_LOOKBACK_MONTHS">Copy</button></div>
+            <p class="muted">Date watermarks re-read the last N months with <code class="codechip">--lookback</code> or <code class="codechip">PUBLISH_LOOKBACK_MONTHS</code>. Timestamp watermarks use strict <code class="codechip">&gt;</code>. Missing columns are added automatically.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="orchestration" aria-labelledby="orchestration-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Orchestration</span>
+            <h2 id="orchestration-title">Three Airflow DAGs, one daily contract</h2>
+            <p class="lead">Airflow 3.3.2 runs the daily pipeline with CeleryExecutor, a watchdog every three hours and a weekly report on Monday morning.</p>
+          </div>
+
+          <div class="bento">
+            <article class="card bento-item">
+              <div class="card-head"><h3>Daily</h3><span class="pill">0 2 * * *</span></div>
+              <p class="muted"><code class="codechip">banking_delta_daily</code> runs at 02:00 Asia/Kolkata.</p>
+            </article>
+            <article class="card bento-item">
+              <div class="card-head"><h3>Watchdog</h3><span class="pill">0 */3 * * *</span></div>
+              <p class="muted"><code class="codechip">banking_watchdog</code> checks every three hours.</p>
+            </article>
+            <article class="card bento-item">
+              <div class="card-head"><h3>Weekly report</h3><span class="pill">0 8 * * 1</span></div>
+              <p class="muted"><code class="codechip">banking_report_weekly</code> runs Monday at 08:00.</p>
+            </article>
+          </div>
+
+          <div class="table-card">
+            <table class="data-table">
+              <caption class="visually-hidden">Airflow configuration facts</caption>
+              <thead>
+                <tr><th scope="col">Setting</th><th scope="col">Value</th><th scope="col">Source</th></tr>
+              </thead>
+              <tbody>
+                <tr><td data-label="Setting">Airflow</td><td data-label="Value"><code class="codechip">3.3.2</code></td><td data-label="Source"><code class="codechip">airflow/.env.airflow.example</code></td></tr>
+                <tr><td data-label="Setting">Python</td><td data-label="Value"><code class="codechip">3.13</code></td><td data-label="Source"><code class="codechip">airflow/.env.airflow.example</code></td></tr>
+                <tr><td data-label="Setting">Executor</td><td data-label="Value"><code class="codechip">CeleryExecutor</code></td><td data-label="Source"><code class="codechip">airflow/docker-compose.yml</code></td></tr>
+                <tr><td data-label="Setting">Retry</td><td data-label="Value"><code class="codechip">3 · 30s · 300s</code></td><td data-label="Source"><code class="codechip">scripts/run_jobs.py</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="snippet" id="testing">
+            <div class="snippet-head">
+              <span class="tiny">gate command</span>
+              <button class="copy-button" type="button" data-copy="make ci">Copy</button>
+            </div>
+            <pre>make ci</pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="stack" aria-labelledby="stack-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Stack</span>
+            <h2 id="stack-title">Local-first, contract-driven, publish-last</h2>
+            <p class="lead">Python 3.13 and PySpark 3.5.x do the movement, PostgreSQL procedures do the transformation, SQL suites gate each layer, and Databricks Delta is the published surface.</p>
+          </div>
+
+          <div class="bento">
+            <article class="card bento-item bento-item--wide">
+              <div class="card-head"><h3>Runtime pins</h3><span class="pill">contract-first</span></div>
+              <div class="card-list">
+                <div class="codechip">requires-python = "&gt;=3.13"</div>
+                <div class="codechip">pyspark&gt;=3.5.3,&lt;3.6</div>
+                <div class="codechip">streamlit==1.66.1</div>
+                <div class="codechip">plotly&gt;=7.0,&lt;8</div>
+              </div>
+            </article>
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>Transform</h3><span class="pill">SQL procedures</span></div>
+              <p class="muted">Explicit column lists, advisory locks, no procedure commits and counts returned through OUT parameters.</p>
+            </article>
+            <article class="card bento-item bento-item--half">
+              <div class="card-head"><h3>Serve</h3><span class="pill">Delta + Streamlit</span></div>
+              <p class="muted">Published marts land in Databricks core/mart; reporting and Streamlit consume the curated tables.</p>
+            </article>
+            <article class="card bento-item bento-item--wide" id="publish">
+              <div class="card-head"><h3>Publish is a full overwrite</h3><span class="pill pill--warn">corrected in docs</span></div>
+              <p class="muted">The current implementation exports each mart to Parquet, stages it in a UC volume and runs an overwrite against Delta. An empty <code class="codechip">where</code> forces the full refresh; it is not a keyed MERGE.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="repository" aria-labelledby="repository-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Repository</span>
+            <h2 id="repository-title">Where to start reading</h2>
+            <p class="lead">The architecture document is the design contract, the code is authoritative, and the discrepancy log tracks where prose has drifted.</p>
+          </div>
+
+          <div class="bento">
+            <div class="tree bento-item bento-item--half">
+              <div class="tree-row"><code>main.py</code><span class="muted">10 gated steps</span></div>
+              <div class="tree-row"><code>scripts/run_jobs.py</code><span class="muted">extract order and retries</span></div>
+              <div class="tree-row"><code>src/jobs/publish_marts.py</code><span class="muted">8 marts and Delta overwrite</span></div>
+              <div class="tree-row"><code>sql/marts/01..08_*.sql</code><span class="muted">business marts</span></div>
+              <div class="tree-row"><code>tests/data-quality/</code><span class="muted">44 SQL checks</span></div>
+              <div class="tree-row"><code>airflow/dags/</code><span class="muted">3 DAGs</span></div>
+            </div>
+            <div class="card bento-item bento-item--half">
+              <div class="card-head"><h3>Verified facts</h3><span class="pill">source cited</span></div>
+              <p class="muted"><code class="codechip">REPO_UNDERSTANDING.md</code> records the architecture, source counts, DQ totals, DAG schedules, dependency pins and every documentation discrepancy with file and line references.</p>
+              <p class="muted"><a href="../REPO_UNDERSTANDING.md" data-doc="REPO_UNDERSTANDING.md">Open the fact ledger</a></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="docs" aria-labelledby="docs-title">
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Docs</span>
+            <h2 id="docs-title">Follow the source</h2>
+            <p class="lead">These links are generated from one repository URL. They fall back to local relative paths when JavaScript is unavailable.</p>
+          </div>
+
+          <div class="tree">
+            <div class="tree-row"><code>README.md</code><a href="../README.md" data-doc="README.md">Project overview</a></div>
+            <div class="tree-row"><code>ARCHITECTURE.md</code><a href="../ARCHITECTURE.md" data-doc="ARCHITECTURE.md">Design contract</a></div>
+            <div class="tree-row"><code>docs/DATA-QUALITY.md</code><a href="../docs/DATA-QUALITY.md" data-doc="docs/DATA-QUALITY.md">DQ suites</a></div>
+            <div class="tree-row"><code>docs/AIRFLOW.md</code><a href="../docs/AIRFLOW.md" data-doc="docs/AIRFLOW.md">Orchestration</a></div>
+            <div class="tree-row"><code>docs/TESTING.md</code><a href="../docs/TESTING.md" data-doc="docs/TESTING.md">Test tiers</a></div>
+            <div class="tree-row"><code>docs/DEPLOYMENT.md</code><a href="../docs/DEPLOYMENT.md" data-doc="docs/DEPLOYMENT.md">Deployment</a></div>
+            <div class="tree-row"><code>REPO_UNDERSTANDING.md</code><a href="../REPO_UNDERSTANDING.md" data-doc="REPO_UNDERSTANDING.md">Fact ledger</a></div>
+            <div class="tree-row"><code>SITE_AUDIT.md</code><a href="../SITE_AUDIT.md" data-doc="SITE_AUDIT.md">Site audit</a></div>
+          </div>
+
+          <noscript>
+            <div class="callout">
+              <strong>Static mode.</strong>
+              <span>All content and links remain visible. The replay console and detail drawer need JavaScript.</span>
+            </div>
+          </noscript>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="wrap footer-grid">
+        <div>
+          <strong>Banking Delta Lakehouse</strong>
+          <p class="muted tiny">Static site · no build step · facts sourced from the repository</p>
+        </div>
+        <div class="footer-links">
+          <a href="../" data-repo-link>Repository</a>
+          <a href="../REPO_UNDERSTANDING.md" data-doc="REPO_UNDERSTANDING.md">Fact ledger</a>
+          <a href="#top">Back to top</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

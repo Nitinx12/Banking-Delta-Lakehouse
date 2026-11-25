@@ -563,10 +563,6 @@
   font-size: var(--text-xs);
 }
 
-.js .menu-button {
-  display: inline-flex;
-}
-
 .js .navlinks.is-open {
   position: absolute;
   top: var(--nav-h);
@@ -616,6 +612,10 @@
 @media (max-width: 760px) {
   .site-nav {
     justify-content: space-between;
+  }
+
+  .js .menu-button {
+    display: inline-flex;
   }
 
   .js .navlinks:not(.is-open) {
@@ -677,6 +677,10 @@
 }
 
 @media (max-width: 520px) {
+  .brand span:last-child {
+    display: none;
+  }
+
   .stat-strip {
     grid-template-columns: 1fr;
   }

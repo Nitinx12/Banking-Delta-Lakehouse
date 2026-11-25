@@ -59,6 +59,11 @@
   stroke-dasharray: 0.35rem 0.45rem;
 }
 
+.diagram-connectors .edge--lane {
+  stroke: var(--line-strong);
+  stroke-dasharray: 0.25rem 0.35rem;
+}
+
 .diagram-connectors .edge--audit {
   stroke: var(--audit);
   stroke-dasharray: 0.2rem 0.4rem;
@@ -69,7 +74,7 @@
   stroke-dasharray: 0.4rem 0.35rem;
 }
 
-.diagram-connectors .edge.is-active {
+.diagram-connectors path.is-active {
   stroke: var(--accent);
   stroke-width: 2.5;
   filter: drop-shadow(0 0 0.45rem var(--accent));
