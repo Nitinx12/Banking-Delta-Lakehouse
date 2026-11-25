@@ -1,0 +1,29 @@
+{
+  "url": "file:///C:/Git-Repo/Banking/site/index.html",
+  "generatedAt": "2026-11-25T12:59:57.984Z",
+  "browser": "headless Chrome/Edge via CDP",
+  "prefix": "cls",
+  "noJs": false,
+  "reducedMotion": false,
+  "keyboard": false,
+  "runs": [
+    {
+      "width": 768,
+      "screenshot": "docs/site-qa/cls-768.png",
+      "horizontalScroll": false,
+      "scrollWidth": 753,
+      "internalHorizontalScrollers": [],
+      "visibleTextOverlaps": [],
+      "svgIssues": [],
+      "overflowOffenders": [],
+      "cls": 0,
+      "shifts": [],
+      "transferBytesExcludingFonts": 81776,
+      "consoleErrors": [],
+      "failedRequests": [],
+      "keyboard": null,
+      "passed": true
+    }
+  ],
+  "passed": true
+}

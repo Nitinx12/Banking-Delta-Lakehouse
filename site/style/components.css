@@ -507,13 +507,15 @@
   background: var(--ink-900);
   box-shadow: var(--shadow);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateY(var(--space-3));
-  transition: opacity var(--transition), transform var(--transition);
+  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
 }
 
 .detail-drawer[aria-hidden="false"] {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 }

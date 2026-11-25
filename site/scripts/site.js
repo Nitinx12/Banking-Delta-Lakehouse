@@ -226,6 +226,7 @@
     let activeStep = 0;
     let replayTimer = null;
     let typingTimer = null;
+    let drawerTrigger = null;
 
     const terminal = select("#terminal-lines");
     const range = select("#replay-range");
@@ -347,7 +348,10 @@
     }
 
     function closeDrawer() {
-      if (drawer) drawer.setAttribute("aria-hidden", "true");
+      if (!drawer) return;
+      const hadFocus = drawer.contains(document.activeElement);
+      drawer.setAttribute("aria-hidden", "true");
+      if (hadFocus && drawerTrigger) drawerTrigger.focus();
     }
 
     function renderTerminal(index) {
@@ -411,6 +415,7 @@
 
     selectAll(".flow-node, .lane-node").forEach((node) => {
       node.addEventListener("click", () => {
+        drawerTrigger = node;
         const id = node.dataset.detail;
         const stepIndex = STEPS.findIndex((entry) => entry[0] === id);
         if (stepIndex >= 0) setStep(stepIndex);

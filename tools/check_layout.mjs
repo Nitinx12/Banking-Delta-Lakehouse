@@ -132,18 +132,22 @@ const MEASURE = String.raw`(() => {
     }
   }
 
-  return { overflow, internalScrollers, textOverlaps, svgIssues };
+  return { overflow, internalScrollers, textOverlaps, svgIssues, cls: window.__cls || 0, shifts: window.__shifts || [] };
 })()`;
 
 function parseArgs(argv) {
-  const parsed = { url: DEFAULT_URL, out: DEFAULT_OUT, widths: DEFAULT_WIDTHS };
+  const parsed = { url: DEFAULT_URL, out: DEFAULT_OUT, widths: DEFAULT_WIDTHS, prefix: "before", noJs: false, reducedMotion: false, keyboard: false };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--url") parsed.url = argv[++i];
     else if (arg === "--out") parsed.out = path.resolve(argv[++i]);
     else if (arg === "--widths") parsed.widths = argv[++i].split(",").map(Number).filter(Boolean);
+    else if (arg === "--prefix") parsed.prefix = argv[++i];
+    else if (arg === "--no-js") parsed.noJs = true;
+    else if (arg === "--reduced-motion") parsed.reducedMotion = true;
+    else if (arg === "--keyboard") parsed.keyboard = true;
     else if (arg === "--help") {
-      console.log("Usage: node tools/check_layout.mjs [--url file-or-http-url] [--out dir] [--widths 360,768,1024,1440,1920]");
+      console.log("Usage: node tools/check_layout.mjs [--url file-or-http-url] [--out dir] [--widths 360,768,1024,1440,1920] [--prefix before|after] [--no-js] [--reduced-motion] [--keyboard]");
       process.exit(0);
     } else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -260,12 +264,66 @@ async function connect(websocketUrl) {
   return new Cdp(ws);
 }
 
+async function pressTab(cdp, sessionId) {
+  await cdp.send("Input.dispatchKeyEvent", {
+    type: "keyDown",
+    key: "Tab",
+    code: "Tab",
+    windowsVirtualKeyCode: 9,
+    nativeVirtualKeyCode: 9
+  }, sessionId);
+  await cdp.send("Input.dispatchKeyEvent", {
+    type: "keyUp",
+    key: "Tab",
+    code: "Tab",
+    windowsVirtualKeyCode: 9,
+    nativeVirtualKeyCode: 9
+  }, sessionId);
+}
+
+async function focusState(cdp, sessionId) {
+  const evaluated = await cdp.send("Runtime.evaluate", {
+    expression: `(() => {
+      const el = document.activeElement;
+      const panel = document.querySelector("#nav-links");
+      return {
+        tag: el ? el.tagName.toLowerCase() : "",
+        text: el && el.textContent ? el.textContent.trim().replace(/\\s+/g, " ").slice(0, 60) : "",
+        cls: el && typeof el.className === "string" ? el.className : "",
+        inNavPanel: Boolean(el && panel && panel.contains(el))
+      };
+    })()`,
+    returnByValue: true
+  }, sessionId);
+  return evaluated.result.value;
+}
+
+async function measureKeyboard(cdp, sessionId) {
+  const focusPath = [];
+  for (let index = 0; index < 12; index += 1) {
+    await pressTab(cdp, sessionId);
+    focusPath.push(await focusState(cdp, sessionId));
+  }
+  const trapPath = [];
+  await cdp.send("Runtime.evaluate", { expression: "document.querySelector('#menu-button').click()" }, sessionId);
+  for (let index = 0; index < 8; index += 1) {
+    await pressTab(cdp, sessionId);
+    trapPath.push(await focusState(cdp, sessionId));
+  }
+  await cdp.send("Runtime.evaluate", { expression: "document.querySelector('#menu-button').click()" }, sessionId);
+  return {
+    focusPath,
+    trapPath,
+    passed: focusPath[0]?.cls === "skip-link" && trapPath.every((item) => item.inNavPanel)
+  };
+}
+
 async function main() {
-  const { url, out, widths } = parseArgs(process.argv.slice(2));
+  const { url, out, widths, prefix, noJs, reducedMotion, keyboard } = parseArgs(process.argv.slice(2));
   await mkdir(out, { recursive: true });
   const browser = await startBrowser(await findBrowser());
   const cdp = await connect(browser.websocketUrl);
-  const report = { url, generatedAt: new Date().toISOString(), browser: "headless Chrome/Edge via CDP", runs: [] };
+  const report = { url, generatedAt: new Date().toISOString(), browser: "headless Chrome/Edge via CDP", prefix, noJs, reducedMotion, keyboard, runs: [] };
 
   try {
     const { targetId } = await cdp.send("Target.createTarget", { url: "about:blank" });
@@ -273,11 +331,26 @@ async function main() {
     for (const method of ["Page.enable", "Runtime.enable", "Network.enable", "Log.enable"]) {
       await cdp.send(method, {}, sessionId);
     }
+    await cdp.send("Page.addScriptToEvaluateOnNewDocument", {
+      source: "window.__cls=0;window.__shifts=[];new PerformanceObserver((list)=>{for(const entry of list.getEntries()){if(!entry.hadRecentInput){window.__cls+=entry.value;window.__shifts.push({value:entry.value,sources:(entry.sources||[]).map((source)=>({tag:source.node&&source.node.tagName,cls:source.node&&typeof source.node.className==='string'?source.node.className:'',text:source.node&&source.node.textContent?source.node.textContent.trim().replace(/\\s+/g,' ').slice(0,60):'',previousRect:source.previousRect,currentRect:source.currentRect})).slice(0,5)});}}}).observe({type:'layout-shift',buffered:true});"
+    }, sessionId);
+    if (noJs) await cdp.send("Emulation.setScriptExecutionDisabled", { value: true }, sessionId);
+    if (reducedMotion) {
+      await cdp.send("Emulation.setEmulatedMedia", {
+        features: [{ name: "prefers-reduced-motion", value: "reduce" }]
+      }, sessionId);
+    }
 
     let consoleErrors = [];
     let failedRequests = [];
+    let transferBytesExcludingFonts = 0;
     const requestUrls = new Map();
     cdp.on("Network.requestWillBeSent", (params) => requestUrls.set(params.requestId, params.request.url));
+    cdp.on("Network.loadingFinished", (params) => {
+      const requestUrl = requestUrls.get(params.requestId) || "";
+      if (/fonts\.(googleapis|gstatic)\.com|\.(woff2?|ttf|otf)(\?|$)/i.test(requestUrl)) return;
+      transferBytesExcludingFonts += params.encodedDataLength || 0;
+    });
     cdp.on("Network.loadingFailed", (params) => {
       failedRequests.push({ url: requestUrls.get(params.requestId) || "", errorText: params.errorText || "", type: params.type || "" });
     });
@@ -302,6 +375,7 @@ async function main() {
     for (const width of widths) {
       consoleErrors = [];
       failedRequests = [];
+      transferBytesExcludingFonts = 0;
       requestUrls.clear();
       await cdp.send("Emulation.setDeviceMetricsOverride", {
         width,
@@ -325,9 +399,10 @@ async function main() {
         captureBeyondViewport: true,
         fromSurface: true
       }, sessionId);
-      const screenshot = path.join(out, `before-${width}.png`);
+      const screenshot = path.join(out, `${prefix}-${width}.png`);
       await writeFile(screenshot, Buffer.from(capture.data, "base64"));
       const metrics = evaluated.result.value;
+      const keyboardState = keyboard && !noJs ? await measureKeyboard(cdp, sessionId) : null;
       report.runs.push({
         width,
         screenshot: path.relative(ROOT, screenshot).replace(/\\/g, "/"),
@@ -337,13 +412,18 @@ async function main() {
         visibleTextOverlaps: metrics.textOverlaps,
         svgIssues: metrics.svgIssues,
         overflowOffenders: metrics.overflow.offenders,
+        cls: metrics.cls,
+        shifts: metrics.shifts,
+        transferBytesExcludingFonts,
         consoleErrors,
         failedRequests,
-        passed: !metrics.overflow.horizontal && !metrics.internalScrollers.length && !metrics.textOverlaps.length && !metrics.svgIssues.length && !consoleErrors.length && !failedRequests.length
+        keyboard: keyboardState,
+        passed: !metrics.overflow.horizontal && !metrics.internalScrollers.length && !metrics.textOverlaps.length && !metrics.svgIssues.length && !consoleErrors.length && !failedRequests.length && metrics.cls < 0.05 && transferBytesExcludingFonts < 300 * 1024 && (!keyboardState || keyboardState.passed)
       });
     }
     report.passed = report.runs.every((run) => run.passed);
-    await writeFile(path.join(out, "report.json"), `${JSON.stringify(report, null, 2)}\n`);
+    const reportName = prefix === "before" ? "report.json" : `${prefix}-report.json`;
+    await writeFile(path.join(out, reportName), `${JSON.stringify(report, null, 2)}\n`);
     console.log(JSON.stringify({
       passed: report.passed,
       runs: report.runs.map((run) => ({
@@ -354,6 +434,9 @@ async function main() {
         svgIssues: run.svgIssues.length,
         consoleErrors: run.consoleErrors.length,
         failedRequests: run.failedRequests.length,
+        cls: run.cls,
+        transferBytesExcludingFonts: run.transferBytesExcludingFonts,
+        keyboardPassed: run.keyboard ? run.keyboard.passed : null,
         screenshot: run.screenshot
       }))
     }, null, 2));
