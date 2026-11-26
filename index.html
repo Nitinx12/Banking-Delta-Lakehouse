@@ -1,0 +1,1975 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Banking Delta Lakehouse: a daily analytics pipeline from MySQL, MongoDB and Databricks through PostgreSQL raw, staging, analytics and marts to approved Databricks BI tables."
+    />
+    <meta name="author" content="Nitin" />
+    <meta name="theme-color" content="#0b0f14" />
+    <meta property="og:title" content="Banking Delta Lakehouse" />
+    <meta
+      property="og:description"
+      content="Contracted ingestion, SQL-owned transformation, auditable daily runs and governed marts for banking analytics."
+    />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://github.com/Nitinx12/Banking-Delta-Lakehouse"
+    />
+    <title>Banking Delta Lakehouse</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f14'/%3E%3Crect x='6' y='7' width='20' height='4' rx='1' fill='%23e07b39'/%3E%3Crect x='6' y='13' width='20' height='4' rx='1' fill='%2338bdf8'/%3E%3Crect x='6' y='19' width='20' height='4' rx='1' fill='%2334d399'/%3E%3Crect x='6' y='25' width='20' height='3' rx='1' fill='%23f472b6'/%3E%3C/svg%3E"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #0b0f14;
+        --panel: #11171f;
+        --line: #232c38;
+        --text: #e8edf3;
+        --mut: #8b97a7;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        /* ARCHITECTURE.md colour legend */
+        --src: #5b9dff;
+        --air: #a78bfa;
+        --raw: #e07b39;
+        --stg: #38bdf8;
+        --ana: #34d399;
+        --mrt: #f472b6;
+        --dlt: #f0c040;
+        --aud: #94a3b8;
+        --gate: #ef4444;
+        --cnm: #818cf8;
+        --ok: #34d399;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 70px;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font:
+          16px/1.6 Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          'Segoe UI',
+          sans-serif;
+        background-image:
+          linear-gradient(var(--line) 1px, transparent 1px),
+          linear-gradient(90deg, var(--line) 1px, transparent 1px);
+        background-size: 56px 56px;
+        background-attachment: fixed;
+        background-blend-mode: soft-light;
+      }
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 0,
+          transparent,
+          var(--bg) 75%
+        );
+        pointer-events: none;
+        z-index: -1;
+      }
+      a {
+        color: inherit;
+      }
+      code,
+      pre {
+        font-family: var(--mono);
+      }
+      :focus-visible {
+        outline: 2px solid var(--stg);
+        outline-offset: 3px;
+      }
+      .wrap {
+        width: min(1200px, calc(100% - 2rem));
+        margin-inline: auto;
+      }
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(11, 15, 20, 0.88);
+        backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding-block: 0.7rem;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 800;
+        text-decoration: none;
+      }
+      .brand .mark {
+        width: 30px;
+        height: 30px;
+        flex: 0 0 auto;
+      }
+      nav ul {
+        display: flex;
+        gap: 0.2rem;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        align-items: center;
+      }
+      nav a.l {
+        padding: 0.4rem 0.65rem;
+        color: var(--mut);
+        font-size: 0.86rem;
+        text-decoration: none;
+        border-radius: 6px;
+      }
+      nav a.l:hover {
+        color: var(--text);
+        background: #ffffff0d;
+      }
+      .gh {
+        margin-left: 0.4rem;
+        padding: 0.45rem 0.8rem;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font-size: 0.84rem;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .gh:hover {
+        border-color: var(--stg);
+      }
+      #mb {
+        display: none;
+        background: none;
+        border: 1px solid var(--line);
+        color: var(--text);
+        border-radius: 6px;
+        padding: 0.4rem 0.7rem;
+        cursor: pointer;
+      }
+      .hero {
+        padding: 4rem 0 3rem;
+      }
+      .hero .wrap {
+        display: grid;
+        grid-template-columns: 1.05fr 1fr;
+        gap: 2.5rem;
+        align-items: center;
+      }
+      .tag {
+        font: 700 0.72rem var(--mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--stg);
+      }
+      h1 {
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+        line-height: 1.05;
+        letter-spacing: -0.04em;
+        margin: 0.8rem 0 1rem;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--ok);
+      }
+      .lead {
+        color: var(--mut);
+        max-width: 56ch;
+        margin: 0;
+      }
+      .lead code {
+        color: var(--text);
+        font-size: 0.88em;
+      }
+      .btns {
+        display: flex;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        margin: 1.6rem 0;
+      }
+      .btn {
+        padding: 0.7rem 1.1rem;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        text-decoration: none;
+        border: 1px solid var(--line);
+      }
+      .btn.p {
+        background: var(--text);
+        color: #0b0f14;
+        border-color: var(--text);
+      }
+      .btn:hover {
+        border-color: var(--stg);
+      }
+      .facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        font: 0.74rem var(--mono);
+        color: var(--mut);
+      }
+      .facts span {
+        padding: 0.25rem 0.55rem;
+        border: 1px solid var(--line);
+        border-radius: 4px;
+        background: #0b0f14aa;
+      }
+      .term {
+        background: #0a0e13;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 24px 60px #0008;
+      }
+      .term-h {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.55rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font: 0.74rem var(--mono);
+        color: var(--mut);
+      }
+      .dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+        margin-right: 0.5rem;
+        animation: pulse 1.6s infinite;
+      }
+      @keyframes pulse {
+        50% {
+          opacity: 0.25;
+        }
+      }
+      #log {
+        height: 290px;
+        overflow: hidden;
+        padding: 0.8rem 0.9rem;
+        font: 0.76rem/1.65 var(--mono);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      #log div {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        animation: in 0.3s;
+      }
+      @keyframes in {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+      }
+      #log time {
+        color: #566273;
+        margin-right: 0.6rem;
+      }
+      .prog {
+        height: 3px;
+        background: var(--line);
+      }
+      .prog i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: linear-gradient(90deg, var(--air), var(--ok));
+        transition: width 0.5s;
+      }
+      section {
+        padding: 4.5rem 0;
+        border-top: 1px solid var(--line);
+      }
+      .head {
+        max-width: 720px;
+        margin-bottom: 2rem;
+      }
+      h2 {
+        font-size: clamp(1.7rem, 3.2vw, 2.4rem);
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        margin: 0.5rem 0;
+      }
+      .head p {
+        color: var(--mut);
+        margin: 0;
+      }
+      .ctl {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin-bottom: 0.9rem;
+      }
+      .ctl button {
+        font: 700 0.78rem var(--mono);
+        padding: 0.5rem 0.8rem;
+        background: var(--panel);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .ctl button[aria-pressed='true'] {
+        border-color: var(--stg);
+        color: var(--stg);
+      }
+      .ctl .sp {
+        flex: 1;
+      }
+      .leg {
+        display: flex;
+        gap: 1rem;
+        font: 0.72rem var(--mono);
+        color: var(--mut);
+      }
+      .leg i {
+        display: inline-block;
+        width: 20px;
+        vertical-align: middle;
+        margin-right: 0.35rem;
+        border-top: 2px solid;
+      }
+      .canvas {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #0a0e13cc;
+        overflow-x: auto;
+      }
+      svg {
+        display: block;
+        width: 100%;
+        min-width: 980px;
+        height: auto;
+      }
+      svg text {
+        font-family: var(--mono);
+      }
+      .node {
+        cursor: pointer;
+      }
+      .node rect {
+        fill: #121923;
+        stroke: var(--c);
+        stroke-width: 1.5;
+        transition:
+          filter 0.3s,
+          stroke-width 0.2s;
+      }
+      .node .l {
+        fill: var(--text);
+        font: 700 13px var(--mono);
+      }
+      .node .s {
+        fill: var(--mut);
+        font-size: 9.5px;
+      }
+      .node:hover rect,
+      .node.sel rect {
+        stroke-width: 2.6;
+      }
+      .node.on rect {
+        filter: drop-shadow(0 0 9px var(--c));
+        fill: #182231;
+      }
+      .box rect {
+        fill: color-mix(in srgb, var(--c) 6%, transparent);
+        stroke: var(--c);
+        stroke-dasharray: 5 4;
+        stroke-width: 1.2;
+        stroke-opacity: 0.6;
+      }
+      .box.on rect {
+        fill: color-mix(in srgb, var(--c) 14%, transparent);
+        stroke-opacity: 1;
+      }
+      .box .l {
+        fill: var(--c);
+        font: 700 10.5px var(--mono);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .box .s {
+        fill: var(--mut);
+        font-size: 9.5px;
+      }
+      .e {
+        fill: none;
+        stroke-width: 1.6;
+        stroke-opacity: 0.55;
+      }
+      .e.c {
+        stroke-dasharray: 2 4;
+      }
+      svg[data-m='b'] .lg,
+      svg[data-m='g'] .lb {
+        opacity: 0.14;
+      }
+      .lb,
+      .lg {
+        transition: opacity 0.4s;
+      }
+      .panel {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 1rem;
+      }
+      .box2 {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 1.2rem 1.3rem;
+      }
+      #info h3 {
+        margin: 0.4rem 0 0.2rem;
+        font-size: 1.15rem;
+      }
+      #info p {
+        margin: 0.5rem 0 0;
+        color: var(--mut);
+        font-size: 0.9rem;
+      }
+      #info .by {
+        font: 0.76rem var(--mono);
+        color: var(--mut);
+      }
+      .pill {
+        display: inline-block;
+        font: 700 0.68rem var(--mono);
+        padding: 0.15rem 0.5rem;
+        border-radius: 99px;
+        border: 1px solid;
+      }
+      #steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        gap: 0.35rem;
+      }
+      #steps li {
+        display: flex;
+        gap: 0.7rem;
+        align-items: baseline;
+        padding: 0.4rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        color: var(--mut);
+        border: 1px solid transparent;
+        transition: 0.3s;
+      }
+      #steps b {
+        font: 700 0.72rem var(--mono);
+        color: #566273;
+      }
+      #steps small {
+        margin-left: auto;
+        font: 0.72rem var(--mono);
+      }
+      #steps li.done b {
+        color: var(--ok);
+      }
+      #steps li.failed b {
+        color: var(--gate);
+      }
+      #steps li.failed {
+        border-color: var(--gate);
+        background: #ef444412;
+      }
+      .layers {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0.6rem;
+        counter-reset: x;
+      }
+      .ly {
+        position: relative;
+        border: 1px solid var(--line);
+        border-top: 3px solid var(--c);
+        border-radius: 10px;
+        background: var(--panel);
+        padding: 1rem;
+      }
+      .ly + .ly::before {
+        content: '→';
+        position: absolute;
+        left: -0.62rem;
+        top: 1.1rem;
+        color: var(--mut);
+        background: var(--bg);
+        width: 0.65rem;
+        text-align: center;
+        font-size: 0.8rem;
+        z-index: 1;
+      }
+      .ly h3 {
+        margin: 0;
+        font: 700 0.85rem var(--mono);
+        color: var(--c);
+      }
+      .ly .n {
+        font-size: 2.2rem;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.1;
+      }
+      .ly .by {
+        font: 0.7rem var(--mono);
+        color: var(--mut);
+        margin-bottom: 0.5rem;
+      }
+      .ly p {
+        font-size: 0.8rem;
+        color: var(--mut);
+        margin: 0.6rem 0 0;
+      }
+      .dots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 0.4rem;
+      }
+      .dots i {
+        width: 11px;
+        height: 11px;
+        border-radius: 3px;
+        background: var(--c);
+        animation: blink 3.2s infinite;
+      }
+      @keyframes blink {
+        0%,
+        60%,
+        100% {
+          opacity: 1;
+        }
+        30% {
+          opacity: 0.25;
+        }
+      }
+      .gate {
+        margin-top: 1rem;
+        font: 0.78rem var(--mono);
+        color: var(--mut);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .gate span {
+        padding: 0.25rem 0.6rem;
+        border: 1px solid var(--line);
+        border-radius: 5px;
+      }
+      .gate .a {
+        color: var(--air);
+        border-color: var(--air);
+      }
+      .gate .t {
+        color: var(--ok);
+        border-color: var(--ok);
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .two .box2 {
+        border-top: 3px solid var(--c);
+      }
+      .two h3 {
+        margin: 0.2rem 0 0.4rem;
+        font-size: 1.1rem;
+      }
+      .two ul {
+        margin: 0.5rem 0 0;
+        padding-left: 1.1rem;
+        color: var(--mut);
+        font-size: 0.9rem;
+      }
+      .two li {
+        margin: 0.25rem 0;
+      }
+      .q {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0.8rem;
+      }
+      .q div {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1.1rem;
+        background: var(--panel);
+      }
+      .q b {
+        display: block;
+        font-size: 2rem;
+        letter-spacing: -0.04em;
+        color: var(--ok);
+        line-height: 1.2;
+      }
+      .q span {
+        font-size: 0.82rem;
+        color: var(--mut);
+      }
+      .guard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.7rem;
+        list-style: none;
+        padding: 0;
+        margin: 1rem 0 0;
+      }
+      .guard li {
+        border-left: 3px solid var(--aud);
+        padding: 0.7rem 1rem;
+        background: var(--panel);
+        border-radius: 0 8px 8px 0;
+        font-size: 0.86rem;
+        color: var(--mut);
+      }
+      .guard strong {
+        color: var(--text);
+      }
+      .code {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #0a0e13;
+        overflow: hidden;
+        margin-bottom: 0.8rem;
+      }
+      .code div {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0.9rem;
+        border-bottom: 1px solid var(--line);
+        font: 0.72rem var(--mono);
+        color: var(--mut);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .code button {
+        background: none;
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        font: 0.72rem var(--mono);
+        padding: 0.2rem 0.6rem;
+        cursor: pointer;
+      }
+      pre {
+        margin: 0;
+        padding: 0.9rem 1rem;
+        overflow: auto;
+        font-size: 0.82rem;
+        line-height: 1.75;
+        color: #cbd5e1;
+      }
+      .ins {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 0.8rem;
+      }
+      .ins article {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 1.3rem;
+        background: var(--panel);
+      }
+      .ins b {
+        font-size: 2.2rem;
+        letter-spacing: -0.04em;
+        color: var(--dlt);
+        line-height: 1.1;
+        display: block;
+      }
+      .ins h3 {
+        margin: 0.3rem 0;
+        font-size: 1rem;
+      }
+      .ins p {
+        margin: 0 0 0.7rem;
+        color: var(--mut);
+        font-size: 0.88rem;
+      }
+      .ins img {
+        display: block;
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        margin-bottom: 0.7rem;
+      }
+      .ins a,
+      .note a {
+        color: var(--stg);
+        font-size: 0.84rem;
+        font-weight: 700;
+        text-decoration: none;
+      }
+      .note {
+        color: var(--mut);
+        font-size: 0.85rem;
+        margin-top: 1rem;
+      }
+      .res {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      .res a {
+        padding: 0.6rem 1rem;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+      .res a:hover {
+        border-color: var(--stg);
+      }
+      .res small {
+        color: var(--mut);
+        font-weight: 400;
+        margin-left: 0.4rem;
+      }
+      footer {
+        border-top: 1px solid var(--line);
+        padding: 2rem 0;
+        color: var(--mut);
+        font-size: 0.82rem;
+        background: #0008;
+      }
+      footer .wrap {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+      }
+      @media (max-width: 900px) {
+        .hero .wrap,
+        .panel,
+        .two {
+          grid-template-columns: 1fr;
+        }
+        .layers {
+          grid-template-columns: 1fr 1fr;
+        }
+        .ly + .ly::before {
+          display: none;
+        }
+        .q {
+          grid-template-columns: 1fr 1fr;
+        }
+        #mb {
+          display: block;
+        }
+        nav ul {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: 0;
+          flex-direction: column;
+          align-items: stretch;
+          background: var(--bg);
+          padding: 0.6rem 1rem;
+          border-bottom: 1px solid var(--line);
+        }
+        nav ul.open {
+          display: flex;
+        }
+        .gh {
+          margin: 0.3rem 0 0;
+          text-align: center;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          animation: none !important;
+          transition: none !important;
+        }
+        html {
+          scroll-behavior: auto;
+        }
+      }
+
+      #dataflow .rail{position:relative;height:18px;margin:1rem 0 .3rem}
+      #dataflow .rail::before{content:'';position:absolute;left:8%;right:8%;top:8px;border-top:2px dashed var(--line)}
+      #dataflow .rail b{position:absolute;top:2px;left:8%;width:14px;height:14px;border-radius:50%;background:var(--ok);box-shadow:0 0 16px var(--ok);transform:translateX(-50%);transition:left .9s ease-in-out}
+      #dataflow .flow{display:grid;grid-template-columns:repeat(6,1fr);gap:.6rem}
+      .fc{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:.9rem;cursor:pointer;transition:border-color .3s,box-shadow .3s}
+      .fc h3{margin:0;font-size:1rem;color:var(--c)}
+      .fc .num{display:block;font:800 1.45rem var(--mono);letter-spacing:-.03em;margin-top:.3rem}
+      .fc small{display:block;color:var(--mut);font-size:.72rem;line-height:1.4}
+      .fc .bar{height:4px;background:var(--line);border-radius:2px;margin:.7rem 0 .4rem;overflow:hidden}
+      .fc .bar i{display:block;height:100%;width:0;background:var(--c)}
+      .fc .mt{display:flex;justify-content:space-between;gap:.4rem;font:.68rem var(--mono);color:var(--mut);margin-bottom:.5rem}
+      .fc .st{font-style:normal;font-weight:700}
+      .fc.run{border-color:var(--c);box-shadow:0 0 22px -8px var(--c)}
+      .fc.run .st{color:var(--c)}
+      .fc.pass .st{color:var(--ok)}
+      .fc.sel{outline:1px dashed var(--c);outline-offset:3px}
+      .fgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:.8rem;margin-top:.8rem}
+      .rec .kv{display:flex;justify-content:space-between;gap:1rem;padding:.38rem 0;border-bottom:1px dashed var(--line);font:.8rem var(--mono)}
+      .rec .kv span{color:var(--mut)}
+      .rec .kv code{text-align:right;overflow-wrap:anywhere}
+      .rec .kv.chg{box-shadow:inset 2px 0 var(--c);padding-left:.6rem}
+      .rec .kv.chg code{color:var(--c)}
+      .rec p{margin:.8rem 0 0;color:var(--mut);font-size:.85rem}
+      .feed{height:16rem;margin-top:.6rem;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;font:.76rem/1.75 var(--mono);color:#cbd5e1}
+      .feed div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #nxt{color:var(--ok)}
+      @media (max-width:900px){#dataflow .flow{grid-template-columns:1fr 1fr}#dataflow .rail{display:none}.fgrid{grid-template-columns:1fr}}
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap nav">
+        <a class="brand" href="#top"
+          ><svg class="mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+            <rect x="4" y="5" width="24" height="5" rx="2" fill="var(--raw)" />
+            <rect x="4" y="12" width="24" height="5" rx="2" fill="var(--stg)" />
+            <rect x="4" y="19" width="24" height="5" rx="2" fill="var(--ana)" />
+            <rect x="4" y="26" width="24" height="4" rx="2" fill="var(--mrt)" />
+          </svg>
+          <span>Banking Delta Lakehouse</span></a
+        >
+        <button id="mb" aria-label="Toggle navigation" aria-expanded="false">
+          Menu
+        </button>
+        <nav aria-label="Primary">
+          <ul id="menu">
+            <li><a class="l" href="#architecture">Pipeline</a></li>
+            <li><a class="l" href="#dataflow">Data flow</a></li>
+            <li><a class="l" href="#layers">Layers</a></li>
+            <li><a class="l" href="#entrypoints">Orchestration</a></li>
+            <li><a class="l" href="#quality">Quality</a></li>
+            <li><a class="l" href="#runbook">Runbook</a></li>
+            <li><a class="l" href="#insights">Insights</a></li>
+            <li>
+              <a
+                class="gh"
+                href="https://github.com/Nitinx12/Banking-Delta-Lakehouse"
+                target="_blank"
+                rel="noreferrer"
+                >GitHub</a
+              >
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <div class="hero">
+        <div class="wrap">
+          <div>
+            <span class="tag">Daily lakehouse pipeline</span>
+            <h1>
+              Watch banking data travel from raw rows to <em>dashboards</em>.
+            </h1>
+            <p class="lead">
+              MySQL <code>banking_core_db</code>, MongoDB
+              <code>banking_support_db</code> and Databricks
+              <code>public</code> land in PostgreSQL <code>raw</code> through
+              contracted, watermarked PySpark extracts. Stored procedures build
+              <code>staging</code>, <code>analytics</code> and
+              <code>marts</code>; only published marts reach Databricks Delta.
+              Airflow schedules the run and <code>audit.*</code> keeps the
+              evidence.
+            </p>
+            <div class="btns">
+              <a class="btn p" href="#architecture">Explore the live flow</a
+              ><a class="btn" href="#runbook">Run it locally</a>
+            </div>
+            <div class="facts">
+              <span
+                ><span data-fact="contracts.total">10</span> source
+                objects</span
+              ><span><span data-fact="steps.total">10</span> pipeline steps</span
+              ><span
+                ><span data-fact="dq.total">44</span> DQ checks</span
+              ><span
+                ><span data-fact="marts.total">8</span> marts published</span
+              ><span
+                ><span data-fact="airflow.schedule.time">02:00</span> IST
+                daily</span
+              ><span id="nxt">next run soon</span>
+            </div>
+          </div>
+          <div class="term" aria-label="Live Airflow run log">
+            <div class="term-h">
+              <span><i class="dot"></i>airflow · banking_delta_daily</span
+              ><span id="runlbl">loading live run</span>
+            </div>
+            <div id="log" aria-live="off"></div>
+            <div class="prog"><i id="bar"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <section id="architecture">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Pipeline flow</span>
+            <h2>Follow one daily batch, end to end</h2>
+            <p>
+              Airflow schedules <code>main.py</code>, PySpark moves the data,
+              SQL procedures transform it and the publisher only copies marts.
+              Dots show data moving; click any stage to see who owns it.
+            </p>
+          </div>
+          <div class="ctl">
+            <button id="play">↻ Refresh live data</button>
+            <button data-m="a" aria-pressed="true">Both lanes</button
+            ><button data-m="b" aria-pressed="false">Pipeline</button
+            ><button data-m="g" aria-pressed="false">Quality gates</button>
+            <span class="sp"></span>
+            <div class="leg">
+              <span><i style="border-color: var(--ok)"></i>data</span
+              ><span
+                ><i
+                  style="border-color: var(--gate); border-top-style: dotted"
+                ></i
+                >control · DQ gates</span
+              >
+            </div>
+          </div>
+          <div class="canvas">
+            <svg
+              id="svg"
+              viewBox="0 0 1250 460"
+              data-m="a"
+              role="img"
+              aria-label="Data pipeline diagram"
+            ></svg>
+          </div>
+          <div class="panel">
+            <div class="box2" id="info"></div>
+            <div class="box2">
+              <span class="tag">Daily run · banking_delta_daily</span>
+              <ol id="steps" style="margin-top: 0.7rem"></ol>
+            </div>
+          </div>
+          <p class="note">
+            The log and step states come from
+            <code>audit.fn_pipeline_summary</code>,
+            <code>audit.fn_table_runs</code> and
+            <code>audit.fn_dq_summary</code>: a snapshot taken when the app
+            renders. Production runs at
+            <code data-fact="airflow.schedule.cron">0 2 * * *</code>
+            Asia/Kolkata, <code>catchup=False</code>, one active run at a time.
+          </p>
+        </div>
+      </section>
+
+      <section id="layers">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">How the layers work here</span>
+            <h2>Four layers, each one run, then tested</h2>
+            <p>
+              Each square is one table, loader or model. One owner writes each
+              schema, <code>main.py</code> calls the next layer only after the
+              previous DQ gate passes, and nothing outside its owner ever writes
+              to it.
+            </p>
+          </div>
+          <div class="layers" id="layers-grid"></div>
+          <div class="gate">
+            <span class="t">raw-tests</span>→<span class="a"
+              >staging-load</span
+            >→<span class="t">staging-tests</span>→<span class="a"
+              >analytics-load</span
+            >→<span class="t">analytics-tests</span>→<span class="a"
+              >marts-load</span
+            >→<span class="t">marts-tests</span>→<span>publish</span>
+            <span style="border: 0"
+              >A critical failure stops the batch.</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <section id="entrypoints">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Two doors, one pipeline</span>
+            <h2>Schedule it or run it by hand — same code</h2>
+            <p>
+              Airflow adds scheduling, retries, pools and alerting. It holds no
+              pipeline logic of its own: every task is a
+              <code>main.py --only &lt;step&gt;</code> call.
+            </p>
+          </div>
+          <div class="two">
+            <div class="box2" style="--c: var(--air)">
+              <span class="pill" style="color: var(--air)">Scheduled</span>
+              <h3>Airflow 3.3.2 · CeleryExecutor</h3>
+              <ul>
+                <li>
+                  <code>banking_delta_daily</code> —
+                  <span data-fact="airflow.schedule.cron">0 2 * * *</span>
+                  Asia/Kolkata
+                </li>
+                <li><code>banking_watchdog</code> — every 3 hours</li>
+                <li><code>banking_report_weekly</code> — Mondays 08:00</li>
+                <li>
+                  Three parallel per-source extracts share one
+                  <code>audit.pipeline_runs</code> row
+                </li>
+              </ul>
+            </div>
+            <div class="box2" style="--c: var(--air)">
+              <span class="pill" style="color: var(--air)">Manual</span>
+              <h3>main.py · 10 gated steps</h3>
+              <ul>
+                <li><code>python main.py</code> runs the whole gate order</li>
+                <li>
+                  <code>--list</code>, <code>--from</code>,
+                  <code>--only</code> for partial runs
+                </li>
+                <li>
+                  A failing step stops everything downstream unless
+                  <code>--keep-going</code>
+                </li>
+                <li>Same scripts, same SQL, same DQ runners as the DAG</li>
+              </ul>
+            </div>
+          </div>
+          <p class="note">
+            Consumers stay read-only: the Streamlit dashboard, the R layer and
+            the LaTeX reports only ever <code>SELECT</code> from the published
+            Delta marts.
+          </p>
+        </div>
+      </section>
+
+      <section id="dataflow">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">End to end</span>
+            <h2>One customer record, from source to dashboard</h2>
+            <p>
+              A replay of one daily batch. Rows, tests and checks fill in as
+              each stage finishes, and the glowing dot marks where the batch is
+              now. Click any stage to see what the same record looks like
+              there.
+            </p>
+          </div>
+          <div class="ctl">
+            <button id="fp">❚❚ Pause</button><button id="fr">↺ Replay</button>
+            <button data-sp="1" aria-pressed="true">1×</button
+            ><button data-sp="2" aria-pressed="false">2×</button
+            ><button data-sp="4" aria-pressed="false">4×</button>
+            <span class="sp"></span><span class="tag" id="fclock"></span>
+          </div>
+          <div class="rail" aria-hidden="true"><b id="pk"></b></div>
+          <div class="flow" id="flow"></div>
+          <div class="fgrid">
+            <div class="box2">
+              <span class="tag" id="rect">Record</span>
+              <div class="rec" id="rec"></div>
+            </div>
+            <div class="box2">
+              <span class="tag">Live event feed</span>
+              <div class="feed" id="feed" aria-live="off"></div>
+            </div>
+          </div>
+          <p class="note">
+            Row counts and the sample record are illustrative. Contract, layer
+            and check counts come from the repository. When the Streamlit host
+            serves this page, the run log in the hero shows real
+            <code>audit.*</code> data.
+          </p>
+        </div>
+      </section>
+
+      <section id="quality">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Quality &amp; governance</span>
+            <h2>Fail fast, keep evidence, stay read-only</h2>
+            <p>
+              A failing DQ gate blocks publish. Only transient connection
+              failures are retried, and the verdict is committed before the
+              check raises, so the reason survives the rollback.
+            </p>
+          </div>
+          <div class="q">
+            <div>
+              <b data-fact="dq.total">44</b
+              ><span
+                >DQ checks: <span data-fact="dq.raw">10</span> raw,
+                <span data-fact="dq.staging">10</span> staging,
+                <span data-fact="dq.analytics">13</span> analytics,
+                <span data-fact="dq.marts">11</span> marts</span
+              >
+            </div>
+            <div>
+              <b data-fact="tests.functions">486</b
+              ><span
+                >Python test functions across
+                <span data-fact="tests.files">40</span> files</span
+              >
+            </div>
+            <div>
+              <b data-fact="contracts.total">10</b
+              ><span
+                >source contracts checked by <code>make contracts</code></span
+              >
+            </div>
+            <div>
+              <b data-fact="ci.jobs">10</b
+              ><span>GitHub Actions workflows plus Gitleaks</span>
+            </div>
+          </div>
+          <ul class="guard">
+            <li>
+              <strong>Money</strong> is <code>NUMERIC(18,2)</code> /
+              <code>Decimal</code> end to end — never <code>float</code>.
+            </li>
+            <li>
+              <strong>Instants</strong> are timezone-aware UTC; Spark and the
+              SQL session both run in UTC.
+            </li>
+            <li>
+              <strong>Layer ownership</strong> is strict: only the named owner
+              writes each schema.
+            </li>
+            <li>
+              <strong>DQ evidence</strong> survives failure — the verdict is
+              <code>COMMIT</code>ted before the check <code>RAISE</code>s.
+            </li>
+            <li>
+              <strong>Errors</strong> in <code>audit.pipeline_errors</code> are
+              classified and secret-redacted.
+            </li>
+            <li>
+              <strong>Consumers</strong> are read-only: dashboard, R and reports
+              only ever <code>SELECT</code>.
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="runbook">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Runbook</span>
+            <h2>Start with the zero-credential bootstrap</h2>
+            <p>
+              <code>make help</code> is the authoritative command list.
+              Targets that touch real sources need explicit confirmation.
+            </p>
+          </div>
+          <div class="code">
+            <div>Local checks<button data-copy>Copy</button></div>
+            <pre><code>make install
+make contracts
+make lint
+make test</code></pre>
+          </div>
+          <div class="code">
+            <div>Bootstrap from the bundled CSVs<button data-copy>Copy</button></div>
+            <pre><code>make load-raw-csv
+make staging
+make analytics
+make marts
+make dq</code></pre>
+          </div>
+          <div class="code">
+            <div>One full gated run<button data-copy>Copy</button></div>
+            <pre><code>make daily
+make publish</code></pre>
+          </div>
+          <p class="note">
+            Start Airflow with <code>make up</code>; the UI is at
+            <a href="http://localhost:8080">localhost:8080</a>.
+          </p>
+        </div>
+      </section>
+
+      <section id="insights">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Business insights</span>
+            <h2>What the warehouse finds</h2>
+            <p>
+              Regenerated from the published marts with
+              <code>make report</code>. Full analysis, including segment views
+              and a "so what" line per finding, is in
+              <a href="docs/INSIGHTS.md">docs/INSIGHTS.md</a>.
+            </p>
+          </div>
+          <div class="ins">
+            <article>
+              <b data-fact="insight.concentration.top10">22.55%</b>
+              <h3>Transaction value is mildly concentrated</h3>
+              <p>
+                The top 10% of active customers hold
+                <span data-fact="insight.concentration.top10">22.55%</span> of
+                transaction value; an even split would be 10%.
+              </p>
+              <img
+                src="assets/insights/01-customers.png"
+                alt="Transaction value by customer decile"
+                loading="lazy"
+              />
+              <a href="docs/INSIGHTS.md">Insight index →</a>
+            </article>
+            <article>
+              <b data-fact="insight.loan.late_rate">12.01%</b>
+              <h3>Loan payments that miss the due date</h3>
+              <p>
+                <span data-fact="insight.loan.late_rate">12.01%</span> of
+                <span data-fact="insight.loan.payments">600,005</span> recorded
+                loan payments are late, straight from
+                <code>marts.mart_loan_portfolio</code>.
+              </p>
+              <img
+                src="assets/insights/02-loans.png"
+                alt="Loan payment timeliness"
+                loading="lazy"
+              />
+              <a href="docs/INSIGHTS.md">Insight index →</a>
+            </article>
+            <article>
+              <b data-fact="insight.fraud.share">0.499%</b>
+              <h3>Fraud share of card spend</h3>
+              <p>
+                <span data-fact="insight.fraud.share">0.499%</span> of
+                <span data-fact="insight.fraud.amount">28,608,185.59</span> in
+                flagged card transactions — see
+                <code>marts.mart_card_fraud</code>.
+              </p>
+              <img
+                src="assets/insights/03-card-fraud.png"
+                alt="Card fraud share"
+                loading="lazy"
+              />
+              <a href="docs/INSIGHTS.md">Insight index →</a>
+            </article>
+          </div>
+          <div class="res" style="margin-top: 2rem">
+            <a href="README.md">README</a
+            ><a href="ARCHITECTURE.md"
+              >Architecture<small>layers, ownership</small></a
+            ><a href="docs/DEPLOYMENT.md">Deployment</a
+            ><a href="docs/DATA-QUALITY.md">Data quality</a
+            ><a href="docs/TESTING.md">Testing</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>© 2026 Nitin · MIT License</span
+        ><span
+          >Built with Airflow, PySpark, PostgreSQL and Databricks ·
+          <a
+            href="https://github.com/Nitinx12/Banking-Delta-Lakehouse"
+            target="_blank"
+            rel="noreferrer"
+            >GitHub</a
+          ></span
+        >
+      </div>
+    </footer>
+
+    <script id="live-data" type="application/json">
+      __LIVE_DATA__
+    </script>
+    <script id="site-facts-fallback" type="application/json">
+      {"contracts.total":10,"contracts.mysql":5,"contracts.mongodb":2,"contracts.databricks":3,"raw.tables":10,"staging.loads":10,"analytics.dims":7,"analytics.facts":4,"analytics.entities":11,"marts.total":8,"databricks.marts":8,"dq.total":44,"dq.raw":10,"dq.staging":10,"dq.analytics":13,"dq.marts":11,"steps.total":10,"airflow.version":"3.3.2","airflow.executor":"CeleryExecutor","airflow.dag_ids":["banking_delta_daily","banking_watchdog","banking_report_weekly"],"airflow.schedule.cron":"0 2 * * *","airflow.schedule.timezone":"Asia/Kolkata","airflow.schedule.time":"02:00","airflow.schedule.utc_offset_ms":19800000,"python.version":"3.13","streamlit.version":"1.66.1","tests.files":40,"tests.functions":486,"ci.jobs":10,"insight.concentration.top10":"22.55%","insight.loan.late_rate":"12.01%","insight.loan.payments":600005,"insight.fraud.share":"0.499%","insight.fraud.amount":"28,608,185.59"}
+    </script>
+    <script id="site-facts" type="application/json">
+      __SITE_FACTS__
+    </script>
+    <script>
+      const FACTS = (() => {
+        try {
+          return JSON.parse(document.getElementById('site-facts').textContent)
+        } catch {
+          return JSON.parse(document.getElementById('site-facts-fallback').textContent)
+        }
+      })()
+      document.querySelectorAll('[data-fact]').forEach((e) => {
+        const v = FACTS[e.dataset.fact]
+        if (v === undefined) return
+        e.textContent = typeof v === 'number' ? v.toLocaleString('en-US') : String(v)
+      })
+      const num = (key) => Number(FACTS[key]).toLocaleString('en-US')
+      const esc = (s) =>
+        String(s).replace(/[&<>"]/g, (c) =>
+          ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]
+        )
+      const $ = (s) => document.querySelector(s),
+        NS = 'http://www.w3.org/2000/svg'
+      const V = (k) => `var(--${k})`,
+        W = 104,
+        X = (i) => 10 + i * 140
+      const el = (t, a = {}, p) => {
+        const e = document.createElementNS(NS, t)
+        for (const k in a) e.setAttribute(k, a[k])
+        p && p.appendChild(e)
+        return e
+      }
+      const svg = $('#svg')
+      svg.innerHTML =
+        '<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker></defs>'
+      /* nodes: boxes span the lanes they explain, nodes sit on the grid */
+      const B = (id, x, y, w, h, c, l, s, lane, t, o, d) => ({
+        id, x, y, w, h, c, l, s, lane, box: 1, t, o, d,
+      })
+      const nd = (id, col, y, c, l, s, lane, t, o, d, h = 70) => ({
+        id, x: X(col), y, w: W, h, c, l, s, lane, t, o, d,
+      })
+      const N = [
+        B(
+          'air', X(1) - 12, 8, X(6) + W + 24 - (X(1) - 12), 26, 'air',
+          `Apache Airflow ${FACTS['airflow.version']} · banking_delta_daily · ${FACTS['airflow.schedule.time']} ${FACTS['airflow.schedule.timezone']}`,
+          '', 'lb', 'Airflow (scheduled)',
+          'airflow/dags/banking_delta_daily.py',
+          `Airflow only schedules steps: it triggers main.py, retries it and alerts. It moves and transforms no data itself. Runs at ${FACTS['airflow.schedule.cron']} ${FACTS['airflow.schedule.timezone']}, catchup off, one active run at a time.`
+        ),
+        B(
+          'xf', X(2) - 12, 62, X(5) + W + 24 - (X(2) - 12), 140, 'air',
+          'SQL stored procedures · the only transform engine',
+          'main.py CALL <schema>.sp_load_all · one DQ gate after every layer',
+          'lb', 'Transformation', 'sql/staging · sql/analytics · sql/marts',
+          `Models, loads and checks. Each layer is run, then tested. ${num('dq.total')} checks: raw ${num('dq.raw')}, staging ${num('dq.staging')}, analytics ${num('dq.analytics')}, marts ${num('dq.marts')}. No transformation lives in Python.`
+        ),
+        B(
+          'gbox', X(1) - 12, 330, X(8) + W + 10 - (X(1) - 12), 112, 'gate',
+          'Quality gates · audit evidence',
+          'every layer is tested · the verdict is COMMITted before the RAISE',
+          'lg', 'Data quality gates', 'tests/data-quality/{layer}/',
+          'Each layer boundary runs a DQ suite. A non-zero exit stops the run in both main.py and Airflow, and each check writes audit.dq_run and audit.dq_violation before it raises.'
+        ),
+        nd(
+          'mysql', 0, 40, 'src', 'MySQL',
+          `banking_core_db|${num('contracts.mysql')} tables`, 'lb',
+          'Source system', 'Application owner',
+          `Read-only extract of the ${num('contracts.mysql')} banking_core_db tables: accounts, branches, cards, customers, employees. Full loads use an atomic TRUNCATE + INSERT, so readers never see an empty table.`
+        ),
+        nd(
+          'mongo', 0, 125, 'src', 'MongoDB',
+          `banking_support_db|${num('contracts.mongodb')} collections`, 'lb',
+          'Source system', 'Application owner',
+          `Read-only extract of the ${num('contracts.mongodb')} support collections, incremental on _id with an objectid watermark.`
+        ),
+        nd(
+          'dbx', 0, 210, 'src', 'Databricks',
+          `public|${num('contracts.databricks')} tables`, 'lb',
+          'Source system', 'Application owner',
+          `Read-only extract of the ${num('contracts.databricks')} public tables, incremental on created_at. Results stream through Arrow to local Parquet instead of JDBC.`
+        ),
+        nd(
+          'extract', 1, 95, 'air', 'Extract',
+          'PySpark|watermarks', 'lb', 'Contracted ingestion',
+          'src/jobs/extract_*.py',
+          'One subprocess per source in the order mongo → databricks → mysql. Each table snapshots a batch window, writes raw._stg_<table>, then promotes it and advances the watermark inside one transaction.'
+        ),
+        nd(
+          'raw', 2, 95, 'raw', 'raw',
+          `${num('raw.tables')} tables|landed as-is`, 'lb',
+          'Raw landing layer', 'extract_*.py (Spark)',
+          'Source rows verbatim plus _batch_id and _loaded_at. The immutable record of what arrived; new source columns are absorbed with ALTER TABLE ... ADD COLUMN.'
+        ),
+        nd(
+          'staging', 3, 95, 'stg', 'staging',
+          `${num('staging.loads')} loaders|typed · SCD1`, 'lb',
+          'Cleansing layer', 'staging.sp_load_* procedures',
+          'Typed, deduped SCD1 current state; every overwritten value lands in the shared staging.scd1_history table. Built by CALL staging.sp_load_all.'
+        ),
+        nd(
+          'analytics', 4, 95, 'ana', 'analytics',
+          `${num('analytics.dims')} dims + ${num('analytics.facts')} facts|star schema`, 'lb',
+          'Modelling layer', 'analytics.sp_load_* procedures',
+          `${num('analytics.dims')} dimensions and ${num('analytics.facts')} incremental facts forming the conformed star schema the marts read from.`
+        ),
+        nd(
+          'marts', 5, 95, 'mrt', 'marts',
+          `${num('marts.total')} marts|business grains`, 'lb',
+          'Serving layer', 'marts.sp_load_* procedures',
+          `${num('marts.total')} business marts: customer 360, branch performance, monthly transactions, loan portfolio, card fraud, support performance, monthly KPI and loan vintage.`
+        ),
+        nd(
+          'publish', 6, 95, 'air', 'Publisher',
+          'Parquet → UC → Delta', 'lb', 'Governed publish',
+          'src/jobs/publish_marts.py',
+          'Writes Parquet through a Unity Catalog volume and overwrites the Databricks Delta marts, reconciling row counts before and after. Full overwrite every run.'
+        ),
+        nd(
+          'delta', 7, 95, 'dlt', 'Databricks',
+          `${num('databricks.marts')} Delta marts`, 'lb',
+          'Serving copy', 'Publisher',
+          `Read-only Delta copy of the ${num('databricks.marts')} published marts, built for BI.`
+        ),
+        nd(
+          'consumers', 8, 95, 'cnm', 'Consumers',
+          'dashboard · R · reports', 'lb', 'Read-only consumers',
+          'Analysts',
+          'The Streamlit dashboard, the R layer and the LaTeX reports only ever SELECT from the Delta marts.'
+        ),
+        nd(
+          'preflight', 1, 365, 'air', 'preflight',
+          '4 sources reachable', 'lg', 'Step 1 · preflight',
+          'src/utils/preflight.py',
+          'One cheap statement to PostgreSQL, MySQL, MongoDB and Databricks with capped backoff, so an unreachable source stops the run before Spark starts.'
+        ),
+        nd(
+          'raw-tests', 2, 365, 'gate', 'raw-tests',
+          `${num('dq.raw')} DQ checks`, 'lg', 'Gate · raw',
+          'tests/data-quality/raw/',
+          `${num('dq.raw')} checks: metadata, keys, dates, orphans, business rules, ranges, schema, completeness, duplicates and domains. A non-zero exit stops the run.`
+        ),
+        nd(
+          'staging-tests', 3, 365, 'gate', 'staging-tests',
+          `${num('dq.staging')} DQ checks`, 'lg', 'Gate · staging',
+          'tests/data-quality/staging/',
+          `${num('dq.staging')} checks over the cleansed layer, including that _batch_id and _loaded_at still line up with raw.`
+        ),
+        nd(
+          'analytics-tests', 4, 365, 'gate', 'analytics-tests',
+          `${num('dq.analytics')} DQ checks`, 'lg', 'Gate · analytics',
+          'tests/data-quality/analytics/',
+          `${num('dq.analytics')} checks: the layer contract plus date-key integrity, derived attributes and fact-to-source reconciliation.`
+        ),
+        nd(
+          'marts-tests', 5, 365, 'gate', 'marts-tests',
+          `${num('dq.marts')} DQ checks`, 'lg', 'Gate · marts',
+          'tests/data-quality/marts/',
+          `${num('dq.marts')} checks including reconciliation of mart totals back to the facts.`
+        ),
+        nd(
+          'publish-gate', 6, 365, 'gate', 'publish',
+          '4 of 4 gates', 'lg', 'Gate · publish', 'main.py',
+          'A critical DQ failure blocks publish. The verdict is COMMITted before the check RAISEs, so the evidence survives the rollback.'
+        ),
+        nd(
+          'audit', 7, 365, 'aud', 'audit.*',
+          'runs · errors · DQ', 'lg', 'Evidence store',
+          'audit.pipeline_runs · table_runs · dq_run',
+          'Runs, table attempts, classified and secret-redacted errors, both watermark stores, and every DQ verdict — written in their own short transactions so they survive a failed load.'
+        ),
+        nd(
+          'notify', 8, 365, 'air', 'notify',
+          'summary email', 'lg', 'Step 10 · notify',
+          'airflow/dags/banking_delta_daily.py',
+          'Airflow sends the run summary and alerts on failure; watchdog and weekly-report DAGs cover the schedule between daily runs.'
+        ),
+      ]
+      const M = Object.fromEntries(N.map((n) => [n.id, n]))
+      const gE = (a, b) => {
+        const x = a.x + a.w,
+          y = a.y + a.h / 2,
+          y2 = b.y + b.h / 2,
+          m = (x + b.x) / 2
+        return `M${x} ${y}C${m} ${y},${m} ${y2},${b.x} ${y2}`
+      }
+      const E = [
+        ['mysql', 'extract', 'src', 2, 'lb'],
+        ['mongo', 'extract', 'src', 2, 'lb'],
+        ['dbx', 'extract', 'src', 2, 'lb'],
+        ['extract', 'raw', 'air', 2, 'lb'],
+        ['raw', 'staging', 'raw', 2, 'lb'],
+        ['staging', 'analytics', 'stg', 2, 'lb'],
+        ['analytics', 'marts', 'ana', 2, 'lb'],
+        ['marts', 'publish', 'mrt', 2, 'lb'],
+        ['publish', 'delta', 'air', 2, 'lb'],
+        ['delta', 'consumers', 'dlt', 2, 'lb'],
+        ['preflight', 'raw-tests', 'gate', 2, 'lg', 'c'],
+        ['raw-tests', 'staging-tests', 'gate', 2, 'lg', 'c'],
+        ['staging-tests', 'analytics-tests', 'gate', 2, 'lg', 'c'],
+        ['analytics-tests', 'marts-tests', 'gate', 2, 'lg', 'c'],
+        ['marts-tests', 'publish-gate', 'gate', 2, 'lg', 'c'],
+        ['publish-gate', 'audit', 'gate', 2, 'lg', 'c'],
+        ['audit', 'notify', 'aud', 2, 'lg', 'c'],
+      ]
+      const custom = [
+        [`M${X(1) + 52} 365V165`, 'air', 2, 'lg', 'c'],
+        [`M${X(2) + 52} 202V365`, 'gate', 2, 'lg', 'c'],
+        [`M${X(3) + 52} 202V365`, 'gate', 2, 'lg', 'c'],
+        [`M${X(4) + 52} 202V365`, 'gate', 2, 'lg', 'c'],
+        [`M${X(5) + 52} 202V365`, 'gate', 2, 'lg', 'c'],
+        [`M${X(6) + 52} 165V365`, 'gate', 2, 'lg', 'c'],
+      ]
+      N.filter((n) => n.box).forEach((n) => draw(n))
+      const edgeLayer = el('g', {}, svg)
+      function edge(p, c, pk, lane, cls) {
+        const g = el('g', { class: lane }, edgeLayer)
+        el(
+          'path',
+          {
+            d: p,
+            class: 'e ' + (cls || ''),
+            stroke: V(c),
+            'marker-end': 'url(#ar)',
+            style: pk ? '' : 'marker-end:none',
+          },
+          g
+        )
+        const dur = pk > 2 ? 1.6 : 2.8
+        for (let i = 0; i < pk; i++) {
+          const d = el('circle', { r: pk > 2 ? 3 : 3.6, fill: V(c) }, g)
+          el(
+            'animateMotion',
+            {
+              dur: dur + 's',
+              repeatCount: 'indefinite',
+              begin: `-${((dur / pk) * i).toFixed(2)}s`,
+              path: p,
+            },
+            d
+          )
+        }
+      }
+      E.forEach(([a, b, c, pk, lane, cls]) =>
+        edge(gE(M[a], M[b]), c, pk, lane, cls)
+      )
+      custom.forEach(([p, c, pk, lane, cls]) => edge(p, c, pk, lane, cls))
+      N.filter((n) => !n.box).forEach((n) => draw(n))
+      function draw(n) {
+        const g = el(
+          'g',
+          {
+            class: (n.box ? 'box ' : 'node ') + n.lane,
+            style: `--c:${V(n.c)}`,
+            tabindex: 0,
+            role: 'button',
+            'data-id': n.id,
+            'aria-label': n.t,
+          },
+          svg
+        )
+        el(
+          'rect',
+          { x: n.x, y: n.y, width: n.w, height: n.h, rx: n.box ? 8 : 9 },
+          g
+        )
+        if (n.box) {
+          const t = el(
+            'text',
+            { class: 'l', x: n.x + 10, y: n.y + (n.h < 30 ? 17 : 16) },
+            g
+          )
+          t.textContent = n.l
+          if (n.s) {
+            const s = el('text', { class: 's', x: n.x + 10, y: n.y + 31 }, g)
+            s.textContent = n.s
+          }
+        } else {
+          const t = el(
+            'text',
+            {
+              class: 'l',
+              x: n.x + W / 2,
+              y: n.y + 27,
+              'text-anchor': 'middle',
+            },
+            g
+          )
+          t.textContent = n.l
+          n.s.split('|').forEach((s, i) => {
+            const e = el(
+              'text',
+              {
+                class: 's',
+                x: n.x + W / 2,
+                y: n.y + 44 + i * 13,
+                'text-anchor': 'middle',
+              },
+              g
+            )
+            e.textContent = s
+          })
+        }
+        g.addEventListener('click', () => show(n.id))
+        g.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            show(n.id)
+          }
+        })
+      }
+      function show(id) {
+        const n = M[id]
+        svg.querySelectorAll('.sel').forEach((e) => e.classList.remove('sel'))
+        svg.querySelector(`[data-id="${id}"]`).classList.add('sel')
+        const gates = n.lane === 'lg'
+        $('#info').innerHTML =
+          `<span class="pill" style="color:${V(gates ? 'gate' : n.c)}">${gates ? 'Quality gate' : 'Live batch'}</span><h3>${esc(n.t)}</h3><div class="by">Owner: ${esc(n.o)}</div><p>${esc(n.d)}</p>`
+      }
+      show('extract')
+      document.querySelectorAll('[data-m]').forEach((b) =>
+        b.addEventListener('click', () => {
+          document
+            .querySelectorAll('[data-m]')
+            .forEach((x) => x.setAttribute('aria-pressed', x === b))
+          svg.dataset.m = b.dataset.m
+        })
+      )
+      /* layers grid */
+      const L = [
+        ['raw', 'raw', FACTS['raw.tables'], 'PySpark extractors', 'Source rows verbatim plus _batch_id and _loaded_at.', 0],
+        ['stg', 'staging', FACTS['staging.loads'], 'staging.sp_load_*', 'Typed, deduped SCD1 current state with a shared history table.', 0],
+        ['ana', 'analytics', FACTS['analytics.entities'], 'analytics.sp_load_*', `${num('analytics.dims')} dimensions and ${num('analytics.facts')} incremental facts.`, 0],
+        ['mrt', 'marts', FACTS['marts.total'], 'marts.sp_load_*', 'Business marts sized for BI, reconciled back to the facts.', 0],
+        ['dlt', 'Databricks', FACTS['databricks.marts'], 'publish_marts.py', 'Read-only Delta copy of the published marts.', 0],
+      ]
+      $('#layers-grid').innerHTML = L.map(
+        ([c, n, k, by, d]) =>
+          `<div class="ly" style="--c:${V(c)}"><h3>${n}</h3><div class="n">${k}</div><div class="by">written by ${by}</div><div class="dots">${Array.from(
+            { length: k },
+            () => '<i></i>'
+          ).join('')}</div><p>${d}</p></div>`
+      ).join('')
+      /* live audit snapshot */
+      let live,
+        isDemo = false
+      try {
+        live = JSON.parse($('#live-data').textContent)
+      } catch {
+        isDemo = true
+        const t = new Date(Date.now() - 36e5).toISOString()
+        const names = [
+          'accounts', 'branches', 'cards', 'customers', 'employees',
+          'support_tickets', 'card_transactions', 'loans', 'loan_payments', 'transactions',
+        ]
+        const dqOf = (layer, n) =>
+          Array.from({ length: n }, (_, i) => ({
+            layer,
+            script_name: `${String(i + 1).padStart(2, '0')}_lp_check`,
+            last_status: 'PASS',
+            violations: 0,
+            last_checked_at: t,
+          }))
+        live = {
+          batches: [{
+            pipeline_run_id: 'demo-0000',
+            dag_id: 'banking_delta_daily',
+            run_type: 'scheduled',
+            status: 'SUCCEEDED',
+            started_at: t,
+            ended_at: t,
+            duration_seconds: 542,
+            table_runs: 10,
+            tables_ok: 10,
+            tables_failed: 0,
+            tables_skipped: 0,
+            error_count: 0,
+            dq_failed: 0,
+          }],
+          tables: names.map((n) => ({
+            pipeline_run_id: 'demo-0000',
+            target_table: `raw.${n}`,
+            processing_layer: 'raw',
+            status: 'SUCCESS',
+            rows_landed: 400 + Math.round(Math.random() * 9000),
+            started_at: t,
+          })),
+          dq: [
+            ...dqOf('raw', 10),
+            ...dqOf('staging', 10),
+            ...dqOf('analytics', 13),
+            ...dqOf('marts', 11),
+          ],
+        }
+      }
+      const batches = live.batches || [],
+        tblRows = live.tables || [],
+        dqRows = live.dq || []
+      const batch = [...batches].sort((a, b) =>
+        String(b.started_at || '').localeCompare(String(a.started_at || ''))
+      )[0]
+      const bid = batch && batch.pipeline_run_id
+      const rows = tblRows.filter((r) => r.pipeline_run_id === bid)
+      const dqOf = (layer) => dqRows.filter((r) => r.layer === layer)
+      const dqState = (layer) => {
+        const rs = dqOf(layer)
+        if (!rs.length) return 'idle'
+        return rs.some((r) => r.last_status === 'FAIL') ? 'failed' : 'done'
+      }
+      const ran = (layer) => dqOf(layer).length > 0
+      const logEl = $('#log')
+      const on = (ids, v) =>
+        ids.forEach((id) =>
+          svg.querySelector(`[data-id="${id}"]`)?.classList.toggle('on', v)
+        )
+      function log(t, c) {
+        const d = document.createElement('div')
+        d.innerHTML = `<span style="color:${V(c)}">${esc(t.split('  ')[0])}</span>  ${esc(
+          t.split('  ').slice(1).join('  ')
+        )}`
+        logEl.appendChild(d)
+        while (logEl.children.length > 14) logEl.firstChild.remove()
+      }
+      if (batch) {
+        const short = String(bid).slice(0, 8)
+        const lines = [
+          `batch  ${esc(batch.dag_id)} · ${esc(batch.run_type || 'manual')} · ${short}`,
+          `status  ${esc(batch.status)}${batch.started_at ? ` · ${esc(batch.started_at)}` : ''}`,
+          `tables  ${batch.table_runs ?? 0} runs · ${batch.tables_ok ?? 0} ok · ${batch.tables_failed ?? 0} failed`,
+          `dq      ${batch.dq_failed ?? 0} failed checks · ${batch.error_count ?? 0} errors`,
+          `length  ${batch.duration_seconds ?? 0}s`,
+        ]
+        lines.forEach((l) => log(l, batch.status === 'SUCCEEDED' ? 'ok' : 'gate'))
+        rows
+          .slice(0, 5)
+          .forEach((r) =>
+            log(
+              `table ${esc(r.target_table)}  ${esc(r.status)} · ${r.rows_landed ?? 0} rows`,
+              r.status === 'SUCCESS' ? 'raw' : 'gate'
+            )
+          )
+        dqOf('raw')
+          .slice(0, 4)
+          .forEach((r) =>
+            log(
+              `dq ${esc(r.layer)}/${esc(r.script_name)}  ${esc(r.last_status)} · ${r.violations ?? 0} violations`,
+              r.last_status === 'PASS' ? 'ok' : 'gate'
+            )
+          )
+        $('#runlbl').textContent = `${isDemo ? 'demo' : 'live'} · ${short}`
+      } else {
+        log('status  no rows in audit.fn_pipeline_summary', 'aud')
+        $('#runlbl').textContent = 'no live run'
+      }
+      const anyFailed = ['raw', 'staging', 'analytics', 'marts'].some(
+        (l) => dqState(l) === 'failed'
+      )
+      const steps = [
+        ['preflight', 'sources reachable', batch ? 'done' : 'idle', ['preflight', 'air']],
+        [
+          'raw-inject',
+          batch ? `${batch.table_runs ?? 0} table runs · ${batch.tables_failed ?? 0} failed` : '—',
+          batch ? (batch.tables_failed > 0 ? 'failed' : 'done') : 'idle',
+          ['mysql', 'mongo', 'dbx', 'extract', 'raw'],
+        ],
+        ['raw-tests', `${dqOf('raw').length || FACTS['dq.raw']} checks`, dqState('raw'), ['raw-tests']],
+        ['staging-load', 'CALL staging.sp_load_all', ran('staging') ? 'done' : 'idle', ['staging']],
+        ['staging-tests', `${dqOf('staging').length || FACTS['dq.staging']} checks`, dqState('staging'), ['staging-tests']],
+        ['analytics-load', 'CALL analytics.sp_load_all', ran('analytics') ? 'done' : 'idle', ['analytics']],
+        ['analytics-tests', `${dqOf('analytics').length || FACTS['dq.analytics']} checks`, dqState('analytics'), ['analytics-tests']],
+        ['marts-load', 'CALL marts.sp_load_all', ran('marts') ? 'done' : 'idle', ['marts']],
+        ['marts-tests', `${dqOf('marts').length || FACTS['dq.marts']} checks`, dqState('marts'), ['marts-tests']],
+        [
+          'publish',
+          'Delta overwrite after 4 gates',
+          !batch
+            ? 'idle'
+            : anyFailed || batch.tables_failed > 0
+              ? 'failed'
+              : batch.status === 'SUCCEEDED'
+                ? 'done'
+                : 'idle',
+          ['publish', 'publish-gate', 'delta', 'consumers'],
+        ],
+      ]
+      $('#steps').innerHTML = steps
+        .map(
+          ([n, s, st]) =>
+            `<li class="${st}"><b>${st === 'done' ? '✓' : st === 'failed' ? '✕' : '·'}</b>${n}<small>${s}</small></li>`
+        )
+        .join('')
+      $('#bar').style.width =
+        (steps.filter((s) => s[2] === 'done').length / steps.length) * 100 + '%'
+      const last = [...steps].reverse().find((s) => s[2] !== 'idle')
+      if (last) on(last[3], 1)
+      /* gate lane pulse */
+      const GL = ['preflight', 'raw-tests', 'staging-tests', 'analytics-tests', 'marts-tests', 'publish-gate']
+      let si = 0
+      setInterval(() => {
+        on(GL, 0)
+        on([GL[si++ % GL.length]], 1)
+        if (last) on(last[3], 1)
+      }, 900)
+      $('#play').addEventListener('click', () => {
+        try {
+          window.parent.location.reload()
+        } catch {
+          location.reload()
+        }
+      })
+      /* end-to-end data flow replay */
+      ;(() => {
+        const F = [
+          { c: 'src', t: 'Sources', o: 'MySQL · MongoDB · Databricks public', u: 'source objects', r: 1, n: FACTS['contracts.total'], ck: 'contracts' },
+          { c: 'raw', t: 'raw', o: 'src/jobs/extract_*.py', u: 'rows landed', r: 1, n: FACTS['raw.tables'], ck: 'tables' },
+          { c: 'stg', t: 'staging', o: 'staging.sp_load_*', u: 'checks passed', r: 0.98, n: FACTS['dq.raw'], ck: 'raw checks' },
+          { c: 'ana', t: 'analytics', o: 'analytics.sp_load_*', u: 'dim + fact rows', r: 0.98, n: FACTS['analytics.entities'], ck: 'entities' },
+          { c: 'mrt', t: 'marts', o: 'marts.sp_load_*', u: 'mart rows', r: 0.06, n: FACTS['marts.total'], ck: 'marts' },
+          { c: 'dlt', t: 'Databricks', o: 'src/jobs/publish_marts.py', u: 'rows synced', r: 0.06, n: FACTS['databricks.marts'], ck: 'marts matched' },
+        ]
+        const ist = new Date(Date.now() + FACTS['airflow.schedule.utc_offset_ms']),
+          D = (o) => new Date(ist.getTime() - o * 864e5).toISOString().slice(0, 10),
+          y = D(1), td = D(0)
+        const R = [
+          { f: [['customer_id', '104827'], ['full_name', '"Aarav Sharma"'], ['pan', '"AXXXX1234K"'], ['dob', '"1988-04-17"'], ['kyc_status', '"VERIFIED"']],
+            n: 'Row as it arrives in MySQL banking_core_db.customers. Sources are read-only, so the pipeline never writes back.' },
+          { f: [['customer_id', '104827'], ['full_name', '"Aarav Sharma"'], ['_batch_id', `"b-${td}-02"`, 1], ['_loaded_at', `"${td} 02:04:11+00"`, 1], ['kyc_status', '"VERIFIED"']],
+            n: 'Landed verbatim in raw with the batch label and load time. raw keeps the history of what arrived.' },
+          { f: [['customer_key', '88214', 1], ['customer_id', '104827'], ['dob', `${y} 00:00:00+00`, 1], ['kyc_status', '"VERIFIED"'], ['scd1_row_hash', '"9f3c…e1d0"', 1]],
+            n: 'staging casts types, dedupes on the business key and keeps one current SCD1 row; overwrites go to staging.scd1_history.' },
+          { f: [['customer_key', '88214'], ['date_key', y.replace(/-/g, ''), 1], ['branch_key', '17', 1], ['tenure_days', '1389', 1], ['is_active', 'true', 1]],
+            n: 'Joined to dimensions by key in analytics: the star schema the facts hang off.' },
+          { f: [['grain', `"${y} · customer"`], ['total_accounts', '4', 1], ['total_balance', '"128,450.00"', 1], ['loan_outstanding', '"45,000.00"', 1]],
+            n: 'One row per customer in marts.mart_customer_360. Money stays NUMERIC(18,2) end to end — never float.' },
+          { f: [['table', 'marts.mart_customer_360'], ['row_count', '10,482', 1], ['delta_version', '"418"', 1], ['reconciled', 'true', 1]],
+            n: `Published as a Databricks Delta table by full overwrite once all ${num('dq.total')} checks have passed.` },
+        ]
+        const T = [
+          (c) => [`preflight  PostgreSQL · MySQL · MongoDB · Databricks reachable`, `contract check  ${num('contracts.total')}/${num('contracts.total')} source objects match`, `extract  mongo → databricks → mysql, one subprocess each`, `watermark  audit.extract_watermarks snapshot taken`],
+          (c) => [`raw._stg_customers  promoted to raw.customers`, `raw  +${c.f(0.31)} rows across ${num('raw.tables')} tables`, `watermark  advanced inside the same transaction`, `raw-tests  ${num('dq.raw')} checks queued`],
+          (c) => [`staging  CALL staging.sp_load_all`, `scd1  ${c.f(0.004)} overwrites captured in scd1_history`, `dedupe  ${c.f(0.004)} duplicate rows dropped`, `raw-tests  ${num('dq.raw')}/${num('dq.raw')} passed`],
+          (c) => [`analytics  CALL analytics.sp_load_all`, `dim_customer, dim_branch  keys resolved`, `fact_transactions  ${c.f(0.31)} rows`, `analytics-tests  ${num('dq.analytics')}/${num('dq.analytics')} passed`],
+          (c) => [`marts  CALL marts.sp_load_all`, `mart_customer_360  ${c.f(0.02)} rows`, `reconciliation  mart totals tie back to the facts`, `marts-tests  ${num('dq.marts')}/${num('dq.marts')} passed`],
+          (c) => [`publish  Parquet → Unity Catalog volume → Delta`, `reconcile  ${num('databricks.marts')}/${num('databricks.marts')} row counts match`, `audit.table_runs  SUCCESS recorded`, `notify  summary emailed by Airflow`],
+        ]
+        const flow = $('#flow'), rec = $('#rec'), feed = $('#feed'), pk = $('#pk')
+        flow.innerHTML = F.map((s, j) => `<div class="fc" data-j="${j}" style="--c:${V(s.c)}" tabindex="0" role="button" aria-label="Show record at ${s.t}"><h3>${s.t}</h3><span class="num">0</span><small>${s.u}</small><div class="bar"><i></i></div><div class="mt"><span class="ck"></span><em class="st">waiting</em></div><small>${s.o}</small></div>`).join('')
+        const cs = [...flow.children]
+        let base, i, p, hold, fired, runs = 0, sp = 1, paused = false, pin = null, shown = -1
+        const fmt = (n) => Math.round(n).toLocaleString('en-US')
+        const clock = () => new Date(Date.now() + FACTS['airflow.schedule.utc_offset_ms']).toISOString().slice(11, 19)
+        const ctx = () => ({ id: (typeof bid === 'string' ? bid.slice(0, 8) : 'demo') + '.' + runs, f: (x) => fmt(base * x) })
+        function push(t, c) {
+          const d = document.createElement('div')
+          d.innerHTML = `<span style="color:${V(c)}">${clock()}</span>  ${esc(t)}`
+          feed.appendChild(d)
+          while (feed.children.length > 12) feed.firstChild.remove()
+        }
+        function showRec(v) {
+          shown = v
+          const s = F[v]
+          $('#rect').textContent = `Record in ${s.t}`
+          rec.style.setProperty('--c', V(s.c))
+          rec.innerHTML = R[v].f.map(([k, x, c]) => `<div class="kv${c ? ' chg' : ''}"><span>${k}</span><code>${x}</code></div>`).join('') + `<p>${R[v].n}</p>`
+          cs.forEach((c, j) => c.classList.toggle('sel', pin === j))
+        }
+        function paint() {
+          F.forEach((s, j) => {
+            const e = j < i ? 1 : j === i ? p : 0,
+              ck = Math.max(0, (e - 0.3) / 0.7),
+              c = cs[j]
+            c.querySelector('.num').textContent = fmt(base * s.r * Math.min(1, e / 0.7))
+            c.querySelector('.ck').textContent = `${Math.round(s.n * ck)}/${s.n} ${s.ck}`
+            c.querySelector('.bar i').style.width = ck * 100 + '%'
+            c.classList.toggle('run', j === i)
+            c.classList.toggle('pass', j < i)
+            c.querySelector('.st').textContent = j < i ? 'passed' : j === i ? 'running' : 'waiting'
+          })
+          pk.style.left = 8 + (Math.min(i, 5) / 5) * 84 + '%'
+          const v = pin ?? Math.min(i, 5)
+          if (v !== shown) showRec(v)
+          $('#fclock').textContent = `IST ${clock()} · batch ${ctx().id}`
+        }
+        function reset() {
+          base = 7800 + Math.random() * 1800
+          i = 0; p = 0; hold = 0; fired = 0
+          runs++
+          push(`airflow  banking_delta_daily started, batch ${ctx().id}`, 'air')
+          paint()
+        }
+        function step(dt) {
+          if (i >= F.length) {
+            hold += dt
+            if (hold > 8) reset()
+            return
+          }
+          p += (dt * sp) / 4.2
+          const m = T[i](ctx())
+          while (fired < m.length && p >= (fired + 1) / (m.length + 1)) push(m[fired++], F[i].c)
+          if (p >= 1) { p = 0; fired = 0; i++; if (i === F.length) push(`airflow  batch ${ctx().id} finished, next run ${FACTS['airflow.schedule.time']} IST`, 'ok') }
+          paint()
+        }
+        setInterval(() => { if (!paused) step(0.1) }, 100)
+        setInterval(() => { $('#fclock').textContent = `IST ${clock()} · batch ${ctx().id}` }, 1000)
+        $('#fp').addEventListener('click', (e) => { paused = !paused; e.target.textContent = paused ? '▶ Play' : '❚❚ Pause' })
+        $('#fr').addEventListener('click', () => { runs--; feed.innerHTML = ''; reset() })
+        document.querySelectorAll('[data-sp]').forEach((b) => b.addEventListener('click', () => {
+          sp = +b.dataset.sp
+          document.querySelectorAll('[data-sp]').forEach((x) => x.setAttribute('aria-pressed', x === b))
+        }))
+        const pick = (c) => { const j = +c.dataset.j; pin = pin === j ? null : j; showRec(pin ?? Math.min(i, 5)) }
+        cs.forEach((c) => {
+          c.addEventListener('click', () => pick(c))
+          c.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(c) } })
+        })
+        runs = -1
+        reset()
+        if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          paused = true; $('#fp').textContent = '▶ Play'; i = F.length; p = 0; paint()
+        }
+        /* hero countdown to the daily schedule */
+        const [schedHour, schedMinute] = FACTS['airflow.schedule.time'].split(':').map(Number)
+        const nxt = $('#nxt'), nextRun = () => {
+          const n = Date.now(), o = FACTS['airflow.schedule.utc_offset_ms'], t = new Date(n + o)
+          t.setUTCHours(schedHour, schedMinute, 0, 0)
+          let r = t.getTime() - o
+          if (r <= n) r += 864e5
+          return Math.floor((r - n) / 1000)
+        }
+        const tick = () => {
+          const s = nextRun()
+          nxt.textContent = 'next run in ' + [(s / 3600) | 0, ((s / 60) | 0) % 60, s % 60].map((n) => String(n).padStart(2, '0')).join(':')
+        }
+        tick(); setInterval(tick, 1000)
+      })()
+      /* ui */
+      const mb = $('#mb'),
+        menu = $('#menu')
+      mb.addEventListener('click', () =>
+        mb.setAttribute('aria-expanded', menu.classList.toggle('open'))
+      )
+      menu.addEventListener('click', (e) => {
+        if (e.target.closest('a')) {
+          menu.classList.remove('open')
+          mb.setAttribute('aria-expanded', 'false')
+        }
+      })
+      document.querySelectorAll('[data-copy]').forEach((b) =>
+        b.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(
+              b.closest('.code').querySelector('code').textContent.trim()
+            )
+            b.textContent = 'Copied'
+          } catch {
+            b.textContent = 'Select code'
+          }
+          setTimeout(() => (b.textContent = 'Copy'), 1500)
+        })
+      )
+    </script>
+  </body>
+</html>

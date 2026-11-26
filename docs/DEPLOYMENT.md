@@ -145,8 +145,9 @@ The `docs/` tree (plus root `ARCHITECTURE.md`, included at build time via
 - No `site_url` is configured: all links are relative, which is what makes the
   same build work at `/` and `/preview/<branch>/`.
 - Local preview: `uv sync --group docs && uv run mkdocs build --strict`
-  (output in `site/`; copy `assets/` into `site/assets/` if you want the
-  insight charts to render).
+  (output in `site_build/`, git-ignored — `site/` holds the landing-page
+  helpers; copy `assets/` into `site_build/assets/` if you want the insight
+  charts to render).
 
 **Promotion flow:** `dev` → `staging` → `qa` → `main`, one merge per hop; each
 merge republishes that branch's preview immediately, and the merge into `main`

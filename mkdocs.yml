@@ -1,6 +1,8 @@
 site_name: Banking Delta Lakehouse
 docs_dir: docs
-site_dir: site
+# Not `site/`: that folder holds the source helpers for the Streamlit landing
+# page, and mkdocs wipes site_dir on every build.
+site_dir: site_build
 # No site_url: every URL stays relative so one gh-pages branch can host the
 # production site at / and previews at /preview/<branch>/.
 

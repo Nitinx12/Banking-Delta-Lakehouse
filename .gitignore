@@ -35,4 +35,6 @@ file.txt
 data/raw/**/*.csv
 data/raw/**/*.part
 
-site/
+# mkdocs build output (site/ holds the landing-page helpers, not output)
+site_build/
+

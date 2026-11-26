@@ -1,30 +1,29 @@
-# Banking-Delta-Lakehouse project site
+# site - landing page helpers
 
-Static landing page for the daily lakehouse pipeline.
+Helpers behind the project landing page: `index.html` (the page itself) and `app.py`
+(the Streamlit host that serves it plus a read-only audit panel).
 
-## Static hosting
+| Path | What it is |
+| --- | --- |
+| `index.html` | The landing page: architecture, layers, entry points, DQ gates, runbook, insights. |
+| `site_render.py` | Turns `index.html` into what the iframe shows: inlines small `assets/…` files as data URIs, rewrites repo document links to GitHub, injects the facts and live-audit JSON blocks. |
+| `site_audit.py` | The fixed `QUERIES` allowlist over the `audit` schema (`fn_pipeline_summary`, `fn_table_runs`, `fn_dq_summary`, `v_dq_latest`), plus the payload builder and a redacting error formatter. |
+| `check_site.mjs` | Static checks on `index.html`: JSON blocks parse, the inline script compiles, every `data-fact` is defined, local links/anchors resolve, `make <target>` names exist, and no copy from the previous project leaked in. |
 
-- Entry point: `site/index.html`
-- Styles: `site/style/`
-- Behaviour: `site/scripts/site.js`
-- Favicon: `site/favicon.svg`
-- Build step: none
-- External network: Google Fonts only (`Inter`, `JetBrains Mono`)
+Nothing here runs the pipeline; the page only reads the `audit` schema.
 
-Serve `site/` from any plain file server or GitHub Pages. All content and links are present in the HTML; JavaScript only adds the theme toggle, menus, scroll spy, replay console, detail drawer and copy feedback.
-
-## Verification
-
-From the repository root:
+## Run
 
 ```bash
-node tools/check_layout.mjs --out docs/site-qa
+streamlit run app.py                       # site + live audit panel
+node site/check_site.mjs                   # static checks on index.html
 ```
 
-The checker reports page and internal horizontal scroll, visible text overlaps, SVG text issues, console errors and failed requests at 360, 768, 1024, 1440 and 1920 pixels.
+Live data needs a `[postgres]` block in `.streamlit/secrets.toml` (read-only user with
+`SELECT` on `audit`). Without it the page falls back to its labelled demo snapshot and
+`app.py` says so in the second tab.
 
-## Streamlit fallback
+## Docs
 
-`site/site.py` still wraps the static page in an iframe for the existing Streamlit deployment. It does not own the page content.
-
-All displayed figures come from the repository. `REPO_UNDERSTANDING.md` records the verified facts and discrepancies with file and line references; `SITE_AUDIT.md` records the before-state and root causes.
+MkDocs builds to `site_build/` (`mkdocs.yml` → `site_dir`), so the name `site/` stays
+free for these helpers. Pages publish `site_build/` from `.github/workflows/pages.yml`.
