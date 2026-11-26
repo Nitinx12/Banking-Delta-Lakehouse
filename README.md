@@ -8,6 +8,55 @@
   Banking Delta Lakehouse is a daily PySpark pipeline that lands MySQL, MongoDB and Databricks `public` data into PostgreSQL `raw → staging → analytics → marts`, then publishes the marts to Databricks Delta. Airflow schedules the run; SQL DQ gates block bad data and audit tables record every step. Results surface in a read-only Streamlit dashboard and daily, weekly and incident LaTeX PDFs emailed by Airflow.
 </p>
 
+<p align="center">
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/ci.yml"><img src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/nightly.yml"><img src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/nightly.yml/badge.svg" alt="Nightly"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/codeql.yml"><img src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/codeql.yml/badge.svg" alt="CodeQL"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/leaks.yml"><img src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/leaks.yml/badge.svg" alt="Secret scan"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/releases"><img src="https://img.shields.io/github/v/release/Nitinx12/Banking-Delta-Lakehouse?include_prereleases" alt="Release"></a>
+</p>
+
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-blue.svg" alt="Licence: MIT"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/commits/main"><img src="https://img.shields.io/github/last-commit/Nitinx12/Banking-Delta-Lakehouse.svg" alt="Last commit"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse/issues"><img src="https://img.shields.io/github/issues/Nitinx12/Banking-Delta-Lakehouse.svg" alt="Open issues"></a>
+  <a href="https://github.com/Nitinx12/Banking-Delta-Lakehouse"><img src="https://img.shields.io/github/repo-size/Nitinx12/Banking-Delta-Lakehouse.svg" alt="Repo size"></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.12%20%7C%203.13-3776AB?logo=python&logoColor=white" alt="Python 3.12 | 3.13">
+  <img src="https://img.shields.io/badge/PySpark-E25A1C?logo=apachespark&logoColor=white" alt="PySpark">
+  <img src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 16">
+  <img src="https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white" alt="MongoDB">
+  <img src="https://img.shields.io/badge/Databricks-Delta-FF3621?logo=databricks&logoColor=white" alt="Databricks Delta">
+  <img src="https://img.shields.io/badge/Delta%20Lake-00ADD4?logo=deltalake&logoColor=white" alt="Delta Lake">
+  <img src="https://img.shields.io/badge/Airflow-3.3.2-017CEE?logo=apacheairflow&logoColor=white" alt="Airflow 3.3.2">
+  <img src="https://img.shields.io/badge/Celery-37814A?logo=celery&logoColor=white" alt="Celery">
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white" alt="Streamlit">
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white" alt="Docker Compose">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/raw-bronze-c2410c" alt="raw layer">
+  <img src="https://img.shields.io/badge/staging-silver-0e7490" alt="staging layer">
+  <img src="https://img.shields.io/badge/analytics-gold-15803d" alt="analytics layer">
+  <img src="https://img.shields.io/badge/marts-gold-be185d" alt="marts layer">
+  <img src="https://img.shields.io/badge/architecture-medallion-334155" alt="Medallion architecture">
+  <img src="https://img.shields.io/badge/schedule-02%3A00%20IST%20daily-6D28D9?logo=apacheairflow&logoColor=white" alt="Daily 02:00 IST">
+  <img src="https://img.shields.io/badge/DQ%20gates-every%20layer-B91C1C" alt="DQ gates at every layer">
+</p>
+
+<p align="center">
+  <a href="https://docs.astral.sh/ruff/"><img src="https://img.shields.io/badge/lint-ruff-D7FF64?logo=ruff&logoColor=black" alt="Ruff"></a>
+  <a href="https://docs.astral.sh/uv/"><img src="https://img.shields.io/badge/packaging-uv-DE5FE9?logo=uv&logoColor=white" alt="uv"></a>
+  <img src="https://img.shields.io/badge/sql%20lint-sqlfluff-0F172A" alt="SQLFluff">
+  <img src="https://img.shields.io/badge/secret%20scan-gitleaks-C8302F?logo=git&logoColor=white" alt="Gitleaks">
+  <img src="https://img.shields.io/badge/tests-pytest%20%2B%20SQL%20DQ-0A9EDC?logo=pytest&logoColor=white" alt="pytest and SQL DQ tests">
+  <img src="https://img.shields.io/badge/tests-786-brightgreen" alt="786 automated tests">
+  <img src="https://img.shields.io/badge/coverage-91%25-brightgreen" alt="91% coverage">
+</p>
+
 ## Tech stack
 
 | Layer | Tools |
