@@ -51,5 +51,4 @@ step 1:
 - **CI/CD**: `Makefile` and GitHub Actions enforce a "hermetic" gate (linting, unit tests, and contract validation) before code reaches the environment.
 
 ## Open questions / UNVERIFIED
-- **R Analysis Layer**: Mentioned in `ARCHITECTURE.md` (`r/` directory), but not part of the primary daily pipeline flow. Its integration depth is unverified.
 - **SCD2 Implementation**: `ARCHITECTURE.md` mentions SCD2 in a SQL example, but the summary table describes staging as SCD1. Need to verify if `analytics` or `marts` use SCD2.

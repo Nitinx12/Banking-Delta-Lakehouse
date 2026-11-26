@@ -45,7 +45,6 @@ graph TD
     subgraph Consumption
         DBX_Target[(Databricks Marts)]
         Dashboard[Streamlit Dashboard]
-        R_Analysis[R Analysis/Quarto]
     end
 
     %% Flow
@@ -55,7 +54,6 @@ graph TD
     A_Load --> DQ_A --> M_Load
     M_Load --> DQ_M -->|src/jobs/publish_marts.py| DBX_Target
     DBX_Target --> Dashboard
-    DBX_Target --> R_Analysis
 
     %% Gates
     DQ_R -.->|Block| S_Load

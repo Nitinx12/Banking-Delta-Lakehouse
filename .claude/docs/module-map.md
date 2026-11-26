@@ -52,15 +52,6 @@ A daily lakehouse pipeline extracting from MySQL, MongoDB, and Databricks into a
 - **Public Interfaces**: Streamlit UI.
 - **Dependencies**: Streamlit, Plotly, Databricks SQL.
 
-### `r/`
-- **Purpose**: Advanced statistical analysis and forecasting (read-only).
-- **Key Files**:
-    - `main.R`: Analysis entry point.
-    - `R/*.R`: Analysis modules (forecasting, reconciliation).
-    - `analyses/*.qmd`: Quarto report documents.
-- **Public Interfaces**: `main.R`.
-- **Dependencies**: R, renv, Quarto.
-
 ### `contracts/`
 - **Purpose**: JSON schema definitions for source-to-raw landing.
 - **Key Files**:
@@ -83,9 +74,8 @@ A daily lakehouse pipeline extracting from MySQL, MongoDB, and Databricks into a
 - **Orchestration**: `airflow/` $\rightarrow$ `scripts/` $\rightarrow$ `src/` (Python) & `sql/` (PostgreSQL `CALL`).
 - **Data Flow**: Source $\rightarrow$ `src/jobs/extract_*` $\rightarrow$ `sql/staging` $\rightarrow$ `sql/analytics` $\rightarrow$ `sql/marts` $\rightarrow$ `src/jobs/publish_marts` $\rightarrow$ Databricks.
 - **Quality Gate**: `scripts/run_*_tests.py` $\rightarrow$ `tests/data-quality/` $\rightarrow$ `audit` schema $\rightarrow$ Airflow Gate.
-- **Consumption**: Databricks $\rightarrow$ `dashboard/` & `r/`.
+- **Consumption**: Databricks $\rightarrow$ `dashboard/`.
 
 ## Open questions / UNVERIFIED
 - **SQL Linting**: `ARCHITECTURE.md` mentions `sql-lint` is currently red on some pre-existing violations.
-- **R-Layer Integration**: The R layer is marked as a "read-only consumer"; verify if it has any write-back paths to audit or logs.
 - **Airflow-Spark JVM**: The `spark_jvm` pool in Airflow suggests resource constraints; verify if this is based on physical memory or concurrency limits.

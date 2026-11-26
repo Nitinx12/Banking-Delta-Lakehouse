@@ -145,7 +145,6 @@ Banking-Delta-Lakehouse/
 ├── contracts/                  # source → raw landing contracts (validated)
 ├── airflow/                    # dags/, include/banking_airflow/, compose, Dockerfile
 ├── dashboard/                  # Streamlit read-only app (Databricks SQL)
-├── r/                          # R analysis layer (read-only consumer; see docs/R.md)
 ├── reports/                    # daily/weekly/incident PDF + TeX output
 ├── docs/                       # per-subsystem guides
 └── conf/ · notebooks/          # log4j2 config · source exploration notebooks
@@ -698,8 +697,6 @@ flowchart TB
    or ask.
 
 ## 15. Where to go next
-
-- R analysis layer: see `docs/R.md` and `r/` (read-only consumer; runs `main.R`).
 
 | Question | Document |
 |---|---|
