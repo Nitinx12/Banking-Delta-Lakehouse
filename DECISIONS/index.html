@@ -10,7 +10,7 @@
       
       
       
-        <link rel="prev" href="../R/">
+        <link rel="prev" href="../REPORTING/">
       
       
       
@@ -1015,172 +1015,6 @@
 
               
             
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../METHODS/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Methods
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Model cards
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Model cards
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../MODEL-CARDS/attrition_risk/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Attrition risk
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../MODEL-CARDS/fraud_detection/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Fraud detection
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../MODEL-CARDS/pd_scorecard/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    PD scorecard
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
           </ul>
         </nav>
       
@@ -1203,33 +1037,6 @@
     
   
     Reports
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../R/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    R analysis layer
   
 
     
@@ -1386,10 +1193,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-read-only-streamlit-and-r-consumers" class="md-nav__link">
+  <a href="#8-read-only-streamlit-consumer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Read-only Streamlit and R consumers
+        8. Read-only Streamlit consumer
       
     </span>
   </a>
@@ -1519,10 +1326,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#8-read-only-streamlit-and-r-consumers" class="md-nav__link">
+  <a href="#8-read-only-streamlit-consumer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8. Read-only Streamlit and R consumers
+        8. Read-only Streamlit consumer
       
     </span>
   </a>
@@ -1607,7 +1414,7 @@ describes what the code actually does.</p>
 </tr>
 <tr>
 <td>8</td>
-<td>Read-only Streamlit and R consumers</td>
+<td>Read-only Streamlit consumer</td>
 <td>accepted</td>
 </tr>
 <tr>
@@ -1749,7 +1556,7 @@ Parquet via pyarrow, uploads to a Unity Catalog volume and runs one
 <p><strong>Alternatives rejected:</strong> row-by-row JDBC inserts into Delta; external
 tables/federation reading Postgres directly from Databricks; replicating with
 Debezium/CDC; making the dashboard query PostgreSQL.</p>
-<p><strong>Why:</strong> The dashboard and R layer consume Databricks SQL, so marts must exist
+<p><strong>Why:</strong> The dashboard consumes Databricks SQL, so marts must exist
 there; reading the watermark from the target makes publish self-incrementing with
 no extra state (<code>ARCHITECTURE.md</code> §9). Parquet + <code>read_files</code> avoids a JDBC
 driver inside Databricks and keeps the whole publish idempotent (MERGE on keys).</p>
@@ -1759,20 +1566,18 @@ driver inside Databricks and keeps the whole publish idempotent (MERGE on keys).
 <code>docs/REPORTING.md</code> says <code>publish_reconcile</code> exists because of it). I would turn a
 non-zero lookback on by default, add a nightly source-vs-Delta count gate, and
 consider Delta Sharing if consumers multiply.</p>
-<h2 id="8-read-only-streamlit-and-r-consumers">8. Read-only Streamlit and R consumers</h2>
-<p><strong>Decision:</strong> The Streamlit dashboard (<code>dashboard/</code>) and the R layer (<code>r/</code>) only
-<code>SELECT</code> from published Databricks Delta marts; neither ever writes to any layer
-(<code>dashboard/README.md</code>, <code>docs/R.md</code> §0, <code>ARCHITECTURE.md</code> colour legend: indigo =
-read-only consumers).</p>
+<h2 id="8-read-only-streamlit-consumer">8. Read-only Streamlit consumer</h2>
+<p><strong>Decision:</strong> The Streamlit dashboard (<code>dashboard/</code>) only <code>SELECT</code>s from published
+Databricks Delta marts and never writes to any layer (<code>dashboard/README.md</code>,
+<code>ARCHITECTURE.md</code> colour legend: indigo = read-only consumers).</p>
 <p><strong>Alternatives rejected:</strong> consumers writing results back into the warehouse;
 dashboards querying PostgreSQL directly; a serving API with write endpoints;
 giving consumers service accounts with DDL rights.</p>
 <p><strong>Why:</strong> Consumers sit behind the publish boundary, so a bad query cannot corrupt
 the warehouse — layer ownership (<code>ARCHITECTURE.md</code> §14.4) stays intact. The
 dashboard caches each <code>SELECT</code> for 5 minutes to protect the SQL warehouse
-(<code>dashboard/README.md</code>), and the R guide states a read-only consumer "must not
-weaken any contract in <code>ARCHITECTURE.md</code> §14". The report collector is guarded by a
-test that issues only <code>SELECT</code> statements (<code>docs/TESTING.md</code>).</p>
+(<code>dashboard/README.md</code>). The report collector is guarded by a test that issues
+only <code>SELECT</code> statements (<code>docs/TESTING.md</code>).</p>
 <p><strong>Trade-offs / at larger scale:</strong> Read-only means every new derived figure must
 first be modelled into a mart (slow for ad-hoc work). I would keep the rule for
 anything shared, and add a sandbox schema/consumer with quotas for exploration
