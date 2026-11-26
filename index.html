@@ -24,6 +24,12 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b0f14'/%3E%3Crect x='6' y='7' width='20' height='4' rx='1' fill='%23e07b39'/%3E%3Crect x='6' y='13' width='20' height='4' rx='1' fill='%2338bdf8'/%3E%3Crect x='6' y='19' width='20' height='4' rx='1' fill='%2334d399'/%3E%3Crect x='6' y='25' width='20' height='3' rx='1' fill='%23f472b6'/%3E%3C/svg%3E"
     />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+    />
     <style>
       :root {
         color-scheme: dark;
@@ -32,7 +38,7 @@
         --line: #232c38;
         --text: #e8edf3;
         --mut: #8b97a7;
-        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         /* ARCHITECTURE.md colour legend */
         --src: #5b9dff;
         --air: #a78bfa;
@@ -362,9 +368,11 @@
       }
       svg {
         display: block;
+        height: auto;
+      }
+      .canvas svg {
         width: 100%;
         min-width: 980px;
-        height: auto;
       }
       svg text {
         font-family: var(--mono);
@@ -846,6 +854,37 @@
       .feed div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       #nxt{color:var(--ok)}
       @media (max-width:900px){#dataflow .flow{grid-template-columns:1fr 1fr}#dataflow .rail{display:none}.fgrid{grid-template-columns:1fr}}
+
+      /* polish */
+      ::selection{background:#38bdf84d}
+      html{-webkit-font-smoothing:antialiased}
+      h1,h2,h3{text-wrap:balance}
+      p,li{text-wrap:pretty}
+      header{background:rgba(11,15,20,.72);backdrop-filter:blur(16px) saturate(1.4)}
+      header::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--raw),var(--stg),var(--ana),var(--mrt),transparent);opacity:.55}
+      nav a.l{transition:color .2s,background .2s}
+      nav a.l[aria-current]{color:var(--text);background:#ffffff12;box-shadow:inset 0 -2px var(--stg)}
+      .hero{position:relative;padding:5.5rem 0 4.5rem}
+      .hero::before{content:'';position:absolute;inset:-10% 0 0;pointer-events:none;background:radial-gradient(40rem 22rem at 18% 20%,#38bdf81f,transparent 70%),radial-gradient(34rem 20rem at 85% 40%,#a78bfa1c,transparent 70%),radial-gradient(28rem 16rem at 60% 100%,#34d3991a,transparent 70%)}
+      .hero .wrap{position:relative}
+      .tag{text-transform:none;letter-spacing:.03em;font-size:.78rem}
+      h1{font-size:clamp(2.4rem,5.4vw,4.1rem);line-height:1.02;letter-spacing:-.045em;font-weight:800}
+      h1 em{color:inherit;background:linear-gradient(90deg,var(--raw),var(--stg),var(--ana),var(--mrt)) 0 100%/100% .14em no-repeat;padding-bottom:.06em}
+      .btn{transition:transform .2s,box-shadow .2s,border-color .2s}
+      .btn:hover{transform:translateY(-1px)}
+      .btn.p{box-shadow:0 8px 30px -8px #e8edf355}
+      .btn.p:hover{box-shadow:0 10px 40px -6px #38bdf888}
+      .term{background:linear-gradient(#0d131a,#0a0e13);box-shadow:0 0 0 1px #ffffff0a,0 40px 90px -30px #38bdf866,0 24px 60px #0008}
+      .term-h{background:#ffffff05}
+      section{border-top:0;position:relative}
+      section::before{content:'';position:absolute;top:0;left:50%;width:min(1200px,calc(100% - 2rem));height:1px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,var(--line) 20%,var(--line) 80%,transparent)}
+      .box2,.q div,.ins article,.fc{background-image:linear-gradient(180deg,#ffffff07,transparent 40%)}
+      .ly{border-top-width:2px;background-image:linear-gradient(180deg,color-mix(in srgb,var(--c) 12%,transparent),transparent 55%)}
+      .ly .n{color:var(--c)}
+      .q b,.ins b,.ly .n{font-variant-numeric:tabular-nums}
+      .q b,.ins b{font-size:2.6rem}
+      .canvas{background-image:radial-gradient(circle,#ffffff0d 1px,transparent 1px);background-size:22px 22px;box-shadow:0 30px 80px -40px #38bdf855}
+      @media (max-width:560px){.hero{padding:3rem 0 2.5rem}.layers,.q,#dataflow .flow{grid-template-columns:1fr}.btns .btn{flex:1;text-align:center}}
     </style>
   </head>
   <body>
@@ -866,9 +905,9 @@
         <nav aria-label="Primary">
           <ul id="menu">
             <li><a class="l" href="#architecture">Pipeline</a></li>
-            <li><a class="l" href="#dataflow">Data flow</a></li>
             <li><a class="l" href="#layers">Layers</a></li>
             <li><a class="l" href="#entrypoints">Orchestration</a></li>
+            <li><a class="l" href="#dataflow">Data flow</a></li>
             <li><a class="l" href="#quality">Quality</a></li>
             <li><a class="l" href="#runbook">Runbook</a></li>
             <li><a class="l" href="#insights">Insights</a></li>
@@ -966,7 +1005,7 @@
               id="svg"
               viewBox="0 0 1250 460"
               data-m="a"
-              role="img"
+              role="group"
               aria-label="Data pipeline diagram"
             ></svg>
           </div>
@@ -993,7 +1032,7 @@
         <div class="wrap">
           <div class="head">
             <span class="tag">How the layers work here</span>
-            <h2>Four layers, each one run, then tested</h2>
+            <h2>Four layers and a Delta copy, each run then tested</h2>
             <p>
               Each square is one table, loader or model. One owner writes each
               schema, <code>main.py</code> calls the next layer only after the
@@ -1240,7 +1279,7 @@ make publish</code></pre>
               <img
                 src="assets/insights/01-customers.png"
                 alt="Transaction value by customer decile"
-                loading="lazy"
+                loading="lazy" onerror="this.remove()"
               />
               <a href="docs/INSIGHTS.md">Insight index →</a>
             </article>
@@ -1256,7 +1295,7 @@ make publish</code></pre>
               <img
                 src="assets/insights/02-loans.png"
                 alt="Loan payment timeliness"
-                loading="lazy"
+                loading="lazy" onerror="this.remove()"
               />
               <a href="docs/INSIGHTS.md">Insight index →</a>
             </article>
@@ -1272,7 +1311,7 @@ make publish</code></pre>
               <img
                 src="assets/insights/03-card-fraud.png"
                 alt="Card fraud share"
-                loading="lazy"
+                loading="lazy" onerror="this.remove()"
               />
               <a href="docs/INSIGHTS.md">Insight index →</a>
             </article>
@@ -1727,14 +1766,12 @@ make publish</code></pre>
         )
       function log(t, c) {
         const d = document.createElement('div')
-        d.innerHTML = `<span style="color:${V(c)}">${esc(t.split('  ')[0])}</span>  ${esc(
-          t.split('  ').slice(1).join('  ')
-        )}`
+        d.innerHTML = `<span style="color:${V(c)}">${t.split('  ')[0]}</span>  ${t.split('  ').slice(1).join('  ')}`
         logEl.appendChild(d)
         while (logEl.children.length > 14) logEl.firstChild.remove()
       }
       if (batch) {
-        const short = String(bid).slice(0, 8)
+        const short = esc(String(bid).slice(0, 8))
         const lines = [
           `batch  ${esc(batch.dag_id)} · ${esc(batch.run_type || 'manual')} · ${short}`,
           `status  ${esc(batch.status)}${batch.started_at ? ` · ${esc(batch.started_at)}` : ''}`,
@@ -1970,6 +2007,19 @@ make publish</code></pre>
           setTimeout(() => (b.textContent = 'Copy'), 1500)
         })
       )
+      /* nav: mark the section in view */
+      ;(() => {
+        const links = [...document.querySelectorAll('nav a.l')]
+        const io = new IntersectionObserver(
+          (es) => es.forEach((e) => {
+            if (!e.isIntersecting) return
+            links.forEach((a) => a.removeAttribute('aria-current'))
+            links.find((a) => a.hash === '#' + e.target.id)?.setAttribute('aria-current', 'true')
+          }),
+          { rootMargin: '-45% 0px -50% 0px' }
+        )
+        links.forEach((a) => { const t = document.querySelector(a.hash); t && io.observe(t) })
+      })()
     </script>
   </body>
 </html>
