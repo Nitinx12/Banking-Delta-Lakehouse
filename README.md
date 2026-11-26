@@ -4,90 +4,117 @@
 
 <h1 align="center">Banking Delta Lakehouse</h1>
 
-<p align="center">
-  Banking-Delta-Lakehouse is a daily banking data pipeline. It pulls data from MySQL, MongoDB, and Databricks with PySpark, moves it through four PostgreSQL layers (raw → staging → analytics → marts) using stored procedures, and publishes the final marts to Databricks Delta. Airflow       runs it on a schedule, and data-quality checks at every layer stop bad data before it reaches the next step. Each run is logged for auditing. Results are served through a read-only Streamlit dashboard and automated LaTeX reports (daily, weekly, and       incident PDFs) that Airflow emails out after each run.
+<!-- <p align="center"> -->
+  Banking Delta Lakehouse is a daily PySpark pipeline that lands MySQL, MongoDB and Databricks `public` data into PostgreSQL `raw → staging → analytics → marts`, then publishes the marts to Databricks Delta. Airflow schedules the run; SQL DQ gates block bad data and audit tables record every step. Results surface in a read-only Streamlit dashboard and daily, weekly and incident LaTeX PDFs emailed by Airflow.
 </p>
 
 ## Tech stack
 
-<p align="center">
-  <img alt="Python 3.13" src="https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white" />
-  <img alt="Ubuntu" src="https://img.shields.io/badge/Ubuntu-24.04-E95420?logo=ubuntu&logoColor=white" />
-  <img alt="PySpark 4.1" src="https://img.shields.io/badge/PySpark-4.1-E25A1C?logo=apachespark&logoColor=white" />
-  <img alt="PostgreSQL" src="https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white" />
-  <img alt="MongoDB" src="https://img.shields.io/badge/MongoDB-7-47A248?logo=mongodb&logoColor=white" />
-  <img alt="Airflow" src="https://img.shields.io/badge/Airflow-3.3.2-017CEE?logo=apacheairflow&logoColor=white" />
-  <img alt="Docker" src="https://img.shields.io/badge/Docker-27-2496ED?logo=docker&logoColor=white" />
-  <img alt="Medallion" src="https://img.shields.io/badge/Medallion-Lakehouse-8B5CF6" />
-  <img alt="Streamlit" src="https://img.shields.io/badge/Streamlit-1.62-FF4B4B?logo=streamlit&logoColor=white" />
-  <img alt="Plotly" src="https://img.shields.io/badge/Plotly-7-3F4F75?logo=plotly&logoColor=white" />
-  <img alt="CI" src="https://github.com/Nitinx12/Banking-Delta-Lakehouse/actions/workflows/ci.yml/badge.svg" />
-  <img alt="Last Release" src="https://img.shields.io/github/v/release/Nitinx12/Banking-Delta-Lakehouse?label=Release" />
-  <img alt="Ruff" src="https://img.shields.io/badge/Ruff-0.12.0-000000?logo=ruff" />
-  <img alt="pre-commit" src="https://img.shields.io/badge/pre--commit-FAB005?logo=precommit" />
-  <img alt="License MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-</p>
+| Layer | Tools |
+|---|---|
+| **Sources** | ![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white) ![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white) ![Databricks](https://img.shields.io/badge/Databricks%20Public-FF3621?logo=databricks&logoColor=white) |
+| **Ingestion** | ![Python](https://img.shields.io/badge/Python-3776AB?logo=python&logoColor=white) ![PySpark](https://img.shields.io/badge/PySpark-E25A1C?logo=apachespark&logoColor=white) ![Spark JDBC](https://img.shields.io/badge/Spark%20JDBC-E25A1C?logo=apachespark&logoColor=white) ![Mongo Spark Connector](https://img.shields.io/badge/Mongo%20Spark%20Connector-47A248?logo=mongodb&logoColor=white) ![Databricks SQL Connector](https://img.shields.io/badge/Databricks%20SQL%20Connector-FF3621?logo=databricks&logoColor=white) ![PyArrow](https://img.shields.io/badge/PyArrow-D22128?logo=apachearrow&logoColor=white) ![psycopg2](https://img.shields.io/badge/psycopg2-4169E1?logo=postgresql&logoColor=white) ![PyMySQL](https://img.shields.io/badge/PyMySQL-4479A1?logo=mysql&logoColor=white) ![PyMongo](https://img.shields.io/badge/PyMongo-47A248?logo=mongodb&logoColor=white) |
+| **Warehouse** | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white) ![Medallion](https://img.shields.io/badge/raw%20%E2%86%92%20staging%20%E2%86%92%20analytics%20%E2%86%92%20marts-334155) |
+| **Transformation** | ![SQL Stored Procedures](https://img.shields.io/badge/SQL%20Stored%20Procedures-4169E1?logo=postgresql&logoColor=white) ![SCD1](https://img.shields.io/badge/SCD1%20Staging-0E7490) ![Star Schema](https://img.shields.io/badge/Star%20Schema-15803D) |
+| **Data quality & audit** | ![SQL DQ Gates](https://img.shields.io/badge/SQL%20DQ%20Gates-B91C1C?logo=postgresql&logoColor=white) ![Audit Schema](https://img.shields.io/badge/Audit%20Schema-475569?logo=postgresql&logoColor=white) ![JSON Schema](https://img.shields.io/badge/JSON%20Schema%20Contracts-000000?logo=json&logoColor=white) |
+| **Serving copy** | ![Databricks](https://img.shields.io/badge/Databricks-FF3621?logo=databricks&logoColor=white) ![Delta Lake](https://img.shields.io/badge/Delta%20Lake-00ADD4?logo=deltalake&logoColor=white) ![Unity Catalog](https://img.shields.io/badge/Unity%20Catalog%20Volumes-FF3621?logo=databricks&logoColor=white) |
+| **Orchestration** | ![Airflow](https://img.shields.io/badge/Airflow-3.3.2-017CEE?logo=apacheairflow&logoColor=white) ![Celery](https://img.shields.io/badge/CeleryExecutor-37814A?logo=celery&logoColor=white) ![main.py](https://img.shields.io/badge/main.py%20CLI-6D28D9?logo=python&logoColor=white) |
+| **Presentation** | ![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white) ![LaTeX](https://img.shields.io/badge/LaTeX%20PDF%20Reports-008080?logo=latex&logoColor=white) ![SMTP](https://img.shields.io/badge/SMTP%20Alerts-475569?logo=maildotru&logoColor=white) |
+| **Infra & dev tooling** | ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![Docker Compose](https://img.shields.io/badge/Compose-2496ED?logo=docker&logoColor=white) ![uv](https://img.shields.io/badge/uv-DE5FE9?logo=uv&logoColor=white) ![Ruff](https://img.shields.io/badge/Ruff-D7FF64?logo=ruff&logoColor=black) ![SQLFluff](https://img.shields.io/badge/SQLFluff-0F172A) ![Make](https://img.shields.io/badge/Makefile-6D00CC?logo=gnu&logoColor=white) ![tasks.bat](https://img.shields.io/badge/tasks.bat-0078D6?logo=windows11&logoColor=white) |
+| **CI, delivery & quality** | ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-2088FF?logo=githubactions&logoColor=white) ![pytest](https://img.shields.io/badge/pytest-0A9EDC?logo=pytest&logoColor=white) ![CodeQL](https://img.shields.io/badge/CodeQL-181717?logo=github&logoColor=white) ![Gitleaks](https://img.shields.io/badge/Gitleaks-C8302F?logo=git&logoColor=white) |
 
 ## Pipeline at a glance
 
 ```mermaid
-flowchart LR
-    subgraph SRC["Source systems (read-only)"]
-        MYSQL[("MySQL<br/>5 tables · full")]
-        MONGO[("MongoDB<br/>2 collections · incr")]
-        DBXPUB[("Databricks public<br/>3 tables · incr")]
+flowchart TB
+    %% ───────── SOURCES ─────────
+    subgraph SRC["📥 SOURCE SYSTEMS · read-only"]
+        direction LR
+        MYSQL[("MySQL<br/>5 tables · full load")]
+        MONGO[("MongoDB<br/>2 collections · incremental")]
+        DBXPUB[("Databricks public<br/>3 tables · incremental")]
     end
 
-    subgraph ORCH["Orchestration"]
+    %% ───────── ORCHESTRATION ─────────
+    subgraph ORCH["⚙️ ORCHESTRATION"]
+        direction TB
         AF["Airflow 3.3.2<br/>banking_delta_daily · 02:00 IST"]
         MAIN["main.py<br/>10 gated steps"]
         RJ["run_jobs.py<br/>mongo → databricks → mysql"]
+        AF -->|BashOperator| MAIN
+        MAIN -->|subprocess| RJ
     end
 
-    subgraph PG["PostgreSQL · banking_delta"]
-        RAW[("raw<br/>landed as-is")]
-        STG[("staging<br/>typed · deduped")]
-        ANA[("analytics<br/>dim_* / fact_*")]
-        MRT[("marts<br/>mart_* business")]
+    %% ───────── MEDALLION ─────────
+    subgraph PG["🐘 PostgreSQL · banking_delta"]
+        direction TB
+
+        subgraph BRONZE["🥉 BRONZE · schema raw"]
+            RAW[("raw.*<br/>landed as-is")]
+        end
+
+        subgraph SILVER["🥈 SILVER · schema staging"]
+            STG[("staging.*<br/>typed · deduped · cleansed")]
+        end
+
+        subgraph GOLD["🥇 GOLD · analytics + marts"]
+            ANA[("analytics<br/>dim_* / fact_*")]
+            MRT[("marts<br/>mart_* business")]
+            ANA --> MRT
+        end
+
+        RAW -->|"CALL sp_load_all"| STG
+        STG --> ANA
     end
 
-    DELTA[("Databricks Delta<br/>marts.mart_*")]
-    DASH["Streamlit<br/>read-only"]
-    AUD["audit · DQ gates"]
+    %% ───────── SERVING ─────────
+    DELTA[("☁️ Databricks Delta<br/>marts.mart_*")]
+    DASH["📊 Streamlit Dashboard<br/>read-only"]
 
-    AF -->|BashOperator| MAIN
-    MAIN -->|subprocess| RJ
+    %% ───────── GOVERNANCE ─────────
+    AUD{{"🛡️ AUDIT · DQ GATES"}}
+
+    %% ───────── FLOWS ─────────
     MYSQL -->|Spark JDBC| RJ
     MONGO -->|mongo connector| RJ
     DBXPUB -->|SQL connector| RJ
-    RJ -->|_stg_ then raw| RAW
-    MAIN -->|CALL sp_load_all| STG --> ANA --> MRT
-    MAIN -->|publish_marts.py| DELTA
-    DELTA -->|SELECT| DASH
+    RJ ==>|"_stg_ then raw"| RAW
+    MRT ==>|publish_marts.py| DELTA
+    DELTA ==>|SELECT| DASH
+
+    MAIN -.->|"orchestrates"| STG
     RAW -.-> AUD
     STG -.-> AUD
     ANA -.-> AUD
     MRT -.-> AUD
 
+    %% ───────── STYLES ─────────
     classDef src fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a,stroke-width:2px
     classDef orch fill:#ede9fe,stroke:#6d28d9,color:#4c1d95,stroke-width:2px
-    classDef raw fill:#ffedd5,stroke:#c2410c,color:#7c2d12,stroke-width:2px
-    classDef staging fill:#cffafe,stroke:#0e7490,color:#164e63,stroke-width:2px
-    classDef analytics fill:#dcfce7,stroke:#15803d,color:#14532d,stroke-width:2px
-    classDef marts fill:#fce7f3,stroke:#be185d,color:#831843,stroke-width:2px
-    classDef delta fill:#fef9c3,stroke:#a16207,color:#713f12,stroke-width:2px
-    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px
+    classDef bronze fill:#f4d9b8,stroke:#8c5523,color:#5a3410,stroke-width:3px
+    classDef silver fill:#e5e7eb,stroke:#6b7280,color:#1f2937,stroke-width:3px
+    classDef gold fill:#fde68a,stroke:#b45309,color:#78350f,stroke-width:3px
+    classDef delta fill:#fef08a,stroke:#a16207,color:#713f12,stroke-width:2px
     classDef ui fill:#e0e7ff,stroke:#4338ca,color:#312e81,stroke-width:2px
+    classDef audit fill:#f1f5f9,stroke:#475569,color:#1e293b,stroke-width:2px,stroke-dasharray:4 3
 
     class MYSQL,MONGO,DBXPUB src
     class AF,MAIN,RJ orch
-    class RAW raw
-    class STG staging
-    class ANA analytics
-    class MRT marts
+    class RAW bronze
+    class STG silver
+    class ANA,MRT gold
     class DELTA delta
-    class AUD audit
     class DASH ui
+    class AUD audit
+
+    style SRC fill:#eff6ff,stroke:#1d4ed8,stroke-width:2px,stroke-dasharray:6 4
+    style ORCH fill:#f5f3ff,stroke:#6d28d9,stroke-width:2px,stroke-dasharray:6 4
+    style PG fill:#fafafa,stroke:#334155,stroke-width:2px
+    style BRONZE fill:#fbeedc,stroke:#8c5523,stroke-width:2px
+    style SILVER fill:#f3f4f6,stroke:#6b7280,stroke-width:2px
+    style GOLD fill:#fffbeb,stroke:#b45309,stroke-width:2px
+
+    linkStyle default stroke:#64748b,stroke-width:2px
 ```
 
 | Metric | Value | How measured |
@@ -100,9 +127,10 @@ flowchart LR
 | Typical full-run time | ~9 min (median 8 min 37 s) | `audit.pipeline_runs`, 13 full scheduled runs (6:14–19:01) |
 | Largest table loaded | 3,005,000 rows | warehouse row count, `analytics.fact_card_transactions` (tied with `raw`/`staging.card_transactions`) |
 
-Colour legend (same as `ARCHITECTURE.md`): blue = sources, violet = orchestration,
+Colour legend (same as `ARCHITECTURE.md`): blue = sources, violet = orchestration / entry points,
 orange = `raw`, cyan = `staging`, green = `analytics`, pink = `marts`,
-yellow = Databricks Delta, slate = audit / DQ, indigo = read-only consumers.
+yellow = Databricks Delta, slate = audit / cross-cutting, red = DQ gates and failures,
+indigo = read-only consumers.
 
 ## Live Dashboard
 
