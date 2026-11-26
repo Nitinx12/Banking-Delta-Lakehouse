@@ -31,6 +31,7 @@ dependencies = [
 # dev group: make lint / make test (uv sync installs it by default)
 [dependency-groups]
 dev = [
+    "apache-airflow-providers-smtp>=3.2.2",
     "apache-airflow-providers-standard>=1.0.0",
     "apache-airflow==3.3.2",
     "ipykernel>=7.4.0",
