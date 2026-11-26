@@ -4,8 +4,8 @@
 # CI calls these same targets, so `make ci` green locally == CI green.
 #
 # Windows GNU Make ignores SHELL and runs recipes in cmd.exe, so every recipe
-# must be portable: no POSIX-only commands, no shell `$$` or `%VAR%` writes,
-# double quotes around Rscript -e. tests/smoke/test_make_parity.py enforces it.
+# must be portable: no POSIX-only commands, no shell `$$` or `%VAR%` writes.
+# tests/smoke/test_make_parity.py enforces it.
 #
 #   make help
 #   make unit ARGS="-k audit -x"
@@ -28,8 +28,7 @@ ARGS     ?=
 		load-raw-csv export-raw-csv \
 		report-fixture report-pdf report-tex report-docker report-clean report \
 		report-incident report-weekly \
-		r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run \
-		setup-env monitor-logs ## @see R.md §8.4
+		setup-env monitor-logs
 
 
 ##@ Setup
@@ -204,25 +203,3 @@ clean: ## Remove caches and coverage output (keeps .spark/ jar cache)
 
 monitor-logs: ## Monitor and cleanup log files (ARGS="clean -y")
 	bash scripts/monitor_logs.sh $(ARGS)
-
-##@ R targets (R.md §8.4)
-r-restore: ## install pinned packages
-	Rscript -e "renv::restore(project = 'r')"
-
-r-lint:      ## style + static checks
-	Rscript -e "lintr::lint_package('r')"
-
-r-test:      ## hermetic unit + contract tests — safe for ci
-	Rscript -e "testthat::test_local('r')"
-
-r-cov:       ## coverage report with floor — safe for ci
-	Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(paste0('coverage: ', round(pct, 1), '%')); if (pct < 60) quit(status = 1)"
-
-r-run:       ## full analysis against the real warehouse — NOT part of ci
-	Rscript r/main.R
-
-r-docker-build:  ## build the image (needs Docker) — NOT part of ci
-	docker build -t banking-delta-r --build-arg GIT_SHA=$(shell git rev-parse --short HEAD) r/
-
-r-docker-run:    ## run in the container against the real warehouse — NOT part of ci
-	docker run --rm --env-file r/.env.r -v "$(CURDIR)/r/output:/app/output" banking-delta-r

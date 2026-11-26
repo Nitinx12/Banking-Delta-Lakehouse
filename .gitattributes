@@ -13,9 +13,6 @@
 *.sh      text eol=lf
 *.py      text eol=lf
 *.sql     text eol=lf
-*.R       text eol=lf
-*.r       text eol=lf
-*.Rmd     text eol=lf
 *.tex     text eol=lf
 *.j2      text eol=lf
 *.jinja   text eol=lf
