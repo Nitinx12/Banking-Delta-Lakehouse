@@ -1103,9 +1103,8 @@
             </div>
           </div>
           <p class="note">
-            Consumers stay read-only: the Streamlit dashboard, the R layer and
-            the LaTeX reports only ever <code>SELECT</code> from the published
-            Delta marts.
+            Consumers stay read-only: the Streamlit dashboard and the LaTeX
+            reports only ever <code>SELECT</code> from the published Delta marts.
           </p>
         </div>
       </section>
@@ -1185,7 +1184,7 @@
               >
             </div>
             <div>
-              <b data-fact="ci.jobs">10</b
+              <b data-fact="ci.jobs">9</b
               ><span>GitHub Actions workflows plus Gitleaks</span>
             </div>
           </div>
@@ -1211,7 +1210,7 @@
               classified and secret-redacted.
             </li>
             <li>
-              <strong>Consumers</strong> are read-only: dashboard, R and reports
+              <strong>Consumers</strong> are read-only: dashboard and reports
               only ever <code>SELECT</code>.
             </li>
           </ul>
@@ -1347,7 +1346,7 @@ make publish</code></pre>
       __LIVE_DATA__
     </script>
     <script id="site-facts-fallback" type="application/json">
-      {"contracts.total":10,"contracts.mysql":5,"contracts.mongodb":2,"contracts.databricks":3,"raw.tables":10,"staging.loads":10,"analytics.dims":7,"analytics.facts":4,"analytics.entities":11,"marts.total":8,"databricks.marts":8,"dq.total":44,"dq.raw":10,"dq.staging":10,"dq.analytics":13,"dq.marts":11,"steps.total":10,"airflow.version":"3.3.2","airflow.executor":"CeleryExecutor","airflow.dag_ids":["banking_delta_daily","banking_watchdog","banking_report_weekly"],"airflow.schedule.cron":"0 2 * * *","airflow.schedule.timezone":"Asia/Kolkata","airflow.schedule.time":"02:00","airflow.schedule.utc_offset_ms":19800000,"python.version":"3.13","streamlit.version":"1.66.1","tests.files":40,"tests.functions":486,"ci.jobs":10,"insight.concentration.top10":"22.55%","insight.loan.late_rate":"12.01%","insight.loan.payments":600005,"insight.fraud.share":"0.499%","insight.fraud.amount":"28,608,185.59"}
+      {"contracts.total":10,"contracts.mysql":5,"contracts.mongodb":2,"contracts.databricks":3,"raw.tables":10,"staging.loads":10,"analytics.dims":7,"analytics.facts":4,"analytics.entities":11,"marts.total":8,"databricks.marts":8,"dq.total":44,"dq.raw":10,"dq.staging":10,"dq.analytics":13,"dq.marts":11,"steps.total":10,"airflow.version":"3.3.2","airflow.executor":"CeleryExecutor","airflow.dag_ids":["banking_delta_daily","banking_watchdog","banking_report_weekly"],"airflow.schedule.cron":"0 2 * * *","airflow.schedule.timezone":"Asia/Kolkata","airflow.schedule.time":"02:00","airflow.schedule.utc_offset_ms":19800000,"python.version":"3.13","streamlit.version":"1.66.1","tests.files":40,"tests.functions":486,"ci.jobs":9,"insight.concentration.top10":"22.55%","insight.loan.late_rate":"12.01%","insight.loan.payments":600005,"insight.fraud.share":"0.499%","insight.fraud.amount":"28,608,185.59"}
     </script>
     <script id="site-facts" type="application/json">
       __SITE_FACTS__
@@ -1475,9 +1474,9 @@ make publish</code></pre>
         ),
         nd(
           'consumers', 8, 95, 'cnm', 'Consumers',
-          'dashboard · R · reports', 'lb', 'Read-only consumers',
+          'dashboard · reports', 'lb', 'Read-only consumers',
           'Analysts',
-          'The Streamlit dashboard, the R layer and the LaTeX reports only ever SELECT from the Delta marts.'
+          'The Streamlit dashboard and the LaTeX reports only ever SELECT from the Delta marts.'
         ),
         nd(
           'preflight', 1, 365, 'air', 'preflight',
