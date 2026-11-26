@@ -1742,8 +1742,9 @@ The app is read-only and shows only <strong>published</strong> Databricks marts.
 <li>No <code>site_url</code> is configured: all links are relative, which is what makes the
   same build work at <code>/</code> and <code>/preview/&lt;branch&gt;/</code>.</li>
 <li>Local preview: <code>uv sync --group docs &amp;&amp; uv run mkdocs build --strict</code>
-  (output in <code>site/</code>; copy <code>assets/</code> into <code>site/assets/</code> if you want the
-  insight charts to render).</li>
+  (output in <code>site_build/</code>, git-ignored — <code>site/</code> holds the landing-page
+  helpers; copy <code>assets/</code> into <code>site_build/assets/</code> if you want the insight
+  charts to render).</li>
 </ul>
 <p><strong>Promotion flow:</strong> <code>dev</code> → <code>staging</code> → <code>qa</code> → <code>main</code>, one merge per hop; each
 merge republishes that branch's preview immediately, and the merge into <code>main</code>
