@@ -1,9 +1,0 @@
-output/
-.Renviron
-_targets/
-*.rds
-.Rhistory
-.RData
-.Rproj.user
-renv/library/
-renv/local/

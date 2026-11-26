@@ -13,7 +13,7 @@ describes what the code actually does.
 | 5 | Airflow for orchestration, no logic in the DAGs | accepted |
 | 6 | Data-quality gates at every layer | accepted |
 | 7 | Publish marts to Databricks Delta | accepted |
-| 8 | Read-only Streamlit and R consumers | accepted |
+| 8 | Read-only Streamlit consumer | accepted |
 | 9 | Data contracts at the source → `raw` landing boundary | accepted |
 
 ---
@@ -182,7 +182,7 @@ Parquet via pyarrow, uploads to a Unity Catalog volume and runs one
 tables/federation reading Postgres directly from Databricks; replicating with
 Debezium/CDC; making the dashboard query PostgreSQL.
 
-**Why:** The dashboard and R layer consume Databricks SQL, so marts must exist
+**Why:** The dashboard consumes Databricks SQL, so marts must exist
 there; reading the watermark from the target makes publish self-incrementing with
 no extra state (`ARCHITECTURE.md` §9). Parquet + `read_files` avoids a JDBC
 driver inside Databricks and keeps the whole publish idempotent (MERGE on keys).
@@ -194,12 +194,11 @@ driver inside Databricks and keeps the whole publish idempotent (MERGE on keys).
 non-zero lookback on by default, add a nightly source-vs-Delta count gate, and
 consider Delta Sharing if consumers multiply.
 
-## 8. Read-only Streamlit and R consumers
+## 8. Read-only Streamlit consumer
 
-**Decision:** The Streamlit dashboard (`dashboard/`) and the R layer (`r/`) only
-`SELECT` from published Databricks Delta marts; neither ever writes to any layer
-(`dashboard/README.md`, `docs/R.md` §0, `ARCHITECTURE.md` colour legend: indigo =
-read-only consumers).
+**Decision:** The Streamlit dashboard (`dashboard/`) only `SELECT`s from published
+Databricks Delta marts and never writes to any layer (`dashboard/README.md`,
+`ARCHITECTURE.md` colour legend: indigo = read-only consumers).
 
 **Alternatives rejected:** consumers writing results back into the warehouse;
 dashboards querying PostgreSQL directly; a serving API with write endpoints;
@@ -208,9 +207,8 @@ giving consumers service accounts with DDL rights.
 **Why:** Consumers sit behind the publish boundary, so a bad query cannot corrupt
 the warehouse — layer ownership (`ARCHITECTURE.md` §14.4) stays intact. The
 dashboard caches each `SELECT` for 5 minutes to protect the SQL warehouse
-(`dashboard/README.md`), and the R guide states a read-only consumer "must not
-weaken any contract in `ARCHITECTURE.md` §14". The report collector is guarded by a
-test that issues only `SELECT` statements (`docs/TESTING.md`).
+(`dashboard/README.md`). The report collector is guarded by a test that issues
+only `SELECT` statements (`docs/TESTING.md`).
 
 **Trade-offs / at larger scale:** Read-only means every new derived figure must
 first be modelled into a mart (slow for ad-hoc work). I would keep the rule for

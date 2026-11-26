@@ -9,6 +9,10 @@ the `release` workflow verifies before publishing.
 
 ## [Unreleased]
 
+### Removed
+
+- Legacy statistical analysis package, its docs, CI job and container image.
+
 ## [0.2.0] - 2026-11-12
 
 ### Added
@@ -21,9 +25,8 @@ the `release` workflow verifies before publishing.
 - **Task-runner regression tests.** `tests/smoke/test_make_parity.py` grew from 2
   to 12 checks: dispatch list ↔ `:t_*` labels ↔ `tasks.bat help` in both
   directions, `.PHONY` coverage, batch `ci` hermeticity, a recipe portability
-  denylist (shell `$$`, cmd `%VAR%`, POSIX commands, `/dev/null`, POSIX test
-  brackets, single-quoted `Rscript -e`) and a `make -n` dry-run that expands every
-  target (guards included). New `tests/unit/test_apply_sql_smoke.py` and
+  denylist (shell `$$`, cmd `%VAR%`, POSIX commands, `/dev/null` and POSIX test
+  brackets) and a `make -n` dry-run that expands every target (guards included). New `tests/unit/test_apply_sql_smoke.py` and
   `tests/unit/test_clean.py` cover the shared scripts.
 - **`main.py` step 1 — `preflight`.** New `src/utils/preflight.py` probes PostgreSQL,
   MySQL, MongoDB and Databricks (SELECT 1 / ping) with capped exponential backoff and
@@ -82,20 +85,16 @@ the `release` workflow verifies before publishing.
 - **`staging` / `analytics` / `marts` run `main.py --only *-load`.** They deploy the
   `sp_load_*` procedures and then `CALL sp_load_all()` — a superset of the old
   `psql -f sql/scripts/00_master_load.sql`, and now identical to `tasks.bat`.
-- **`tasks.bat help` lists every target.** Adds `help`, `contracts-sync`,
-  `run-notebooks` and the `R` group, and describes the real `ci` gate
+- **`tasks.bat help` lists every target.** Adds `help`, `contracts-sync` and
+  `run-notebooks`, and describes the real `ci` gate
   (`lint + contracts + sql-lint + cov + smoke + report-fixture`). `report`,
-  `report-incident` and `report-weekly` honour a `DAG_ID` override like make, and
-  `r-docker-build` stamps the real git SHA instead of `unknown`.
+  `report-incident` and `report-weekly` honour a `DAG_ID` override like make.
 - **`setup-env` and `monitor-logs` forward `ARGS`** (`make setup-env
   ARGS="--non-interactive"`), matching `tasks.bat`; `report-tex` forwards `ARGS`
   on the make side too.
 - **`up` computes `GIT_SHA` in make itself** (target-specific `export` from
   `git rev-parse`, suffixed `-dirty` when the tree has uncommitted changes), so
   the compose stack is labelled the same way under cmd.exe and bash.
-- **`make r-restore` / `r-lint` / `r-test` / `r-cov` quote `Rscript -e`
-  expressions with double quotes** (single quotes inside), because Windows GNU
-  Make runs recipes in cmd.exe and passed the single quotes verbatim to R.
 - **Analytics check #7 staleness now compares layers, not the wall clock.**
   `tests/data-quality/analytics/00_lp_check_upstream_freshness.sql` (new) defines
   `audit.dq_analytics_upstream_lag()`, and `01_lp_check_metadata_col.sql` calls it
@@ -140,11 +139,6 @@ the `release` workflow verifies before publishing.
   and `leaks` refuse with an actionable message (`ALLOW_SQL_SMOKE=1`, gitleaks
   install URL) instead of a shell error; `staging`/`analytics`/`marts` run
   `main.py` (no `PG_ENV` shell block needed).
-- **`make r-restore` / `r-lint` / `r-test` / `r-cov` were silent no-ops on
-  Windows.** Single-quoted `Rscript -e '...'` reached cmd.exe verbatim, so R
-  evaluated a string literal and exited 0 without running anything; the
-  expressions are now double-quoted (and `r-cov` prints with `paste0`, immune to
-  the batch file's `%%` escaping).
 - **`tasks.bat sql-smoke` always exited 1** with an "apply by hand" message; it
   now runs `scripts/apply_sql_smoke.py` exactly like `make sql-smoke`.
 - **`make up` could not label the stack with `GIT_SHA`** (POSIX `$$()` under

@@ -5,7 +5,7 @@
 # Builds real .env files from the *.example templates:
 #
 #   * AUTO-GENERATES secrets   : Airflow Fernet key, Airflow admin password,
-#                                R reader password, *SECRET* keys, DB passwords
+#                                *SECRET* keys, DB passwords
 #   * PROMPTS for your values  : Databricks host/token/http-path, Gmail address
 #                                and app password, alert / admin e-mails
 #   * DERIVES dependent values : MYSQL_URI, AIRFLOW__SMTP__* (mirrors SMTP_*),
@@ -38,7 +38,6 @@ err()  { printf '[ERROR] %s\n' "$*" >&2; }
 ENV_FILES=(
     ".env.example:.env"
     "airflow/.env.airflow.example:airflow/.env.airflow"
-    "r/.env.r.example:r/.env.r"
 )
 
 INTERACTIVE=1
@@ -225,7 +224,7 @@ classify() {   # classify <KEY> <example value>
         SMTP_MAIL_FROM|ALERT_EMAIL_FROM)       echo derive_if_missing; return ;;
         SMTP_PASSWORD|DATABRICKS_TOKEN)        echo prompt_secret; return ;;
         PG_PASS|MYSQL_PASSWORD)                echo db_password; return ;;
-        AIRFLOW_ADMIN_PASSWORD|R_PG_PASSWORD)  echo password; return ;;
+        AIRFLOW_ADMIN_PASSWORD)                echo password; return ;;
         AIRFLOW__*SECRET*|*SECRET_KEY)         echo secret_hex; return ;;
         DATABRICKS_HOST|DATABRICKS_HTTP_PATH|SMTP_USER|ALERT_EMAIL_TO|AIRFLOW_ADMIN_EMAIL)
                                                echo prompt; return ;;
@@ -491,10 +490,10 @@ main() {
         printf '%s' "$PENDING" | sed 's/^/  - /'
         echo
     fi
-    if [[ "$GENERATED" == *": PG_PASS"* || "$GENERATED" == *": MYSQL_PASSWORD"* || "$GENERATED" == *": R_PG_PASSWORD"* ]]; then
+    if [[ "$GENERATED" == *": PG_PASS"* || "$GENERATED" == *": MYSQL_PASSWORD"* ]]; then
         echo "NOTE: generated DB passwords must match your databases. Fresh containers"
         echo "      will pick them up from .env; for an already-running Postgres/MySQL,"
-        echo "      set the same password there (and for the r_reader role)."
+        echo "      set the same password there."
         echo
     fi
     echo "Re-running is safe: real values are kept, backups are timestamped."

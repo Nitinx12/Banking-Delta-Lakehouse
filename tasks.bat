@@ -4,8 +4,6 @@ REM tests/smoke/test_make_parity.py fails if a Makefile target is missing here.
 setlocal EnableExtensions
 chcp 65001 >nul
 cd /d "%~dp0"
-REM Make Rscript available if R is installed in a standard location but not on PATH.
-where Rscript >nul 2>&1 || if exist "C:\Program Files\R\R-4.6.1\bin\Rscript.exe" set "PATH=C:\Program Files\R\R-4.6.1\bin;%PATH%"
 
 set "TARGET=%~1"
 if "%TARGET%"=="" set "TARGET=help"
@@ -18,7 +16,7 @@ shift
 goto collect
 
 :dispatch
-for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down load-raw-csv export-raw-csv run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run setup-env monitor-logs) do (
+for %%T in (help install hooks lint format contracts contracts-sync sql-lint unit cov smoke test spark-smoke sql-smoke integration smoke-live leaks ci up down load-raw-csv export-raw-csv run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily clean report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly setup-env monitor-logs) do (
   if /i "%TARGET%"=="%%T" goto :t_%%T
 )
 echo Unknown target: %TARGET%
@@ -36,7 +34,6 @@ echo Gate      : ci   (lint + contracts + sql-lint + cov + smoke + report-fixtur
 echo Airflow   : up down
 echo Reports   : report-fixture report-pdf report-tex report-docker report-clean report report-incident report-weekly
 echo Pipeline  : load-raw-csv export-raw-csv run-jobs run-notebooks staging analytics marts publish dq-raw dq-staging dq-analytics dq-marts dq daily
-echo R         : r-restore r-lint r-test r-cov r-run r-docker-build r-docker-run
 echo Housekeep : clean monitor-logs
 exit /b 0
 
@@ -253,33 +250,4 @@ exit /b 0
 
 :t_report-clean
 uv run python scripts\clean.py --reports || exit /b 1
-exit /b 0
-
-:t_r-restore
-Rscript -e "renv::restore(project = 'r')" || exit /b 1
-exit /b 0
-
-:t_r-lint
-Rscript -e "lintr::lint_package('r')" || exit /b 1
-exit /b 0
-
-:t_r-test
-Rscript -e "testthat::test_local('r')" || exit /b 1
-exit /b 0
-
-:t_r-cov
-Rscript -e "cov <- covr::package_coverage('r', type = 'tests'); pct <- covr::percent_coverage(cov); message(paste0('coverage: ', round(pct, 1), '%')); if (pct < 60) quit(status = 1)" || exit /b 1
-exit /b 0
-
-:t_r-run
-Rscript r\main.R || exit /b 1
-exit /b 0
-
-:t_r-docker-build
-for /f "delims=" %%G in ('git rev-parse --short HEAD') do set "GIT_SHA=%%G"
-docker build -t banking-delta-r --build-arg GIT_SHA=%GIT_SHA% r/ || exit /b 1
-exit /b 0
-
-:t_r-docker-run
-docker run --rm --env-file r/.env.r -v "%cd%\r\output:/app/output" banking-delta-r || exit /b 1
 exit /b 0

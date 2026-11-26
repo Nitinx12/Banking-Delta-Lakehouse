@@ -45,6 +45,3 @@ The CI gate ensures parity across environments and blocks merges on failure:
 - **Validation**: SQL DQ suites (`audit.dq_*` procedures in `tests/data-quality/`), one gate per layer before publish.
 
 ## Open questions / UNVERIFIED
-
-
-- **R-Analysis**: The `r-` targets in `Makefile` exist but are noted as "NOT part of ci".

@@ -37,13 +37,7 @@ nav:
       - Transactions: insights/04-transactions.md
       - Branches: insights/05-branches.md
       - Support: insights/06-support.md
-      - Methods: METHODS.md
-  - Model cards:
-      - Attrition risk: MODEL-CARDS/attrition_risk.md
-      - Fraud detection: MODEL-CARDS/fraud_detection.md
-      - PD scorecard: MODEL-CARDS/pd_scorecard.md
   - Reports: REPORTING.md
-  - R analysis layer: R.md
   - Decision log: DECISIONS.md
 
 markdown_extensions:

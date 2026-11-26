@@ -30,7 +30,6 @@ _RECIPE_FORBIDDEN = (
     (r"(?<![\w./-])(?:rm|find|ls|grep|sort|command)(?![\w-])", "POSIX-only command"),
     (r"/dev/null", "POSIX null device (cmd.exe uses nul)"),
     (r"\[\s+[\"'$]", "POSIX shell test bracket"),
-    (r"Rscript -e '", "single-quoted Rscript expression (cmd.exe keeps the quotes)"),
 )
 
 

@@ -61,7 +61,6 @@ A high-integrity daily pipeline moving data from MySQL, MongoDB, and Databricks 
 
 ## Open Questions / UNVERIFIED
 - **SQL-Lint Status:** `ARCHITECTURE.md` mentions `sql-lint` is currently red on pre-existing violations.
-- **R Layer:** The `r/` directory is listed as a read-only consumer; integration depth is unverified.
 - **Unity Catalog:** Volume upload logic in `publish_marts.py` depends on Workspace SDK; requires specific environment setup.
 
 ## Anti-Patterns to Avoid

@@ -22,7 +22,6 @@ Fragility is concentrated in the Spark-to-Postgres JDBC boundary and Databricks 
 
 ## 🧪 Flaky Tests & Testing Tiers
 - **Hermeticity Gap**: `unit` and `smoke` tests are strictly hermetic (no network/DB). However, `integration` and `sql-smoke` tests require a disposable Postgres instance and `ALLOW_SQL_SMOKE=1`. Running these against a real warehouse is catastrophic (`Makefile:85`).
-- **R Analysis Layer**: The `r/` directory is a read-only consumer. Tests in `r/tests/` are safe for CI, but `r-run` is not (`Makefile:226`).
 
 ## 🔐 Security & Secrets
 - **Secret Loading**: `.env` is read **only** in `src/utils/config.py`. It uses `override=False`, meaning shell/Airflow exports always take precedence (`src/utils/config.py:16`).
@@ -32,4 +31,3 @@ Fragility is concentrated in the Spark-to-Postgres JDBC boundary and Databricks 
 ## ❓ Open Questions / UNVERIFIED
 - **Spark JVM Versions**: `Makefile:80` mentions support for Java 8/11/17/21; verified stability across all four on Windows targets is unconfirmed.
 - **SCD1 History Volume**: The `staging.scd1_history` table grows monotonically; a pruning strategy for this history is not yet implemented in the daily pipeline.
-- **R-Layer Resource Consumption**: The `r/main.R` analysis is read-only but may perform heavy aggregations on `marts`; impact on production DB performance during concurrent runs is unverified.

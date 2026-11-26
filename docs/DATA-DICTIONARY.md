@@ -1,8 +1,7 @@
 # Data Dictionary — Mart Tables
 
 *Generated from `information_schema.columns` for the seven `marts.*` tables and hand-written grain/business definitions.
-Every R analysis function in `R/` cites this file. Analyses written against an undocumented grain
-are the #1 source of wrong numbers.*
+Analyses written against an undocumented grain are the #1 source of wrong numbers.*
 
 
 ## grain
@@ -248,4 +247,4 @@ are the #1 source of wrong numbers.*
 
 --- 
 
-*This data dictionary is referenced by all analysis functions in `R/`. If a column name changes in the warehouse, update both `config/contracts.yml` and this file.*
+*If a column name changes in the warehouse, update this file.*
