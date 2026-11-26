@@ -25,6 +25,8 @@
 
 ## Pipeline at a glance
 
+## Pipeline at a glance
+
 ```mermaid
 flowchart TB
     %% ───────── SOURCES ─────────
@@ -107,12 +109,12 @@ flowchart TB
     class DASH ui
     class AUD audit
 
-    style SRC fill:#eff6ff,stroke:#1d4ed8,stroke-width:2px,stroke-dasharray:6 4
-    style ORCH fill:#f5f3ff,stroke:#6d28d9,stroke-width:2px,stroke-dasharray:6 4
-    style PG fill:#fafafa,stroke:#334155,stroke-width:2px
-    style BRONZE fill:#fbeedc,stroke:#8c5523,stroke-width:2px
-    style SILVER fill:#f3f4f6,stroke:#6b7280,stroke-width:2px
-    style GOLD fill:#fffbeb,stroke:#b45309,stroke-width:2px
+    style SRC    fill:#eff6ff,stroke:#1d4ed8,stroke-width:2px,stroke-dasharray:6 4,color:#1e3a8a
+    style ORCH   fill:#f5f3ff,stroke:#6d28d9,stroke-width:2px,stroke-dasharray:6 4,color:#4c1d95
+    style PG     fill:#f8fafc,stroke:#334155,stroke-width:2px,color:#0f172a
+    style BRONZE fill:#fbeedc,stroke:#8c5523,stroke-width:2px,color:#5a3410
+    style SILVER fill:#f3f4f6,stroke:#6b7280,stroke-width:2px,color:#1f2937
+    style GOLD   fill:#fffbeb,stroke:#b45309,stroke-width:2px,color:#78350f
 
     linkStyle default stroke:#64748b,stroke-width:2px
 ```
