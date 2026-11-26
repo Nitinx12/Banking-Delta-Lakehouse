@@ -885,6 +885,30 @@
       .q b,.ins b{font-size:2.6rem}
       .canvas{background-image:radial-gradient(circle,#ffffff0d 1px,transparent 1px);background-size:22px 22px;box-shadow:0 30px 80px -40px #38bdf855}
       @media (max-width:560px){.hero{padding:3rem 0 2.5rem}.layers,.q,#dataflow .flow{grid-template-columns:1fr}.btns .btn{flex:1;text-align:center}}
+      .step-table{margin-top:1rem;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--panel)}
+      .step-row{display:grid;grid-template-columns:2.4rem 11rem 1fr auto;gap:.8rem;align-items:center;padding:.55rem .9rem;border-bottom:1px solid var(--line);font:.82rem var(--mono)}
+      .step-row:last-child{border-bottom:0}
+      .step-row span:first-child{color:#566273}
+      .step-row code{color:var(--stg)}
+      .step-row small{color:var(--mut)}
+      .step-row b{font:.68rem var(--mono);color:var(--gate);border:1px solid var(--gate);border-radius:99px;padding:.1rem .5rem}
+      .step-row b.k{color:var(--stg);border-color:var(--stg)}
+      .step-row b.p{color:var(--dlt);border-color:var(--dlt)}
+      .consumer{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+      .consumer article{border-top:3px solid var(--c)}
+      .consumer img{display:block;width:100%;border:1px solid var(--line);border-radius:8px;margin:.9rem 0}
+      .consumer h3{margin:.3rem 0;font-size:1.1rem}
+      .consumer p{color:var(--mut);font-size:.86rem;margin:.4rem 0 .8rem}
+      .consumer a,.docgrid a small{color:var(--stg);font-weight:700;text-decoration:none}
+      .paper{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin:.9rem 0}
+      .paper span{padding:.7rem .5rem;text-align:center;border:1px solid var(--line);border-radius:8px;font:.72rem var(--mono);color:var(--mut);background:#0b0f1488}
+      .docgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.7rem}
+      .docgrid a{display:grid;gap:.2rem;padding:1rem;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-decoration:none;transition:border-color .2s,transform .2s}
+      .docgrid a:hover{border-color:var(--stg);transform:translateY(-1px)}
+      .docgrid b{font:.72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--stg)}
+      .docgrid span{font-weight:700;font-size:.92rem}
+      .docgrid small{font-size:.78rem;color:var(--mut)}
+      @media (max-width:760px){.step-row{grid-template-columns:2rem 1fr;gap:.2rem .6rem}.step-row small,.step-row b{grid-column:2}.consumer{grid-template-columns:1fr}}
     </style>
   </head>
   <body>
@@ -906,11 +930,14 @@
           <ul id="menu">
             <li><a class="l" href="#architecture">Pipeline</a></li>
             <li><a class="l" href="#layers">Layers</a></li>
+            <li><a class="l" href="#contracts">Contracts</a></li>
             <li><a class="l" href="#entrypoints">Orchestration</a></li>
             <li><a class="l" href="#dataflow">Data flow</a></li>
+            <li><a class="l" href="#consumers">Consumers</a></li>
             <li><a class="l" href="#quality">Quality</a></li>
             <li><a class="l" href="#runbook">Runbook</a></li>
             <li><a class="l" href="#insights">Insights</a></li>
+            <li><a class="l" href="#docs">Docs</a></li>
             <li>
               <a
                 class="gh"
@@ -1056,6 +1083,56 @@
         </div>
       </section>
 
+      <section id="contracts">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Source → raw</span>
+            <h2>Contracts decide what lands before Spark starts</h2>
+            <p>
+              Every source table has a checked-in JSON contract. Shape changes
+              fail in CI before a run, and valid contracts let the extract own
+              one watermark per table.
+            </p>
+          </div>
+          <div class="two">
+            <div class="box2" style="--c: var(--src)">
+              <span class="pill" style="color: var(--src)">10 contracts</span>
+              <h3>MySQL · MongoDB · Databricks</h3>
+              <ul>
+                <li>
+                  <b data-fact="contracts.mysql">5</b> MySQL tables from
+                  <code>banking_core_db</code>
+                </li>
+                <li>
+                  <b data-fact="contracts.mongodb">2</b> MongoDB collections
+                  from <code>banking_support_db</code>
+                </li>
+                <li>
+                  <b data-fact="contracts.databricks">3</b> Databricks
+                  <code>public</code> tables
+                </li>
+                <li>Watermarks and row counts live in <code>audit.source_tables</code></li>
+              </ul>
+            </div>
+            <div class="box2" style="--c: var(--gate)">
+              <span class="pill" style="color: var(--gate)">CI gate</span>
+              <h3>Shape changes fail early</h3>
+              <ul>
+                <li><code>make contracts</code> validates every file against JSON Schema</li>
+                <li><code>contracts/registry.json</code> mirrors <code>audit.source_tables</code></li>
+                <li>Sources stay read-only; <code>raw</code> is the only landing write</li>
+                <li><a href="docs/CONTRACTS.md">Read the contract guide →</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="res" style="margin-top: 1rem">
+            <a href="contracts/registry.json">registry.json</a
+            ><a href="contracts/source-table.schema.json">source-table.schema.json</a
+            ><a href="sql/scripts/03_register_sources.sql">source registry SQL</a>
+          </div>
+        </div>
+      </section>
+
       <section id="entrypoints">
         <div class="wrap">
           <div class="head">
@@ -1070,7 +1147,10 @@
           <div class="two">
             <div class="box2" style="--c: var(--air)">
               <span class="pill" style="color: var(--air)">Scheduled</span>
-              <h3>Airflow 3.3.2 · CeleryExecutor</h3>
+              <h3>
+                Airflow <span data-fact="airflow.version">3.3.2</span> ·
+                <span data-fact="airflow.executor">CeleryExecutor</span>
+              </h3>
               <ul>
                 <li>
                   <code>banking_delta_daily</code> —
@@ -1102,9 +1182,24 @@
               </ul>
             </div>
           </div>
+          <div class="step-table" aria-label="Ten gated pipeline steps">
+            <div class="step-row"><span>01</span><code>preflight</code><small>probe the warehouse, sources, Java and disk</small><b class="k">probe</b></div>
+            <div class="step-row"><span>02</span><code>raw-inject</code><small>land contracted tables with watermarks</small><b class="k">ingest</b></div>
+            <div class="step-row"><span>03</span><code>raw-tests</code><small>10 SQL checks on landed rows</small><b>gate</b></div>
+            <div class="step-row"><span>04</span><code>staging-load</code><small>CALL staging.sp_load_all()</small><b class="k">load</b></div>
+            <div class="step-row"><span>05</span><code>staging-tests</code><small>10 SQL checks on staging keys</small><b>gate</b></div>
+            <div class="step-row"><span>06</span><code>analytics-load</code><small>CALL analytics.sp_load_all()</small><b class="k">load</b></div>
+            <div class="step-row"><span>07</span><code>analytics-tests</code><small>13 SQL checks on dimensions and facts</small><b>gate</b></div>
+            <div class="step-row"><span>08</span><code>marts-load</code><small>CALL marts.sp_load_all()</small><b class="k">load</b></div>
+            <div class="step-row"><span>09</span><code>marts-tests</code><small>11 SQL checks on published shapes</small><b>gate</b></div>
+            <div class="step-row"><span>10</span><code>publish</code><small>copy approved marts to Databricks Delta</small><b class="p">publish</b></div>
+          </div>
           <p class="note">
             Consumers stay read-only: the Streamlit dashboard and the LaTeX
             reports only ever <code>SELECT</code> from the published Delta marts.
+            DAG retries, pools and trigger rules are documented in
+            <a href="docs/AIRFLOW.md">docs/AIRFLOW.md</a>; the task graph itself
+            lives in <a href="airflow/dags/banking_delta_daily.py">banking_delta_daily.py</a>.
           </p>
         </div>
       </section>
@@ -1149,6 +1244,56 @@
         </div>
       </section>
 
+      <section id="consumers">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Read-only consumers</span>
+            <h2>Two products, one governed Delta surface</h2>
+            <p>
+              Only published marts reach Databricks Delta. The dashboard and
+              the PDF builder query that surface; neither writes to a warehouse
+              layer.
+            </p>
+          </div>
+          <div class="consumer">
+            <article class="box2" style="--c: var(--stg)">
+              <img
+                src="assets/images/dashboard_image2.png"
+                alt="Streamlit dashboard built on the published marts"
+                loading="lazy"
+              />
+              <span class="pill" style="color: var(--stg)">Streamlit</span>
+              <h3>Interactive dashboard</h3>
+              <p>
+                Segments, branches, loan timing and card fraud across
+                <span data-fact="marts.total">8</span> published marts. The host
+                page around this site is the dashboard itself.
+              </p>
+              <a href="dashboard/README.md">Dashboard guide →</a>
+            </article>
+            <article class="box2" style="--c: var(--dlt)">
+              <div class="paper">
+                <span>daily</span><span>incident</span><span>weekly</span>
+              </div>
+              <span class="pill" style="color: var(--dlt)">LaTeX PDFs</span>
+              <h3>Adaptive PDF reports</h3>
+              <p>
+                A page-one verdict, charts and evidence from <code>audit.*</code>.
+                A bad night adds incident chapters; a serious one also emits a
+                separate incident PDF.
+              </p>
+              <a href="docs/REPORTING.md">Reporting rules →</a>
+            </article>
+          </div>
+          <p class="note">
+            Reports attach to the Airflow summary mail; findings are explained
+            in <a href="docs/INSIGHTS.md">docs/INSIGHTS.md</a>. Audit queries on
+            this site are limited to four read-only views listed in
+            <a href="docs/AUDIT.md">docs/AUDIT.md</a>.
+          </p>
+        </div>
+      </section>
+
       <section id="quality">
         <div class="wrap">
           <div class="head">
@@ -1185,7 +1330,7 @@
             </div>
             <div>
               <b data-fact="ci.jobs">9</b
-              ><span>GitHub Actions workflows plus Gitleaks</span>
+              ><span>CI workflows and gates on every change</span>
             </div>
           </div>
           <ul class="guard">
@@ -1214,6 +1359,11 @@
               only ever <code>SELECT</code>.
             </li>
           </ul>
+          <p class="note">
+            The per-layer contract and runner details are in
+            <a href="docs/DATA-QUALITY.md">docs/DATA-QUALITY.md</a>; the test
+            tiers are in <a href="docs/TESTING.md">docs/TESTING.md</a>.
+          </p>
         </div>
       </section>
 
@@ -1247,9 +1397,18 @@ make dq</code></pre>
             <pre><code>make daily
 make publish</code></pre>
           </div>
+          <div class="code">
+            <div>Reports without live sources<button data-copy>Copy</button></div>
+            <pre><code>make report-fixture
+make report
+make report-pdf</code></pre>
+          </div>
           <p class="note">
             Start Airflow with <code>make up</code>; the UI is at
-            <a href="http://localhost:8080">localhost:8080</a>.
+            <a href="http://localhost:8080">localhost:8080</a>. When a run is
+            red, follow <a href="docs/TROUBLESHOOTING.md">docs/TROUBLESHOOTING.md</a>
+            and <a href="docs/RUNBOOK.md">docs/RUNBOOK.md</a>; the evidence is in
+            <a href="docs/AUDIT.md">audit.*</a>.
           </p>
         </div>
       </section>
@@ -1323,6 +1482,67 @@ make publish</code></pre>
             ><a href="docs/DATA-QUALITY.md">Data quality</a
             ><a href="docs/TESTING.md">Testing</a>
           </div>
+        </div>
+      </section>
+
+      <section id="docs">
+        <div class="wrap">
+          <div class="head">
+            <span class="tag">Documentation map</span>
+            <h2>From first run to incident review</h2>
+            <p>
+              The site is a tour; these are the source of truth. Start with the
+              quickstart, keep the architecture open, then use the runbook when
+              a gate is red.
+            </p>
+          </div>
+          <div class="docgrid">
+            <a href="docs/QUICKSTART.md"
+              ><b>Start</b><span>QUICKSTART.md</span><small>run it locally, step by step</small></a
+            ><a href="ARCHITECTURE.md"
+              ><b>Blueprint</b><span>ARCHITECTURE.md</span><small>layers, ownership and gates</small></a
+            ><a href="docs/PIPELINE.md"
+              ><b>Flow</b><span>PIPELINE.md</span><small>the daily batch end to end</small></a
+            ><a href="docs/CONTRACTS.md"
+              ><b>Boundary</b><span>CONTRACTS.md</span><small>source to raw landing</small></a
+            ><a href="docs/DATA-QUALITY.md"
+              ><b>Gates</b><span>DATA-QUALITY.md</span><small>44 SQL checks and evidence</small></a
+            ><a href="docs/AIRFLOW.md"
+              ><b>Schedule</b><span>AIRFLOW.md</span><small>DAGs, pools and retries</small></a
+            ><a href="docs/AUDIT.md"
+              ><b>Evidence</b><span>AUDIT.md</span><small>watermarks and run lineage</small></a
+            ><a href="docs/DECISIONS.md"
+              ><b>Why</b><span>DECISIONS.md</span><small>alternatives considered</small></a
+            ><a href="docs/INSIGHTS.md"
+              ><b>Findings</b><span>INSIGHTS.md</span><small>questions answered from marts</small></a
+            ><a href="dashboard/README.md"
+              ><b>Dashboard</b><span>dashboard/README.md</span><small>Streamlit pages and setup</small></a
+            ><a href="docs/REPORTING.md"
+              ><b>Reports</b><span>REPORTING.md</span><small>dynamic PDFs and mail</small></a
+            ><a href="reports/README.md"
+              ><b>PDF builder</b><span>reports/README.md</span><small>templates and commands</small></a
+            ><a href="docs/DEPLOYMENT.md"
+              ><b>Release</b><span>DEPLOYMENT.md</span><small>environments and rollout</small></a
+            ><a href="docs/GITWORKFLOWS.md"
+              ><b>CI/CD</b><span>GITWORKFLOWS.md</span><small>branches, hooks and checks</small></a
+            ><a href="docs/TESTING.md"
+              ><b>Tests</b><span>TESTING.md</span><small>markers and test tiers</small></a
+            ><a href="docs/RUNBOOK.md"
+              ><b>Operate</b><span>RUNBOOK.md</span><small>daily checks and recovery</small></a
+            ><a href="docs/TROUBLESHOOTING.md"
+              ><b>Repair</b><span>TROUBLESHOOTING.md</span><small>common failures and fixes</small></a
+            ><a href="AGENTS.md"
+              ><b>Rules</b><span>AGENTS.md</span><small>how agents must work here</small></a
+            ><a href="CONTRIBUTING.md"
+              ><b>Contribute</b><span>CONTRIBUTING.md</span><small>branch and review policy</small></a
+            ><a href="SECURITY.md"
+              ><b>Security</b><span>SECURITY.md</span><small>reporting vulnerabilities</small></a
+            >
+          </div>
+          <p class="note">
+            Prefer the docs over copying commands from screenshots: every target
+            shown here is checked against the <a href="Makefile">Makefile</a>.
+          </p>
         </div>
       </section>
     </main>
