@@ -74,8 +74,6 @@
 
 ## Pipeline at a glance
 
-## Pipeline at a glance
-
 ```mermaid
 flowchart TB
     %% ───────── SOURCES ─────────
